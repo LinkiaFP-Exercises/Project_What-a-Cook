@@ -27,7 +27,7 @@ public class UserDTO {
     private String _id;
 
     @CreatedDate
-    private LocalDateTime registration;
+    private LocalDateTime registration = LocalDateTime.now();
 
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Properly formatted email is required", regexp = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+(?:.[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?.)+[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?")
