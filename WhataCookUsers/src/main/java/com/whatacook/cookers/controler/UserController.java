@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("")
 @Validated
-public class UserControler {
+public class UserController {
 
     private final UserService service;
 
-    public UserControler(UserService service) {
+    public UserController(UserService service) {
         this.service = service;
     }
 
@@ -29,19 +29,14 @@ public class UserControler {
         return service.readOne(userJson);
     }
 
-    @GetMapping("${app.endpoint.users}")
-    public Response readAll() {
-        return service.readAll(null);
-    }
-
     @PostMapping("${app.endpoint.users}")
     public Response create(@Valid @RequestBody UserJson userJson) {
         return service.createOne(userJson);
     }
 
     @PutMapping("${app.endpoint.users}")
-    public Response update(@RequestBody UserDTO user) {
-        return null;
+    public Response update(@RequestBody UserJson userJson) {
+        return service.updateOne(userJson);
     }
 
     @DeleteMapping("${app.endpoint.users}")

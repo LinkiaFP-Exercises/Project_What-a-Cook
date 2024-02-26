@@ -10,13 +10,10 @@ public sealed interface UserAccessContractModel extends UserDetailsService permi
 
     public Response createOne(UserJson userJson);
 
-    public Response readAll(UserJson userJson);
-
     public Response readOne(UserJson userJson);
 
     public Response updateOne(UserJson userJson);
 
     public Response deleteOne(UserJson userJson);
 
-    public Response deleteAll(UserJson userJson);
 }

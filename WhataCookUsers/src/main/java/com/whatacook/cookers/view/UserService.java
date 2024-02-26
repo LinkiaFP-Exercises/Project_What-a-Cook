@@ -15,15 +15,16 @@ import static com.whatacook.cookers.utilities.Util.msgError;
 @Service
 public final class UserService implements UserAccessContractModel {
     private final ServiceComponentToFind service;
-
     private final ServiceComponentToLogin login;
-
     private final ServiceComponentToSave save;
+    private final ServiceComponentToUpdate update;
 
-    public UserService(ServiceComponentToFind service, ServiceComponentToLogin login, ServiceComponentToSave save) {
+    public UserService(ServiceComponentToFind service, ServiceComponentToLogin login,
+                       ServiceComponentToSave save, ServiceComponentToUpdate update) {
         this.service = service;
         this.login = login;
         this.save = save;
+        this.update = update;
     }
 
     @Override
@@ -31,15 +32,13 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("FIND IF EXISTS a User by e-mail"));
 
         try {
-
-            boolean alreadyExists = service.checkIfExistsByEmail(userJson).block();
+            boolean alreadyExists = service.checkIfExistsByEmail(userJson)
+                                                .blockOptional().orElse(false);
 
             response = (alreadyExists) ? success("User already exists", true)
                     : success("User does not exist yet", false);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
         }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -49,18 +48,11 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("CREATE a User"));
 
         try {
-
             UserJson saved = save.saveUser(userJson).block();
-
             response = success("User successfully created", saved);
-
-        } catch (UserServiceException e) {
-            response = error(e.getMessage(), e.getErrors());
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-
         }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -70,30 +62,10 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("READ a User"));
 
         try {
-
-            //noinspection SpellCheckingInspection
-            UserJson finded = service.findUserByEmail(userJson).block();
-
-            response = success("Player successfully created", finded);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            UserJson found = service.findUserByEmail(userJson).block();
+            response = success("Player successfully created", found);
         }
-
-        return response;
-    }
-
-    @Override
-    public Response readAll(UserJson userJson) {
-        Response response = error(msgError("READ all Users"));
-
-        try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-        }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -120,39 +92,16 @@ public final class UserService implements UserAccessContractModel {
 
             response = success("Player successfully created", null);
 
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-        }
-
-        return response;
-    }
-
-    @Override
-    public Response deleteAll(UserJson userJson) {
-        Response response = error(msgError("DELETE all Users"));
-
-        try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-        }
+        } catch (Exception e) {response.addMessage(e.getMessage());}
 
         return response;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-
         try {
-
             return login.validSpringUserToLogin(UserDTO.justWithMail(email));
-
-        } catch (Exception e) {
-            throw new UsernameNotFoundException(email);
-        }
-
+        } catch (Exception e) { throw new UsernameNotFoundException(email); }
     }
 
 }
