@@ -89,10 +89,13 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("DELETE a User"));
 
         try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {response.addMessage(e.getMessage());}
+            response = delete.proceedIfApplicable(userJson)
+                    .map(deleted -> deleted
+                            ? success("User no longer exists", true)
+                            : success("User appears to be resistant", false))
+                    .block();
+        }
+        catch (Exception e) {response.addMessage(e.getMessage());}
 
         return response;
     }
