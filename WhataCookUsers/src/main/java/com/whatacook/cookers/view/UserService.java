@@ -14,17 +14,19 @@ import static com.whatacook.cookers.utilities.Util.msgError;
 
 @Service
 public final class UserService implements UserAccessContractModel {
-    private final ServiceComponentToFind service;
-    private final ServiceComponentToLogin login;
-    private final ServiceComponentToSave save;
+    private final ServiceComponentToSave create;
+    private final ServiceComponentToFind read;
     private final ServiceComponentToUpdate update;
+    private final ServiceComponentToDelete delete;
+    private final ServiceComponentToLogin login;
 
-    public UserService(ServiceComponentToFind service, ServiceComponentToLogin login,
-                       ServiceComponentToSave save, ServiceComponentToUpdate update) {
-        this.service = service;
-        this.login = login;
-        this.save = save;
+    public UserService(ServiceComponentToSave create, ServiceComponentToFind read, ServiceComponentToUpdate update,
+                                    ServiceComponentToDelete delete, ServiceComponentToLogin login) {
+        this.create = create;
+        this.read = read;
         this.update = update;
+        this.delete = delete;
+        this.login = login;
     }
 
     @Override
@@ -32,11 +34,11 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("FIND IF EXISTS a User by e-mail"));
 
         try {
-            boolean alreadyExists = service.checkIfExistsByEmail(userJson)
-                                                .blockOptional().orElse(false);
-
-            response = (alreadyExists) ? success("User already exists", true)
-                    : success("User does not exist yet", false);
+            response = read.checkIfExistsByEmail(userJson)
+                    .map(alreadyExists -> alreadyExists
+                            ? success("User already exists", true)
+                            : success("User does not exist yet", false))
+                    .block();
         }
         catch (Exception e) { response.addMessage(e.getMessage()); }
 
@@ -48,8 +50,10 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("CREATE a User"));
 
         try {
-            UserJson saved = save.saveUser(userJson).block();
-            response = success("User successfully created", saved);
+            response = create.saveUser(userJson)
+                    .map(saved ->
+                            success("User successfully created", saved))
+                    .block();
         }
         catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
         catch (Exception e) { response.addMessage(e.getMessage()); }
@@ -62,8 +66,10 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("READ a User"));
 
         try {
-            UserJson found = service.findUserByEmail(userJson).block();
-            response = success("Player successfully created", found);
+            response = read.findUserByEmail(userJson)
+                    .map(found ->
+                            success("Player successfully read", found))
+                    .block();
         }
         catch (Exception e) { response.addMessage(e.getMessage()); }
 
@@ -75,8 +81,10 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("UPDATE a User"));
 
         try {
-            UserJson updated = update.updateUser(userJson).block();
-            response = success("Player successfully UPDATE", updated);
+            response = update.updateUser(userJson)
+                    .map(updated ->
+                            success("Player successfully UPDATE", updated))
+                    .block();
         }
         catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
         catch (Exception e) { response.addMessage(e.getMessage()); }
