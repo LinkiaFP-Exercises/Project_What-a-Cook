@@ -103,12 +103,11 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("UPDATE a User"));
 
         try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            UserJson updated = update.updateUser(userJson).block();
+            response = success("Player successfully UPDATE", updated);
         }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
