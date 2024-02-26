@@ -23,19 +23,15 @@ public class ServiceComponentToSave {
         this.DAO = DAO;
     }
 
-    Mono<UserJson> saveUser(@Valid UserJson userJson) throws UserServiceException {
-        Map<String, String> validationErrors = validateUserJson(userJson);
-
-        if (!validationErrors.isEmpty())
-            throw UserServiceException.withErrors("Look in content for errors", validationErrors);
-
-        checkEmailNotRegistered(userJson.getEmail());
-
-        return saveUserByJsonReturnJson(userJson);
+    public Mono<UserJson> saveUser(@Valid UserJson userJson) {
+        return Mono.just(userJson)
+                .flatMap(this::validateAttributesInUserJson)
+                .flatMap(this::checkEmailNotRegistered)
+                .then(saveUserByJsonReturnJson(userJson));
     }
 
-    private Map<String, String> validateUserJson(UserJson userJson) {
-        Map<String, String> errors = new LinkedHashMap<>();
+    private Mono<UserJson> validateAttributesInUserJson(UserJson userJson) {
+        Map<String, Object> errors = new LinkedHashMap<>();
 
         if (isNullOrEmpty(userJson.getEmail()))
             errors.put("email", "E-mail is missing!");
@@ -50,21 +46,25 @@ public class ServiceComponentToSave {
         if (notValidBirthdate(userJson.getBirthdate()))
             errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD'!");
 
-        return errors;
+        if (!errors.isEmpty()) {
+            return Mono.error(
+                    UserServiceException.pull("Look in content for errors", errors));
+        }
+
+        return Mono.just(userJson);
     }
 
-    private Mono<Void> checkEmailNotRegistered(String email) {
-        return DAO.existsByEmail(email)
+    private Mono<Void> checkEmailNotRegistered(UserJson userJson) {
+        return DAO.existsByEmail(userJson.getEmail())
                 .flatMap(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
-                        Map<String, String> errors = new LinkedHashMap<>();
+                        Map<String, Object> errors = new LinkedHashMap<>();
                         errors.put("email", "This email is already registered!");
-                        return Mono.error(UserServiceException.withErrors("Look in content for errors", errors));
+                        return Mono.error(UserServiceException.pull("Look in content for errors", errors));
                     }
                     return Mono.empty();
                 });
     }
-
 
     private Mono<UserJson> saveUserByJsonReturnJson(UserJson userJson) {
         userJson.setFirstName(TitleCase(userJson.getFirstName()));
@@ -73,6 +73,5 @@ public class ServiceComponentToSave {
         return DAO.save(userToSave)
                 .map(UserDTO::toJson);
     }
-
 
 }
