@@ -45,7 +45,6 @@ public class UserDTO {
 
     private AccountStatus accountStatus = AccountStatus.PENDING;
 
-    @Setter(AccessLevel.NONE)
     private LocalDateTime requestDeleteDate;
 
     public static UserDTO justWithMail(String email) {
@@ -58,36 +57,4 @@ public class UserDTO {
         return UserJson.from(this);
     }
 
-    public final void setAccountStatus(AccountStatus status) {
-        // Condiciones para cambiar a REQUEST_DELETE y establecer fecha.
-        if (status == AccountStatus.REQUEST_DELETE && requestDeleteDate == null) {
-            this.accountStatus = status;
-            this.requestDeleteDate = LocalDateTime.now();
-            return; // Termina la ejecución para evitar chequeos innecesarios.
-        }
-
-        // Condición para cambiar a MARKED_DELETE después de 30 días.
-        if (this.accountStatus == AccountStatus.REQUEST_DELETE && requestDeleteDate != null
-                && ChronoUnit.DAYS.between(requestDeleteDate, LocalDateTime.now()) > 30) {
-            this.accountStatus = AccountStatus.MARKED_DELETE;
-            return; // Termina la ejecución para evitar chequeos innecesarios.
-        }
-
-        // Permite revertir el REQUEST_DELETE dentro de los 30 días si el nuevo estado
-        // es permitido.
-        if (this.accountStatus == AccountStatus.REQUEST_DELETE && requestDeleteDate != null
-                && ChronoUnit.DAYS.between(requestDeleteDate, LocalDateTime.now()) <= 30
-                && EnumSet.of(AccountStatus.PENDING, AccountStatus.OK, AccountStatus.OFF, AccountStatus.OUTDATED)
-                .contains(status)) {
-            this.requestDeleteDate = null;
-            this.accountStatus = status;
-            return; // Termina la ejecución para evitar chequeos innecesarios.
-        }
-
-        // Condiciones para cambiar a DELETE después de un año como MARKED_DELETE.
-        if (status == AccountStatus.MARKED_DELETE && requestDeleteDate != null
-                && ChronoUnit.DAYS.between(requestDeleteDate, LocalDateTime.now()) > 365) {
-            this.accountStatus = AccountStatus.DELETE;
-        }
-    }
 }

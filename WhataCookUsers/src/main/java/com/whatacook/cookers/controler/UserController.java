@@ -40,10 +40,7 @@ public class UserController {
     }
 
     @DeleteMapping("${app.endpoint.users}")
-    public Response deleteOne(@RequestBody UserDTO user) {
-        return null;
-
-    }
+    public Response deleteOne(@RequestBody UserJson userJson) { return service.deleteOne(userJson); }
 
 }
 
