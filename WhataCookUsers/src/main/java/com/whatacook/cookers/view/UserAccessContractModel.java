@@ -2,18 +2,19 @@ package com.whatacook.cookers.view;
 
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public sealed interface UserAccessContractModel extends UserDetailsService permits UserService {
 
-    public Response existsByEmail(UserJson userJson);
+    Response existsByEmail(UserJson userJson);
 
-    public Response createOne(UserJson userJson);
+    Response createOne(UserJustToSave userJson);
 
-    public Response readOne(UserJson userJson);
+    Response readOne(UserJson userJson);
 
-    public Response updateOne(UserJson userJson);
+    Response updateOne(UserJson userJson);
 
-    public Response deleteOne(UserJson userJson);
+    Response deleteOne(UserJson userJson);
 
 }

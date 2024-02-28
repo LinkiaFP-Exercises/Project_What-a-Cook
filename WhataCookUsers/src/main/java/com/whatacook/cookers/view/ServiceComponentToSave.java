@@ -3,6 +3,7 @@ package com.whatacook.cookers.view;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.model.users.UserJustToSave;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -23,14 +24,14 @@ public class ServiceComponentToSave {
         this.DAO = DAO;
     }
 
-    public Mono<UserJson> saveUser(@Valid UserJson userJson) {
+    public Mono<UserJson> saveUser(@Valid UserJustToSave userJson) {
         return Mono.just(userJson)
                 .flatMap(this::validateAttributesInUserJson)
                 .flatMap(this::checkEmailNotRegistered)
                 .then(saveUserByJsonReturnJson(userJson));
     }
 
-    private Mono<UserJson> validateAttributesInUserJson(UserJson userJson) {
+    private Mono<UserJustToSave> validateAttributesInUserJson(UserJustToSave userJson) {
         Map<String, Object> errors = new LinkedHashMap<>();
 
         if (isNullOrEmpty(userJson.getEmail()))
@@ -44,7 +45,7 @@ public class ServiceComponentToSave {
         if (isNullOrEmpty(userJson.getSurNames()))
             errors.put("surNames", "Last Name is missing!");
         if (notValidBirthdate(userJson.getBirthdate()))
-            errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD'!");
+            errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD' and more than 7 years!");
 
         if (!errors.isEmpty()) {
             return Mono.error(
@@ -54,7 +55,7 @@ public class ServiceComponentToSave {
         return Mono.just(userJson);
     }
 
-    private Mono<Void> checkEmailNotRegistered(UserJson userJson) {
+    private Mono<Void> checkEmailNotRegistered(UserJustToSave userJson) {
         return DAO.existsByEmail(userJson.getEmail())
                 .flatMap(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
@@ -66,7 +67,7 @@ public class ServiceComponentToSave {
                 });
     }
 
-    private Mono<UserJson> saveUserByJsonReturnJson(UserJson userJson) {
+    private Mono<UserJson> saveUserByJsonReturnJson(UserJustToSave userJson) {
         userJson.setFirstName(TitleCase(userJson.getFirstName()));
         userJson.setSurNames(TitleCase(userJson.getSurNames()));
         UserDTO userToSave = userJson.toUserDTO();

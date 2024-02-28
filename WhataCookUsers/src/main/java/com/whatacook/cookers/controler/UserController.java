@@ -1,8 +1,8 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.responses.Response;
-import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.model.users.UserJustToSave;
 import com.whatacook.cookers.view.UserService;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("${app.endpoint.users}")
-    public Response create(@Valid @RequestBody UserJson userJson) {
+    public Response create(@Valid @RequestBody UserJustToSave userJson) {
         return service.createOne(userJson);
     }
 

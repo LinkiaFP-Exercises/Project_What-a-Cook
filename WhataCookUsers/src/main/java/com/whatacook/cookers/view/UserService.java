@@ -4,9 +4,13 @@ import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.success;
@@ -46,7 +50,7 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public Response createOne(UserJson userJson) {
+    public Response createOne(UserJustToSave userJson) {
         Response response = error(msgError("CREATE a User"));
 
         try {
