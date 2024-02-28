@@ -1,5 +1,6 @@
 package com.whatacook.cookers.view;
 
+import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import jakarta.validation.Valid;
@@ -27,12 +28,19 @@ public class ServiceComponentToLogin {
 
     UserDetails validSpringUserToLogin(@Valid UserDTO userDTO) {
         return findUserByEmail(userDTO.getEmail())
-                    .map(this::newValidUserBy).block();
+                    .map(this::newValidUserBy)
+                .block();
     }
 
     private Mono<UserDTO> findUserByEmail(String email) {
         return DAO.findByEmail(email)
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")));
+                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")))
+                .flatMap(userDTO -> {
+                    if (userDTO.getAccountStatus().equals(AccountStatus.OK))
+                        return Mono.just(userDTO);
+                    else
+                        return Mono.error(new UserServiceException(userDTO.getAccountStatus().getDetails()));
+                });
     }
 
     private UserDetails newValidUserBy(UserDTO userDTO) {
