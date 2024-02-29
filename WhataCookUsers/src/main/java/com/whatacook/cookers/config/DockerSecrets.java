@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class dockerSecrets {
+public class DockerSecrets {
     public static String readSecret(String secrect, String fallbackEnv) throws IOException {
         try {
             return new String(Files.readAllBytes(Paths.get(rootPath + secrect))).trim();
