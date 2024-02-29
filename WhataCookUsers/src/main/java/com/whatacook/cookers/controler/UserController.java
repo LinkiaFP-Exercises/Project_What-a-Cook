@@ -11,7 +11,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("")
 @Validated
 public class UserController {
 
@@ -23,7 +22,7 @@ public class UserController {
 
     @PostMapping("${security.jwt.sign-in-url}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Response create(@Valid @RequestBody UserJustToSave userJson) { return service.createOne(userJson); }
+    public Response register(@Valid @RequestBody UserJustToSave userJson) { return service.createOne(userJson); }
 
     @GetMapping("${app.endpoint.users-check-email}")
     public Response existsByEmail(@Valid @RequestBody UserJson userJson) {
@@ -32,15 +31,11 @@ public class UserController {
 
     @GetMapping("${app.endpoint.find-by-email}")
     @PreAuthorize("hasRole('USER')")
-    public Response readOne(@Valid @RequestBody UserJson userJson) {
-        return service.readOne(userJson);
-    }
+    public Response readOne(@Valid @RequestBody UserJson userJson) { return service.readOne(userJson); }
 
     @PutMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
-    public Response update(@RequestBody UserJson userJson) {
-        return service.updateOne(userJson);
-    }
+    public Response update(@RequestBody UserJson userJson) { return service.updateOne(userJson); }
 
     @DeleteMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
