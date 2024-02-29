@@ -48,7 +48,8 @@ public class SecurityConfig {
     @Value("${app.endpoint.users-check-email}")
     private String pathToCheckIfEmailAlreadyExists;
 
-    public SecurityConfig(JwtTokenUtil jwtTokenUtil, JwtRequestFilter jwtRequestFilter, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, UserService userService) {
+    public SecurityConfig(JwtTokenUtil jwtTokenUtil, JwtRequestFilter jwtRequestFilter,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, UserService userService) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.jwtRequestFilter = jwtRequestFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;

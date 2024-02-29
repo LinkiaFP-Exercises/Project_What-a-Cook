@@ -9,9 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.success;
 import static com.whatacook.cookers.utilities.Util.msgError;

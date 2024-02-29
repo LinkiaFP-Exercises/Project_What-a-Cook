@@ -1,6 +1,8 @@
 package com.whatacook.cookers.config.jwt;
 
+import com.whatacook.cookers.model.auth.AuthRequestDto;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
@@ -11,9 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Getter @Setter @ToString
@@ -34,49 +34,56 @@ public final class JwtTokenUtil {
         return Keys.hmacShaKeyFor(this.secret.getBytes());
     }
 
-    public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
-    }
+    public String getUsernameFromToken(String token) { return getClaimFromToken(token, Claims::getSubject); }
 
-    // retrieve expiration date from jwt token
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+    private  <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
 
-    // for retrieving any information from token, we will need the secret key
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(getSecretKey()).build()
+                .parseSignedClaims(token.replace(prefix, "")).getPayload();
     }
 
-    // check if the token has expired
-    private Boolean isTokenExpired(String token) {
+    private Boolean isExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    // generate token for user
-    public String generateToken(String username) {
+    public String generateToken(AuthRequestDto AuthRequestDto) {
         Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, username);
+        return doGenerateToken(claims, AuthRequestDto.getUsername());
     }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
+                .audience().add(audience).and()
+                .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSecretKey()).compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public boolean hasToken(String token) { return token != null; }
+
+    public String extractPrefix(String token) { return token.replace(prefix, ""); }
+
+    public Boolean isValidToken(String token) {
+        if (!token.startsWith(prefix)) throw new JwtException("This Token is not Bearer");
+        else if (token.split("\\.").length != 3) throw new JwtException("This Token is not ours");
+        else if (isExpired(token)) throw new JwtException("This Token has Expired");
+        else return true;
     }
+
+    public Boolean verifyUserFromToken(String token, UserDetails userDetails) {
+        return (getUsernameFromToken(token).equals(userDetails.getUsername()));
+    }
+
 }
