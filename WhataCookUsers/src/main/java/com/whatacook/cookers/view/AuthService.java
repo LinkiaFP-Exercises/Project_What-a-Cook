@@ -1,6 +1,6 @@
 package com.whatacook.cookers.view;
 
-import com.whatacook.cookers.config.jwt.JwtTokenUtil;
+import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.model.auth.AuthRequestDto;
 import com.whatacook.cookers.model.responses.Response;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +19,11 @@ import static com.whatacook.cookers.utilities.Util.msgError;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtUtil jwtUtil;
 
-    public AuthService(AuthenticationManager authenticationManager, JwtTokenUtil jwtTokenUtil) {
+    public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.jwtUtil = jwtUtil;
     }
 
     public ResponseEntity<?> authenticationByLogin(AuthRequestDto AuthRequestDto) {
@@ -34,7 +34,7 @@ public class AuthService {
         try {
             authenticate(AuthRequestDto);
             responseEntity = ResponseEntity.ok(
-                    Response.success("TOKEN", jwtTokenUtil.generateToken(AuthRequestDto)));
+                    Response.success("TOKEN", jwtUtil.generateToken(AuthRequestDto)));
         } catch (Exception e) {
             response.addMessage(e.getMessage());
         }

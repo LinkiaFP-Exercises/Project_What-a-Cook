@@ -1,5 +1,6 @@
 package com.whatacook.cookers.model.exceptions;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,10 +27,15 @@ public final class UserServiceException extends RuntimeException {
         this.errors = errors;
     }
 
+    @NotNull
     public static UserServiceException pull(String message) {
         return new UserServiceException(message);
     }
+    public static void throwUp(String message) {
+        throw new UserServiceException(message);
+    }
 
+    @NotNull
     public static UserServiceException pull(String message, Map<String, Object> errors) {
         return new UserServiceException(message, errors);
     }

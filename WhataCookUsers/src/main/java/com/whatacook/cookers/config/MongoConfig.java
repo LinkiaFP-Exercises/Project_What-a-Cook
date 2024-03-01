@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Configuration
 @EnableMongoAuditing
-public class MongoSecrets {
+public class MongoConfig {
 
     @PostConstruct
     public void init() {
@@ -18,9 +18,9 @@ public class MongoSecrets {
             String PASS = "MONGODB_USER_CLUSTER";
             String BBDD = "MONGODB_USER_CLUSTER";
 
-            String mongoUser = DockerSecrets.readSecret(USER, USER);
-            String mongoPass = DockerSecrets.readSecret(PASS, PASS);
-            String mongoDb = DockerSecrets.readSecret(BBDD, BBDD);
+            String mongoUser = DockerConfig.readSecret(USER);
+            String mongoPass = DockerConfig.readSecret(PASS);
+            String mongoDb = DockerConfig.readSecret(BBDD);
 
             if (StringUtils.hasText(mongoUser) && StringUtils.hasText(mongoPass) && StringUtils.hasText(mongoDb)) {
                 System.setProperty("MONGODB_USER_CLUSTER", mongoUser.trim());

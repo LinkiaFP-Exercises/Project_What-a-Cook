@@ -24,6 +24,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public Response register(@Valid @RequestBody UserJustToSave userJson) { return service.createOne(userJson); }
 
+    @GetMapping("${app.endpoint.users-activate}")
+    @ResponseStatus(HttpStatus.OK)
+    public Response activate(@Valid @RequestParam("token") String token) { return service.activateAccount(token); }
+
     @GetMapping("${app.endpoint.users-check-email}")
     public Response existsByEmail(@Valid @RequestBody UserJson userJson) {
         return service.existsByEmail(userJson);

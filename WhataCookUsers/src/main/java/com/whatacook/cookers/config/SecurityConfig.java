@@ -2,7 +2,7 @@ package com.whatacook.cookers.config;
 
 import com.whatacook.cookers.config.jwt.JwtAuthenticationEntryPoint;
 import com.whatacook.cookers.config.jwt.JwtRequestFilter;
-import com.whatacook.cookers.config.jwt.JwtTokenUtil;
+import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.view.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,10 +31,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtTokenUtil.class)
+@EnableConfigurationProperties(JwtUtil.class)
 public class SecurityConfig {
 
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtUtil jwtUtil;
 
     private final JwtRequestFilter jwtRequestFilter;
 
@@ -48,9 +48,9 @@ public class SecurityConfig {
     @Value("${app.endpoint.users-check-email}")
     private String pathToCheckIfEmailAlreadyExists;
 
-    public SecurityConfig(JwtTokenUtil jwtTokenUtil, JwtRequestFilter jwtRequestFilter,
+    public SecurityConfig(JwtUtil jwtUtil, JwtRequestFilter jwtRequestFilter,
                           JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, UserService userService) {
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.jwtUtil = jwtUtil;
         this.jwtRequestFilter = jwtRequestFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.userService = userService;
@@ -72,8 +72,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests ->
                         requests
                                 .requestMatchers(HttpMethod.GET, pathToCheckIfEmailAlreadyExists).permitAll()
-                                .requestMatchers(HttpMethod.POST, jwtTokenUtil.getLoginUrl()).permitAll()
-                                .requestMatchers(HttpMethod.POST, jwtTokenUtil.getSignInUrl()).permitAll()
+                                .requestMatchers(HttpMethod.POST, jwtUtil.getLoginUrl()).permitAll()
+                                .requestMatchers(HttpMethod.POST, jwtUtil.getSignInUrl()).permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -87,8 +87,8 @@ public class SecurityConfig {
     @Bean
     WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring()
-                .requestMatchers(HttpMethod.POST, jwtTokenUtil.getLoginUrl())
-                .requestMatchers(HttpMethod.POST, jwtTokenUtil.getSignInUrl())
+                .requestMatchers(HttpMethod.POST, jwtUtil.getLoginUrl())
+                .requestMatchers(HttpMethod.POST, jwtUtil.getSignInUrl())
                 .requestMatchers(HttpMethod.GET, pathToCheckIfEmailAlreadyExists);
     }
 

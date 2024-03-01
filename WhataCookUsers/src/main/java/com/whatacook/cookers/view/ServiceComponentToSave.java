@@ -19,32 +19,35 @@ import static com.whatacook.cookers.utilities.Util.*;
 public class ServiceComponentToSave {
 
     private final UserDAO DAO;
+    private final EmailService emailService;
 
-    public ServiceComponentToSave(UserDAO DAO)  {
+    public ServiceComponentToSave(UserDAO DAO, EmailService emailService)  {
         this.DAO = DAO;
+        this.emailService = emailService;
     }
 
-    public Mono<UserJson> saveUser(@Valid UserJustToSave userJson) {
-        return Mono.just(userJson)
+    public Mono<UserJson> saveUser(@Valid UserJustToSave userJustToSave) {
+        return Mono.just(userJustToSave)
                 .flatMap(this::validateAttributesInUserJson)
                 .flatMap(this::checkEmailNotRegistered)
-                .then(saveUserByJsonReturnJson(userJson));
+                .flatMap(this::saveUserByJtsReturnDto)
+                .flatMap(emailService::sendActivationEmail);
     }
 
-    private Mono<UserJustToSave> validateAttributesInUserJson(UserJustToSave userJson) {
+    private Mono<UserJustToSave> validateAttributesInUserJson(UserJustToSave userJustToSave) {
         Map<String, Object> errors = new LinkedHashMap<>();
 
-        if (isNullOrEmpty(userJson.getEmail()))
+        if (isNullOrEmpty(userJustToSave.getEmail()))
             errors.put("email", "E-mail is missing!");
-        if (notValidEmail(userJson.getEmail()))
+        if (notValidEmail(userJustToSave.getEmail()))
             errors.put("email", "This email has invalid format!");
-        if (isNullOrEmpty(userJson.getPassword()))
+        if (isNullOrEmpty(userJustToSave.getPassword()))
             errors.put("password", "Password is missing!");
-        if (isNullOrEmpty(userJson.getFirstName()))
+        if (isNullOrEmpty(userJustToSave.getFirstName()))
             errors.put("firstName", "First Name is missing!");
-        if (isNullOrEmpty(userJson.getSurNames()))
+        if (isNullOrEmpty(userJustToSave.getSurNames()))
             errors.put("surNames", "Last Name is missing!");
-        if (notValidBirthdate(userJson.getBirthdate()))
+        if (notValidBirthdate(userJustToSave.getBirthdate()))
             errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD' and more than 7 years!");
 
         if (!errors.isEmpty()) {
@@ -52,27 +55,27 @@ public class ServiceComponentToSave {
                     UserServiceException.pull("Look in content for errors", errors));
         }
 
-        return Mono.just(userJson);
+        return Mono.just(userJustToSave);
     }
 
-    private Mono<Void> checkEmailNotRegistered(UserJustToSave userJson) {
-        return DAO.existsByEmail(userJson.getEmail())
+    private Mono<UserJustToSave> checkEmailNotRegistered(UserJustToSave userJustToSave) {
+        return DAO.existsByEmail(userJustToSave.getEmail())
                 .flatMap(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
                         Map<String, Object> errors = new LinkedHashMap<>();
                         errors.put("email", "This email is already registered!");
                         return Mono.error(UserServiceException.pull("Look in content for errors", errors));
                     }
-                    return Mono.empty();
+                    return Mono.just(userJustToSave);
                 });
     }
 
-    private Mono<UserJson> saveUserByJsonReturnJson(UserJustToSave userJson) {
-        userJson.setFirstName(TitleCase(userJson.getFirstName()));
-        userJson.setSurNames(TitleCase(userJson.getSurNames()));
-        UserDTO userToSave = userJson.toUserDTO();
+    private Mono<UserDTO> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
+        userJustToSave.setFirstName(TitleCase(userJustToSave.getFirstName()));
+        userJustToSave.setSurNames(TitleCase(userJustToSave.getSurNames()));
+        UserDTO userToSave = userJustToSave.toUserDTO();
         return DAO.save(userToSave)
-                .map(UserDTO::toJson);
+                .doOnError(throwable -> UserServiceException.throwUp(throwable.getMessage()));
     }
 
 }

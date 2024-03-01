@@ -15,16 +15,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final UserService userService;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtUtil jwtUtil;
 
-    public JwtRequestFilter(UserService userService, JwtTokenUtil jwtTokenUtil) {
+    public JwtRequestFilter(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
-        this.jwtTokenUtil = jwtTokenUtil;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -32,16 +33,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String requestTokenHeader = request.getHeader(jwtTokenUtil.getHeader());
+        final String requestToken = catchTokenFromHeaderOrParameter(request);
 
-        String username = null;
+        String userEmailOrId = null;
         String jwtToken = null;
 
-        if (jwtTokenUtil.hasToken(requestTokenHeader)) {
+        if (jwtUtil.hasToken(requestToken)) {
             try {
-                if (jwtTokenUtil.isValidToken(requestTokenHeader)) {
-                    jwtToken = jwtTokenUtil.extractPrefix(requestTokenHeader);
-                    username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                if (jwtUtil.isValidToken(requestToken)) {
+                    jwtToken = jwtUtil.extractPrefix(requestToken);
+                    userEmailOrId = jwtUtil.getUsernameFromToken(jwtToken);
                 }
             }
             catch (IllegalArgumentException e) { logger.error("Unable to get JWT Token"); }
@@ -49,11 +50,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             catch (Exception e) { logger.error(e.getMessage()); }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userEmailOrId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.userService.loadUserByUsername(userEmailOrId);
 
-            UserDetails userDetails = this.userService.loadUserByUsername(username);
-
-            if (jwtTokenUtil.verifyUserFromToken(jwtToken, userDetails)) {
+            if (jwtUtil.verifyUserFromToken(jwtToken, userDetails)) {
 
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(
@@ -68,6 +68,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
 
+    }
+
+    private String catchTokenFromHeaderOrParameter(HttpServletRequest request){
+        return (request.getHeader(jwtUtil.getHeader()) == null)
+                ? String.format("Bearer %s", request.getParameter("token"))
+                : request.getHeader(jwtUtil.getHeader());
     }
 
 }

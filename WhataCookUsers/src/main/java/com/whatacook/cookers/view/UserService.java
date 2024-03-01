@@ -20,14 +20,16 @@ public final class UserService implements UserAccessContractModel {
     private final ServiceComponentToUpdate update;
     private final ServiceComponentToDelete delete;
     private final ServiceComponentToLogin login;
+    private final ServiceComponentToActivate activate;
 
     public UserService(ServiceComponentToSave create, ServiceComponentToFind read, ServiceComponentToUpdate update,
-                                    ServiceComponentToDelete delete, ServiceComponentToLogin login) {
+                       ServiceComponentToDelete delete, ServiceComponentToLogin login, ServiceComponentToActivate activate) {
         this.create = create;
         this.read = read;
         this.update = update;
         this.delete = delete;
         this.login = login;
+        this.activate = activate;
     }
 
     @Override
@@ -54,6 +56,21 @@ public final class UserService implements UserAccessContractModel {
             response = create.saveUser(userJson)
                     .map(saved ->
                             success("User successfully created", saved))
+                    .block();
+        }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
+
+        return response;
+    }
+
+    public Response activateAccount(String token) {
+        Response response = error(msgError("ACTIVATE a User"));
+
+        try {
+            response = activate.userByTokenSentByEmail(token)
+                    .map(activated ->
+                            success("Account successfully activated", activated))
                     .block();
         }
         catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
@@ -106,10 +123,10 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String userEmailOrId) throws UsernameNotFoundException {
         try {
-            return login.validSpringUserToLogin(UserDTO.justWithMail(email));
-        } catch (Exception e) { throw new UsernameNotFoundException(email); }
+            return login.validSpringUserToLogin(userEmailOrId);
+        } catch (Exception e) { throw new UsernameNotFoundException(userEmailOrId); }
     }
 
 }

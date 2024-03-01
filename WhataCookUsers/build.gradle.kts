@@ -21,6 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-web-services")
+    implementation ("org.springframework.boot:spring-boot-starter-mail:3.2.3")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     compileOnly("org.projectlombok:lombok")

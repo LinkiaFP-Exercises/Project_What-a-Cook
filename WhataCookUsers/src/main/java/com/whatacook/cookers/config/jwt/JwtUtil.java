@@ -1,6 +1,7 @@
 package com.whatacook.cookers.config.jwt;
 
 import com.whatacook.cookers.model.auth.AuthRequestDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 
 @Getter @Setter @ToString
 @ConfigurationProperties(prefix = "security.jwt")
-public final class JwtTokenUtil {
+public final class JwtUtil {
 
     private String loginUrl;
     private String signInUrl;
@@ -33,6 +34,8 @@ public final class JwtTokenUtil {
     public SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(this.secret.getBytes());
     }
+
+    public String getIdFromToken(String token) { return getUsernameFromToken(token); }
 
     public String getUsernameFromToken(String token) { return getClaimFromToken(token, Claims::getSubject); }
 
@@ -59,6 +62,15 @@ public final class JwtTokenUtil {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, AuthRequestDto.getUsername());
     }
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return doGenerateToken(claims, username);
+    }
+    public String generateToken(UserDTO userDTO) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("ID", userDTO.get_id());
+        return doGenerateToken(claims, userDTO.getEmail());
+    }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
@@ -73,7 +85,7 @@ public final class JwtTokenUtil {
 
     public boolean hasToken(String token) { return token != null; }
 
-    public String extractPrefix(String token) { return token.replace(prefix, ""); }
+    public String extractPrefix(String token) { return token.substring(7); }
 
     public Boolean isValidToken(String token) {
         if (!token.startsWith(prefix)) throw new JwtException("This Token is not Bearer");
