@@ -27,7 +27,7 @@ public class ServiceComponentToLogin {
         this.DAO = DAO;
     }
 
-    UserDetails validSpringUserToLogin(String userEmailOrId) {
+    Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
         return Mono.just(userEmailOrId)
                 .flatMap(info -> {
                     if (Util.isValidEmail(info))
@@ -35,8 +35,7 @@ public class ServiceComponentToLogin {
                     else {
                         return findUserById(info);
                     }
-                })
-                .block();
+                });
     }
     private Mono<UserDetails> findUserByEmail(String email) {
         return DAO.findByEmail(email)

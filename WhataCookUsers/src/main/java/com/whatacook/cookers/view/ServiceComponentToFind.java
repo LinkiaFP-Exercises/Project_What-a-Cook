@@ -35,4 +35,11 @@ public class ServiceComponentToFind {
     }
 
 
+    public Mono<UserDTO> justFindByEmail(String email) {
+        return Mono.just(email)
+                .filter(Util::isValidEmail)
+                .flatMap(DAO::findByEmail)
+                    .switchIfEmpty(Mono.error(new UserServiceException("This player does not exist or email is invalid!")));
+
+    }
 }

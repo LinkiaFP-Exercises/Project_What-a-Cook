@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.util.*;
@@ -24,6 +25,7 @@ public final class JwtUtil {
     private String loginUrl;
     private String signInUrl;
     private String header;
+    private String activation;
     private String prefix;
     private String issuer;
     private String audience;
@@ -83,7 +85,7 @@ public final class JwtUtil {
                 .signWith(getSecretKey()).compact();
     }
 
-    public boolean hasToken(String token) { return token != null; }
+    public boolean hasToken(String token) { return StringUtils.hasText(token); }
 
     public String extractPrefix(String token) { return token.substring(7); }
 

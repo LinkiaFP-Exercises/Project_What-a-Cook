@@ -26,7 +26,11 @@ public class UserController {
 
     @GetMapping("${app.endpoint.users-activate}")
     @ResponseStatus(HttpStatus.OK)
-    public Response activate(@Valid @RequestParam("token") String token) { return service.activateAccount(token); }
+    public Response activate(@RequestParam("activationCode") String activationCode) { return service.activateAccount(activationCode); }
+
+    @GetMapping("${app.endpoint.users-resend}")
+    @ResponseStatus(HttpStatus.OK)
+    public Response resendActivation(@RequestParam("emailToResend") String emailToResend) { return service.resendActivateCode(emailToResend); }
 
     @GetMapping("${app.endpoint.users-check-email}")
     public Response existsByEmail(@Valid @RequestBody UserJson userJson) {

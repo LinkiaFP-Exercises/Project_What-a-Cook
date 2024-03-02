@@ -31,7 +31,7 @@ public class ServiceComponentToSave {
                 .flatMap(this::validateAttributesInUserJson)
                 .flatMap(this::checkEmailNotRegistered)
                 .flatMap(this::saveUserByJtsReturnDto)
-                .flatMap(emailService::sendActivationEmail);
+                .flatMap(emailService::createActivationCodeAndSendEmail);
     }
 
     private Mono<UserJustToSave> validateAttributesInUserJson(UserJustToSave userJustToSave) {

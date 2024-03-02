@@ -8,6 +8,7 @@ import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.success;
@@ -64,13 +65,27 @@ public final class UserService implements UserAccessContractModel {
         return response;
     }
 
-    public Response activateAccount(String token) {
+    public Response activateAccount(String activationCode) {
         Response response = error(msgError("ACTIVATE a User"));
 
         try {
-            response = activate.userByTokenSentByEmail(token)
+            response = activate.byActivationCodeSentByEmail(activationCode)
                     .map(activated ->
                             success("Account successfully activated", activated))
+                    .block();
+        }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
+
+        return response;
+    }
+    public Response resendActivateCode(String email) {
+        Response response = error(msgError("ACTIVATE a User"));
+
+        try {
+            response = activate.resendActivationCode(email)
+                    .map(resended ->
+                            success("Activation mail successfully resented", resended))
                     .block();
         }
         catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
@@ -125,8 +140,12 @@ public final class UserService implements UserAccessContractModel {
     @Override
     public UserDetails loadUserByUsername(String userEmailOrId) throws UsernameNotFoundException {
         try {
-            return login.validSpringUserToLogin(userEmailOrId);
+            return login.validSpringUserToLogin(userEmailOrId).block();
         } catch (Exception e) { throw new UsernameNotFoundException(userEmailOrId); }
+    }
+
+    public Mono<UserDTO> findDtoByMail(String email){
+        return read.justFindByEmail(email);
     }
 
 }

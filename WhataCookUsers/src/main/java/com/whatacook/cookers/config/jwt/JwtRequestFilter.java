@@ -1,5 +1,9 @@
 package com.whatacook.cookers.config.jwt;
 
+import com.whatacook.cookers.model.auth.ActivationDto;
+import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.utilities.Util;
+import com.whatacook.cookers.view.ActivationService;
 import com.whatacook.cookers.view.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -15,65 +19,81 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+    private final ActivationService activationService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    public JwtRequestFilter(UserService userService, JwtUtil jwtUtil) {
+    public JwtRequestFilter(ActivationService activationService, UserService userService, JwtUtil jwtUtil) {
+        this.activationService = activationService;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
     }
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
-            throws ServletException, IOException {
+        @Override
+        protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+                                        @NonNull FilterChain filterChain)
+                throws ServletException, IOException {
 
-        final String requestToken = catchTokenFromHeaderOrParameter(request);
-
-        String userEmailOrId = null;
-        String jwtToken = null;
-
-        if (jwtUtil.hasToken(requestToken)) {
-            try {
-                if (jwtUtil.isValidToken(requestToken)) {
-                    jwtToken = jwtUtil.extractPrefix(requestToken);
-                    userEmailOrId = jwtUtil.getUsernameFromToken(jwtToken);
+            final String activationCode = request.getParameter("activationCode");
+            final String emailToResend = request.getParameter("emailToResend");
+            if (Util.notNullOrEmpty(activationCode)) {
+                processActivationCode(activationCode, request);
+            }
+            else if (Util.notNullOrEmpty(emailToResend)) {
+                processResendActvationMail(emailToResend, request);
+            }
+            else {
+                final String requestToken = request.getHeader(jwtUtil.getHeader());
+                if (jwtUtil.hasToken(requestToken)) {
+                    processJwtToken(requestToken, request);
                 }
             }
-            catch (IllegalArgumentException e) { logger.error("Unable to get JWT Token"); }
-            catch (ExpiredJwtException e) { logger.error("JWT Token has expired"); }
-            catch (Exception e) { logger.error(e.getMessage()); }
+
+            filterChain.doFilter(request, response);
         }
 
-        if (userEmailOrId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userService.loadUserByUsername(userEmailOrId);
+    private void processResendActvationMail(String emailToResend, HttpServletRequest request) {
+        UserDTO userDTO = userService.findDtoByMail(emailToResend).block();
+        ActivationDto activationDto = activationService.findById(userDTO.get_id()).block();
+        UserDetails userDetails = userService.loadUserByUsername(activationDto.getId());
+        setSecurityContext(userDetails, request);
+    }
 
-            if (jwtUtil.verifyUserFromToken(jwtToken, userDetails)) {
+    private void processActivationCode(String activationCode, HttpServletRequest request) {
+            ActivationDto activationDto = activationService.findByCode(activationCode).block();
+            UserDetails userDetails = userService.loadUserByUsername(activationDto.getId());
+            setSecurityContext(userDetails, request);
 
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+        }
 
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        private void processJwtToken(String requestToken, HttpServletRequest request) {
+            try {
+                if (jwtUtil.isValidToken(requestToken)) {
+                    String jwtToken = jwtUtil.extractPrefix(requestToken);
+                    String userEmailOrId = jwtUtil.getUsernameFromToken(jwtToken);
+                    UserDetails userDetails = userService.loadUserByUsername(userEmailOrId);
+                    if (jwtUtil.verifyUserFromToken(jwtToken, userDetails)) {
+                        setSecurityContext(userDetails, request);
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                logger.error("Unable to get JWT Token");
+            } catch (ExpiredJwtException e) {
+                logger.error("JWT Token has expired");
+            } catch (Exception e) {
+                logger.error(e.getMessage());
             }
         }
 
-        filterChain.doFilter(request, response);
-
-    }
-
-    private String catchTokenFromHeaderOrParameter(HttpServletRequest request){
-        return (request.getHeader(jwtUtil.getHeader()) == null)
-                ? String.format("Bearer %s", request.getParameter("token"))
-                : request.getHeader(jwtUtil.getHeader());
-    }
+        private void setSecurityContext(UserDetails userDetails, HttpServletRequest request) {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        }
 
 }
