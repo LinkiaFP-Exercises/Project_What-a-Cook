@@ -4,9 +4,11 @@ import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.success;
@@ -14,16 +16,21 @@ import static com.whatacook.cookers.utilities.Util.msgError;
 
 @Service
 public final class UserService implements UserAccessContractModel {
-    private final ServiceComponentToFind service;
-
+    private final ServiceComponentToSave create;
+    private final ServiceComponentToFind read;
+    private final ServiceComponentToUpdate update;
+    private final ServiceComponentToDelete delete;
     private final ServiceComponentToLogin login;
+    private final ServiceComponentToActivate activate;
 
-    private final ServiceComponentToSave save;
-
-    public UserService(ServiceComponentToFind service, ServiceComponentToLogin login, ServiceComponentToSave save) {
-        this.service = service;
+    public UserService(ServiceComponentToSave create, ServiceComponentToFind read, ServiceComponentToUpdate update,
+                       ServiceComponentToDelete delete, ServiceComponentToLogin login, ServiceComponentToActivate activate) {
+        this.create = create;
+        this.read = read;
+        this.update = update;
+        this.delete = delete;
         this.login = login;
-        this.save = save;
+        this.activate = activate;
     }
 
     @Override
@@ -31,36 +38,58 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("FIND IF EXISTS a User by e-mail"));
 
         try {
-
-            boolean alreadyExists = service.checkIfExistsByEmail(userJson).block();
-
-            response = (alreadyExists) ? success("User already exists", true)
-                    : success("User does not exist yet", false);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            response = read.checkIfExistsByEmail(userJson)
+                    .map(alreadyExists -> alreadyExists
+                            ? success("User already exists", true)
+                            : success("User does not exist yet", false))
+                    .block();
         }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
 
     @Override
-    public Response createOne(UserJson userJson) {
+    public Response createOne(UserJustToSave userJson) {
         Response response = error(msgError("CREATE a User"));
 
         try {
-
-            UserJson saved = save.saveUser(userJson).block();
-
-            response = success("User successfully created", saved);
-
-        } catch (UserServiceException e) {
-            response = error(e.getMessage(), e.getErrors());
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-
+            response = create.saveUser(userJson)
+                    .map(saved ->
+                            success("User successfully created", saved))
+                    .block();
         }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
+
+        return response;
+    }
+
+    public Response activateAccount(String activationCode) {
+        Response response = error(msgError("ACTIVATE a User"));
+
+        try {
+            response = activate.byActivationCodeSentByEmail(activationCode)
+                    .map(htmlContent ->
+                            success("Account successfully activated", htmlContent))
+                    .block();
+        }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
+
+        return response;
+    }
+    public Response resendActivateCode(String email) {
+        Response response = error(msgError("ACTIVATE a User"));
+
+        try {
+            response = activate.resendActivationCode(email)
+                    .map(resended ->
+                            success("Activation mail successfully resented", resended))
+                    .block();
+        }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -70,30 +99,12 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("READ a User"));
 
         try {
-
-            //noinspection SpellCheckingInspection
-            UserJson finded = service.findUserByEmail(userJson).block();
-
-            response = success("Player successfully created", finded);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            response = read.findUserByEmail(userJson)
+                    .map(found ->
+                            success("Player successfully read", found))
+                    .block();
         }
-
-        return response;
-    }
-
-    @Override
-    public Response readAll(UserJson userJson) {
-        Response response = error(msgError("READ all Users"));
-
-        try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-        }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -103,12 +114,13 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("UPDATE a User"));
 
         try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            response = update.updateUser(userJson)
+                    .map(updated ->
+                            success("Player successfully UPDATE", updated))
+                    .block();
         }
+        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
+        catch (Exception e) { response.addMessage(e.getMessage()); }
 
         return response;
     }
@@ -118,42 +130,22 @@ public final class UserService implements UserAccessContractModel {
         Response response = error(msgError("DELETE a User"));
 
         try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
+            response = delete.proceedIfApplicable(userJson).block();
         }
+        catch (Exception e) {response.addMessage(e.getMessage());}
 
         return response;
     }
 
     @Override
-    public Response deleteAll(UserJson userJson) {
-        Response response = error(msgError("DELETE all Users"));
-
+    public UserDetails loadUserByUsername(String userEmailOrId) throws UsernameNotFoundException {
         try {
-
-            response = success("Player successfully created", null);
-
-        } catch (Exception e) {
-            response.addMessage(e.getMessage());
-        }
-
-        return response;
+            return login.validSpringUserToLogin(userEmailOrId).block();
+        } catch (Exception e) { throw new UsernameNotFoundException(userEmailOrId); }
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-
-        try {
-
-            return login.validSpringUserToLogin(UserDTO.justWithMail(email));
-
-        } catch (Exception e) {
-            throw new UsernameNotFoundException(email);
-        }
-
+    public Mono<UserDTO> findDtoByMail(String email){
+        return read.justFindByEmail(email);
     }
 
 }

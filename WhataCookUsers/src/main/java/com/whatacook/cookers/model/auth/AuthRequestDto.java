@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class AuthenticationRequestDto implements Serializable {
+public class AuthRequestDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -8635136711286938592L;
     @NotBlank(message = "username is mandatory!")

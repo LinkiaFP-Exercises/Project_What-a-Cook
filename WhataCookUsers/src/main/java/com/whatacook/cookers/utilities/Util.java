@@ -18,21 +18,13 @@ public class Util {
         return birthdate == null || birthdate.isAfter(LocalDate.now().minusYears(7));
     }
 
-    public static boolean isNullOrEmpty(String something) {
-        return !StringUtils.hasText(something);
-    }
+    public static boolean isNullOrEmpty(String something) { return !StringUtils.hasText(something); }
 
-    public static boolean notNullOrEmpty(String something) {
-        return StringUtils.hasText(something);
-    }
+    public static boolean notNullOrEmpty(String something) { return StringUtils.hasText(something); }
 
-    public static String TitleCase(String toConvert) {
-        return TitleCase.all(toConvert);
-    }
+    public static String TitleCase(String toConvert) { return TitleCase.all(toConvert); }
 
-    public static String encryptPassword(String toEncrypt) {
-        return BCrypt.encode(toEncrypt);
-    }
+    public static String encryptPassword(String toEncrypt) { return BCrypt.encode(toEncrypt); }
 
     public static boolean encryptMatches(String rawPassword, String encodedPassword) {
         return notNullOrEmpty(rawPassword) && BCrypt.matches(rawPassword, encodedPassword);
@@ -49,8 +41,8 @@ public class Util {
     public static String buildEmailRegex() {
         String front = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+";
         String back = "[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}]";
-        String domin = String.format("(?:%s)?.)+%s)?", back, back);
-        return String.format("%s(?:.%s)*@%s", front, front, domin);
+        String domain = String.format("(?:%s)?.)+%s)?", back, back);
+        return String.format("%s(?:.%s)*@%s", front, front, domain);
     }
 
     public static boolean notValidEmail(String email) {

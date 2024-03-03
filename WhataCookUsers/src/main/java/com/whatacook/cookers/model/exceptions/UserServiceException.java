@@ -1,5 +1,6 @@
 package com.whatacook.cookers.model.exceptions;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,28 +18,26 @@ public final class UserServiceException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = -1266524152146144087L;
 
-    private static final String PREFIX = "UserServiceException 8==> %s!!!";
+    private Map<String, Object> errors;
 
-    private Map<String, String> errors;
+    public UserServiceException(String message) { super(message); }
 
-    public UserServiceException(String message) {
-        super(String.format(PREFIX, message));
-    }
-
-    public UserServiceException(String message, Map<String, String> errors) {
-        super(String.format(PREFIX, message));
+    public UserServiceException(String message, Map<String, Object> errors) {
+        super(message);
         this.errors = errors;
     }
 
-    public static void throwsUp(String message) {
+    @NotNull
+    public static UserServiceException pull(String message) {
+        return new UserServiceException(message);
+    }
+    public static void throwUp(String message) {
         throw new UserServiceException(message);
     }
 
-    public static UserServiceException withMsg(String message) {
-        return new UserServiceException(message);
-    }
-
-    public static UserServiceException withErrors(String message, Map<String, String> errors) {
+    @NotNull
+    public static UserServiceException pull(String message, Map<String, Object> errors) {
         return new UserServiceException(message, errors);
     }
+
 }

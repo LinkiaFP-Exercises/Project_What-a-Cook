@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface UserDAO extends ReactiveMongoRepository<UserDTO, String> {
 
     Mono<UserDTO> findByEmail(String email);
+    Mono<UserDTO> findBy_id(String _id);
     Mono<Boolean> existsByEmail(String email);
 
 }
