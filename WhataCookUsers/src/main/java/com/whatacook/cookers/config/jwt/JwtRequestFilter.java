@@ -5,15 +5,15 @@ import com.whatacook.cookers.view.ActivationService;
 import com.whatacook.cookers.view.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Component
 public class JwtRequestFilter implements WebFilter {
@@ -41,13 +41,24 @@ public class JwtRequestFilter implements WebFilter {
                     .then(chain.filter(exchange));
         } else {
             String requestToken = exchange.getRequest().getHeaders().getFirst(jwtUtil.getHeader());
-            if (jwtUtil.hasToken(requestToken)) {
-                return processJwtToken(requestToken, exchange)
-                        .then(chain.filter(exchange));
+
+            if (jwtUtil.hasToken(requestToken) && jwtUtil.isValidToken(requestToken)) {
+
+                String tokenWithoutPrefix = jwtUtil.extractPrefix(requestToken);
+                String username = jwtUtil.getUsernameFromToken(tokenWithoutPrefix);
+
+                return userService.findByUsername(username)
+                        .map(userDetails -> getAuthentication(userDetails, tokenWithoutPrefix))
+                        .flatMap(authentication -> chain.filter(exchange)
+                                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
             } else {
                 return chain.filter(exchange);
             }
         }
+    }
+
+    private Authentication getAuthentication(UserDetails userDetails, String token) {
+        return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 
     private Mono<Void> processResendActivationMail(String emailToResend, ServerWebExchange exchange) {
@@ -79,14 +90,15 @@ public class JwtRequestFilter implements WebFilter {
     }
 
     private Mono<Void> setSecurityContext(UserDetails userDetails, ServerWebExchange exchange) {
-        return Mono.just(userDetails)
-                .map(user -> new UsernamePasswordAuthenticationToken(user, null, userDetails.getAuthorities()))
-                .flatMap(authentication -> {
-                    SecurityContext context = SecurityContextHolder.createEmptyContext();
-                    context.setAuthentication(authentication);
-                    return exchange.getPrincipal().contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)));
-                })
-                .then();
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        return Mono.defer(() -> {
+            // Establece el contexto de seguridad aquí, pero no intentes devolver el resultado de contextWrite directamente
+            return Mono.just(exchange)
+                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication))
+                    .then(); // Esto devuelve Mono<Void>, cumpliendo con el tipo esperado
+        });
     }
+
 
 }
