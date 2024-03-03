@@ -1,7 +1,6 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.responses.Response;
-import jakarta.servlet.ServletException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -38,7 +37,7 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid or incorrect requisition!!!", ex);
     }
 
-    @ExceptionHandler({ ServletException.class, RuntimeException.class })
+    @ExceptionHandler({ RuntimeException.class })
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ResponseBody
     public Response handleRequestNotFound(Exception ex) {

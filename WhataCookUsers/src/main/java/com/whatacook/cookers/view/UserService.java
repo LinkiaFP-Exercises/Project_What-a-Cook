@@ -138,9 +138,9 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String userEmailOrId) throws UsernameNotFoundException {
+    public Mono<UserDetails> findByUsername(String userEmailOrId) throws UsernameNotFoundException {
         try {
-            return login.validSpringUserToLogin(userEmailOrId).block();
+            return login.validSpringUserToLogin(userEmailOrId);
         } catch (Exception e) { throw new UsernameNotFoundException(userEmailOrId); }
     }
 
