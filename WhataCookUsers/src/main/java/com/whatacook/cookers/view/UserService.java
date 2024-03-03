@@ -95,16 +95,15 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public Response readOne(UserJson userJson) {
-        Response response = error(msgError("READ a User"));
+    public Mono<Response> readOne(UserJson userJson) {
+        Mono<Response> response;
 
         try {
             response = read.findUserByEmail(userJson)
                     .map(found ->
-                            success("Player successfully read", found))
-                    .block();
+                            success("Player successfully read", found));
         }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (Exception e) { response = Mono.just(Response.error(e.getMessage())); }
 
         return response;
     }

@@ -30,33 +30,66 @@ public class JwtRequestFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
-        String activationCode = exchange.getRequest().getQueryParams().getFirst("activationCode");
-        String emailToResend = exchange.getRequest().getQueryParams().getFirst("emailToResend");
+        String keyActivationCode = "activationCode";
+        String keyEmailToResend = "emailToResend";
 
-        if (Util.notNullOrEmpty(activationCode)) {
-            return processActivationCode(activationCode, exchange)
-                    .then(chain.filter(exchange));
-        } else if (Util.notNullOrEmpty(emailToResend)) {
-            return processResendActivationMail(emailToResend, exchange)
-                    .then(chain.filter(exchange));
-        } else {
-            String requestToken = exchange.getRequest().getHeaders().getFirst(jwtUtil.getHeader());
 
-            if (jwtUtil.hasToken(requestToken) && jwtUtil.isValidToken(requestToken)) {
 
-                String tokenWithoutPrefix = jwtUtil.extractPrefix(requestToken);
-                String username = jwtUtil.getUsernameFromToken(tokenWithoutPrefix);
-
-                return userService.findByUsername(username)
-                        .map(userDetails -> getAuthentication(userDetails, tokenWithoutPrefix))
-                        .flatMap(authentication -> chain.filter(exchange)
-                                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
-            } else {
-                return chain.filter(exchange);
-            }
+        if (exchange.getRequest().getHeaders().containsKey(jwtUtil.getHeader())){
+            return handleTokenAuthenticationFlow(exchange, chain);
+        }
+        else if (exchange.getRequest().getQueryParams().containsKey(keyActivationCode)) {
+            return handleActivationCodeFlow(keyActivationCode, exchange, chain);
+        }
+        else if (exchange.getRequest().getQueryParams().containsKey(keyEmailToResend)) {
+            return handleEmailResendFlow(keyEmailToResend, exchange, chain);
+        }
+        else {
+            return chain.filter(exchange);
         }
     }
 
+    private Mono<Void> handleTokenAuthenticationFlow(ServerWebExchange exchange, WebFilterChain chain) {
+        String requestToken = exchange.getRequest().getHeaders().getFirst(jwtUtil.getHeader());
+        if (jwtUtil.hasToken(requestToken) && jwtUtil.isValidToken(requestToken)) {
+            String tokenWithoutPrefix = jwtUtil.extractPrefix(requestToken);
+            String username = jwtUtil.getUsernameFromToken(tokenWithoutPrefix);
+
+            return userService.findByUsername(username)
+                    .map(userDetails -> getAuthentication(userDetails, tokenWithoutPrefix))
+                    .flatMap(authentication -> chain.filter(exchange)
+                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)))
+                    .then();
+        } else {
+            return chain.filter(exchange);
+        }
+    }
+
+    private Mono<Void> handleActivationCodeFlow(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
+        String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
+        return activationService.findByCode(activationCode)
+                .flatMap(activationDto -> {
+                    return userService.findByUsername(activationDto.getId())
+                            .map(userDetails -> getAuthentication(userDetails, null))
+                            .flatMap(authentication -> chain.filter(exchange)
+                                    .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)))
+                            .then();
+                });
+    }
+
+    private Mono<Void> handleEmailResendFlow(String keyEmailToResend, ServerWebExchange exchange, WebFilterChain chain) {
+        String emailToResend = exchange.getRequest().getQueryParams().getFirst(keyEmailToResend);
+        return Mono.empty();
+    }
+
+    private Mono<Void> setAuth(String userEmailOrId, String token, ServerWebExchange exchange, WebFilterChain chain) {
+        return userService.findByUsername(userEmailOrId)
+                        .map(user -> new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities()))
+                .cast(Authentication.class)
+                .flatMap(authentication -> chain.filter(exchange)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)))
+                .then();
+    }
     private Authentication getAuthentication(UserDetails userDetails, String token) {
         return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
@@ -69,25 +102,9 @@ public class JwtRequestFilter implements WebFilter {
                 .then();
     }
 
-    private Mono<Void> processActivationCode(String activationCode, ServerWebExchange exchange) {
-        return activationService.findByCode(activationCode)
-                .flatMap(activationDto -> userService.findByUsername(activationDto.getId())
-                        .doOnSuccess(userDetails -> setSecurityContext(userDetails, exchange)))
-                .then();
-    }
 
-    private Mono<Void> processJwtToken(String requestToken, ServerWebExchange exchange) {
-        return Mono.just(requestToken)
-                .filter(jwtUtil::isValidToken)
-                .map(jwtUtil::extractPrefix)
-                .flatMap(token -> {
-                    String userEmailOrId = jwtUtil.getUsernameFromToken(token);
-                    return userService.findByUsername(userEmailOrId)
-                            .filter(userDetails -> jwtUtil.verifyUserFromToken(token, userDetails))
-                            .doOnSuccess(userDetails -> setSecurityContext(userDetails, exchange));
-                })
-                .then();
-    }
+
+
 
     private Mono<Void> setSecurityContext(UserDetails userDetails, ServerWebExchange exchange) {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

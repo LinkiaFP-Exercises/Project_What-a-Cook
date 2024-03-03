@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @Validated
@@ -42,7 +43,7 @@ public class UserController {
 
     @GetMapping("${app.endpoint.find-by-email}")
     @PreAuthorize("hasRole('USER')")
-    public Response readOne(@Valid @RequestBody UserJson userJson) { return service.readOne(userJson); }
+    public Mono<Response> readOne(@Valid @RequestBody UserJson userJson) { return service.readOne(userJson); }
 
     @PutMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")

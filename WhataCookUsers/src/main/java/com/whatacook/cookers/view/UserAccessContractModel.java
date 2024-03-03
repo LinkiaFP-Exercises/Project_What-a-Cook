@@ -4,6 +4,7 @@ import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import reactor.core.publisher.Mono;
 
 public sealed interface UserAccessContractModel extends ReactiveUserDetailsService permits UserService {
 
@@ -11,7 +12,7 @@ public sealed interface UserAccessContractModel extends ReactiveUserDetailsServi
 
     Response createOne(UserJustToSave userJson);
 
-    Response readOne(UserJson userJson);
+    Mono<Response> readOne(UserJson userJson);
 
     Response updateOne(UserJson userJson);
 
