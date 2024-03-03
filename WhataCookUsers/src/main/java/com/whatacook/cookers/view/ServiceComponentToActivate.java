@@ -23,7 +23,7 @@ public class ServiceComponentToActivate {
         this.DAO = DAO;
     }
 
-    public Mono<UserJson> byActivationCodeSentByEmail(String activationCode) {
+    public Mono<String> byActivationCodeSentByEmail(String activationCode) {
         return Mono.just(activationCode)
                 .flatMap(activationService::findByCode)
                     .switchIfEmpty(Mono.error(UserServiceException.pull("This Code is Invalid")))
@@ -45,9 +45,32 @@ public class ServiceComponentToActivate {
                                         return Mono.error(UserServiceException.pull("The Account Status is not correct to activate account"));
                                     }
                                 }))
-                    .map(UserDTO::toJson)
+                    .map(this::buildHtmlOkAccountActivatedContent)
                 .onErrorMap(throwable -> UserServiceException.pull(throwable.getMessage()));
     }
+
+    private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
+        String imageUrl = "https://i.imgur.com/gJaFpOa.png";
+        String html = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <title>Cuenta Activada</title>
+            </head>
+            <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                    <img src="%s" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
+                        <h1 style="color: #4F81BD;">¡Hola, %s!</h1>
+                            <h3>Su cuenta ha sido activada exitosamente.</h3>
+                                <p>Puede volver a la aplicación y continuar con el inicio de sesión.</p>
+                </div>
+            </body>
+            </html>
+            """;
+        return String.format(html, imageUrl, userDTO.getFirstName());
+    }
+
 
     public Mono<UserJson> resendActivationCode(String email) {
         return DAO.findByEmail(email)
@@ -62,4 +85,5 @@ public class ServiceComponentToActivate {
                         }))
                 .onErrorMap(throwable -> UserServiceException.pull(throwable.getMessage()));
     }
+
 }

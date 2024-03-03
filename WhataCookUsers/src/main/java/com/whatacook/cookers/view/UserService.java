@@ -70,8 +70,8 @@ public final class UserService implements UserAccessContractModel {
 
         try {
             response = activate.byActivationCodeSentByEmail(activationCode)
-                    .map(activated ->
-                            success("Account successfully activated", activated))
+                    .map(htmlContent ->
+                            success("Account successfully activated", htmlContent))
                     .block();
         }
         catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }

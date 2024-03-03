@@ -26,7 +26,10 @@ public class UserController {
 
     @GetMapping("${app.endpoint.users-activate}")
     @ResponseStatus(HttpStatus.OK)
-    public Response activate(@RequestParam("activationCode") String activationCode) { return service.activateAccount(activationCode); }
+    public String activate(@RequestParam("activationCode") String activationCode) {
+        Response response = service.activateAccount(activationCode);
+        return (response.isSuccess()) ? (String) response.getContent() : response.toString();
+    }
 
     @GetMapping("${app.endpoint.users-resend}")
     @ResponseStatus(HttpStatus.OK)
