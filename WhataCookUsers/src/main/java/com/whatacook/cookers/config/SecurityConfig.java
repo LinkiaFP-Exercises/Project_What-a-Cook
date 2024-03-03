@@ -2,7 +2,6 @@ package com.whatacook.cookers.config;
 
 import com.whatacook.cookers.config.jwt.JwtRequestFilter;
 import com.whatacook.cookers.config.jwt.JwtUtil;
-import com.whatacook.cookers.view.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -25,26 +24,14 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
 
-    private final JwtRequestFilter jwtRequestFilter;
-
-    private final UserService userService;
-
-    @Value("${app.endpoint.all-under-root}")
-    private String allPathsUnderRoot;
-
     @Value("${app.endpoint.users-check-email}")
     private String pathToCheckIfEmailAlreadyExists;
 
-    public SecurityConfig(JwtUtil jwtUtil, JwtRequestFilter jwtRequestFilter, UserService userService) {
-        this.jwtUtil = jwtUtil;
-        this.jwtRequestFilter = jwtRequestFilter;
-        this.userService = userService;
-    }
+    public SecurityConfig(JwtUtil jwtUtil) { this.jwtUtil = jwtUtil; }
 
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, JwtRequestFilter jwtRequestFilter,
                                               ReactiveAuthenticationManager reactiveAuthenticationManager) {
-
 
         return httpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
@@ -58,7 +45,6 @@ public class SecurityConfig {
                                 .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
                                 .anyExchange().authenticated()
                 ).addFilterAt(jwtRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-
                 .build();
     }
 

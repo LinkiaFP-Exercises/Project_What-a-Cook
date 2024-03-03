@@ -10,13 +10,11 @@ public enum AccountStatus {
     DELETE("CUENTA BORRADA!"),
     OUTDATED("Hay que actualizar el PASSWORD!");
 
-    private AccountStatus(String message) {
+    AccountStatus(String message) {
         this.message = message;
     }
-
     public String getDetails() {
         return message;
     }
-
     private final String message;
 }

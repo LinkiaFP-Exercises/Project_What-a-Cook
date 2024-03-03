@@ -26,6 +26,7 @@ public final class JwtUtil {
     private String signInUrl;
     private String header;
     private String activation;
+    private String resend;
     private String prefix;
     private String issuer;
     private String audience;

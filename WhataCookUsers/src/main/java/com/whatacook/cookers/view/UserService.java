@@ -2,7 +2,6 @@ package com.whatacook.cookers.view;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
-import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,31 +64,27 @@ public final class UserService implements UserAccessContractModel {
         return response;
     }
 
-    public Response activateAccount(String activationCode) {
-        Response response = error(msgError("ACTIVATE a User"));
+    public Mono<Response> activateAccount(String activationCode) {
+        Mono<Response> response;
 
         try {
             response = activate.byActivationCodeSentByEmail(activationCode)
-                    .map(htmlContent ->
-                            success("Account successfully activated", htmlContent))
-                    .block();
+                    .map(htmlContent -> success("Account successfully activated", htmlContent));
         }
-        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
+        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
 
         return response;
     }
-    public Response resendActivateCode(String email) {
-        Response response = error(msgError("ACTIVATE a User"));
+    public Mono<Response> resendActivateCode(String email) {
+        Mono<Response> response;
 
         try {
             response = activate.resendActivationCode(email)
-                    .map(resended ->
-                            success("Activation mail successfully resented", resended))
-                    .block();
+                    .map(resended -> success("Activation mail successfully resented", resended));
         }
-        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
+        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
 
         return response;
     }
@@ -103,7 +98,7 @@ public final class UserService implements UserAccessContractModel {
                     .map(found ->
                             success("Player successfully read", found));
         }
-        catch (Exception e) { response = Mono.just(Response.error(e.getMessage())); }
+        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
 
         return response;
     }
@@ -141,10 +136,6 @@ public final class UserService implements UserAccessContractModel {
         try {
             return login.validSpringUserToLogin(userEmailOrId);
         } catch (Exception e) { throw new UsernameNotFoundException(userEmailOrId); }
-    }
-
-    public Mono<UserDTO> findDtoByMail(String email){
-        return read.justFindByEmail(email);
     }
 
 }

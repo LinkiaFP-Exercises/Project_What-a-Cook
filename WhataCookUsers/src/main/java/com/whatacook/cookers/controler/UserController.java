@@ -27,14 +27,18 @@ public class UserController {
 
     @GetMapping("${app.endpoint.users-activate}")
     @ResponseStatus(HttpStatus.OK)
-    public String activate(@RequestParam("activationCode") String activationCode) {
-        Response response = service.activateAccount(activationCode);
-        return (response.isSuccess()) ? (String) response.getContent() : response.toString();
+    public Mono<String> activate(@RequestParam("activationCode") String activationCode) {
+        return service.activateAccount(activationCode)
+                .filter(Response::isSuccess)
+                .map(Response::getContent)
+                .cast(String.class);
     }
 
     @GetMapping("${app.endpoint.users-resend}")
     @ResponseStatus(HttpStatus.OK)
-    public Response resendActivation(@RequestParam("emailToResend") String emailToResend) { return service.resendActivateCode(emailToResend); }
+    public Mono<Response> resendActivation(@RequestParam("emailToResend") String emailToResend) {
+        return service.resendActivateCode(emailToResend);
+    }
 
     @GetMapping("${app.endpoint.users-check-email}")
     public Response existsByEmail(@Valid @RequestBody UserJson userJson) {
