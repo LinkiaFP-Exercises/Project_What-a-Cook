@@ -3,7 +3,7 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.service.ActivationService;
@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit;
 
 @AllArgsConstructor
 @Component
-public class ServiceComponentToActivate {
+public class ActivateComponent {
 
     private final ActivationService activationService;
     private final EmailService emailService;
@@ -52,7 +52,7 @@ public class ServiceComponentToActivate {
                 .onErrorResume(this::buildHtmlFailAccountActivatedContent);
     }
 
-    private String buildHtmlOkAccountActivatedContent(UserDto userDTO) {
+    private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
         return String.format(Htmls.SuccessActivation.get(), globalValues.getWacLogoPngSmall(), userDTO.getFirstName());
     }
 

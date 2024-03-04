@@ -12,20 +12,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.monoError;
 import static com.whatacook.cookers.model.responses.Response.success;
-import static com.whatacook.cookers.utilities.Util.msgError;
 
 @AllArgsConstructor
 @Service
 public final class UserService implements UserAccessContractModel {
-    private final ServiceComponentToSave create;
-    private final ServiceComponentToFind read;
-    private final ServiceComponentToUpdate update;
-    private final ServiceComponentToDelete delete;
-    private final ServiceComponentToLogin login;
-    private final ServiceComponentToActivate activate;
+    private final SaveComponent create;
+    private final FindComponent read;
+    private final UpdateComponent update;
+    private final DeleteComponent delete;
+    private final LoginComponent login;
+    private final ActivateComponent activate;
 
 
     @Override

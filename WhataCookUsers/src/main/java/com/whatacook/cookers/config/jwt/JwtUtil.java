@@ -1,7 +1,7 @@
 package com.whatacook.cookers.config.jwt;
 
 import com.whatacook.cookers.model.auth.AuthRequestDto;
-import com.whatacook.cookers.model.users.UserDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -23,6 +23,7 @@ public final class JwtUtil {
 
     private String loginUrl;
     private String signInUrl;
+    private String forgotPass;
     private String header;
     private String activation;
     private String resend;
@@ -68,7 +69,7 @@ public final class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, username);
     }
-    public String generateToken(UserDto userDTO) {
+    public String generateToken(UserDTO userDTO) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("ID", userDTO.get_id());
         return doGenerateToken(claims, userDTO.getEmail());

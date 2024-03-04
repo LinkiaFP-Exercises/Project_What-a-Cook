@@ -1,7 +1,7 @@
 package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.service.contracts.UserDao;
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 @Component
 @Validated
-public class ServiceComponentToFind {
+public class FindComponent {
 
     private final UserDao DAO;
 
@@ -37,7 +37,7 @@ public class ServiceComponentToFind {
                 .filter(Util::isValidEmail)
                 .flatMap(email -> DAO.findByEmail(email)
                         .switchIfEmpty(UserServiceException.mono("This player does not exist or email is invalid!")))
-                .map(UserDto::toJson);
+                .map(UserDTO::toJson);
     }
 
 }

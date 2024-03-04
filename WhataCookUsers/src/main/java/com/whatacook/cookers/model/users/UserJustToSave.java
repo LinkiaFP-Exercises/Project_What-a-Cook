@@ -37,9 +37,9 @@ public class UserJustToSave {
     @Past(message = "La fecha debe estar en el pasado")
     private LocalDate birthdate;
 
-    public UserDto toUserDTO() {
+    public UserDTO toUserDTO() {
 
-        UserDto userDTO = new UserDto();
+        UserDTO userDTO = new UserDTO();
 
         userDTO.setEmail(email);
         userDTO.setPassword(encryptPassword(password));

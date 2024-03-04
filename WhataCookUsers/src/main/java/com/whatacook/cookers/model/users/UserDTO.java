@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @ToString
 @EqualsAndHashCode
 @Document(collection = "users")
-public class UserDto {
+public class UserDTO {
 
     @Id
     private String _id;
@@ -44,12 +44,6 @@ public class UserDto {
     private AccountStatus accountStatus = AccountStatus.PENDING;
 
     private LocalDateTime requestDeleteDate;
-
-    public static UserDto justWithMail(String email) {
-        UserDto userDTO = new UserDto();
-        userDTO.setEmail(email);
-        return userDTO;
-    }
 
     public UserJson toJson() {
         return UserJson.from(this);

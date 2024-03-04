@@ -42,7 +42,7 @@ public class UserJson {
 
     private LocalDateTime requestDeleteDate;
 
-    public UserJson(UserDto userDTO) {
+    public UserJson(UserDTO userDTO) {
 
         this.registration = userDTO.getRegistration();
         this.email = userDTO.getEmail();
@@ -55,7 +55,7 @@ public class UserJson {
         this.requestDeleteDate = userDTO.getRequestDeleteDate();
     }
 
-    public static UserJson from(UserDto userDTO) {
+    public static UserJson from(UserDTO userDTO) {
 
         return new UserJson(userDTO);
     }

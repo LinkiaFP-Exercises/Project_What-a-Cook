@@ -3,7 +3,7 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
-import com.whatacook.cookers.model.users.UserDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.contracts.UserDao;
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 
 @AllArgsConstructor
 @Component
-public class ServiceComponentToDelete {
+public class DeleteComponent {
 
     private final UserDao DAO;
 
@@ -25,7 +25,7 @@ public class ServiceComponentToDelete {
                 .flatMap(this::handleStatusChange);
     }
 
-    private Mono<Response> handleStatusChange(UserDto userDTO) {
+    private Mono<Response> handleStatusChange(UserDTO userDTO) {
         return switch (userDTO.getAccountStatus()) {
             case OK -> handleOkStatus(userDTO);
             case REQUEST_DELETE -> handleRequestDeleteStatus(userDTO);
@@ -35,7 +35,7 @@ public class ServiceComponentToDelete {
         };
     }
 
-    private Mono<Response> handleOkStatus(UserDto userDTO) {
+    private Mono<Response> handleOkStatus(UserDTO userDTO) {
         if (userDTO.getRequestDeleteDate() == null) {
             userDTO.setAccountStatus(AccountStatus.REQUEST_DELETE);
             userDTO.setRequestDeleteDate(LocalDateTime.now());
@@ -46,7 +46,7 @@ public class ServiceComponentToDelete {
         return Mono.just(Response.success("Already in OK status without deletion request date", userDTO));
     }
 
-    private Mono<Response> handleRequestDeleteStatus(UserDto userDTO) {
+    private Mono<Response> handleRequestDeleteStatus(UserDTO userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 1) {
             userDTO.setAccountStatus(AccountStatus.MARKED_DELETE);
@@ -57,7 +57,7 @@ public class ServiceComponentToDelete {
         return Mono.just(Response.success("REQUEST_DELETE request is not yet a year old", userDTO));
     }
 
-    private Mono<Response> handleMarkedDeleteStatus(UserDto userDTO) {
+    private Mono<Response> handleMarkedDeleteStatus(UserDTO userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 2) {
             userDTO.setAccountStatus(AccountStatus.DELETE);
@@ -68,7 +68,7 @@ public class ServiceComponentToDelete {
         return Mono.just(Response.success("MARKED_DELETE request is not yet a year old", userDTO));
     }
 
-    private Mono<Response> handleDeleteStatus(UserDto userDTO) {
+    private Mono<Response> handleDeleteStatus(UserDTO userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.DAYS.between(requestDeleteDate, LocalDateTime.now()) >= 3) {
             return DAO.delete(userDTO)

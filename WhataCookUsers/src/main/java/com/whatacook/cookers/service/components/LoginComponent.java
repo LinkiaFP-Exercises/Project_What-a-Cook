@@ -2,7 +2,7 @@ package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDto;
+import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.service.contracts.UserDao;
 import lombok.AllArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 @Validated
-public class ServiceComponentToLogin {
+public class LoginComponent {
 
     private final UserDao DAO;
 
@@ -42,7 +42,7 @@ public class ServiceComponentToLogin {
                 .map(this::newValidUserByEmail);
     }
 
-    private Mono<UserDto> verifyAccountStatusByEmail(UserDto userDTO) {
+    private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
         if (userDTO.getAccountStatus().equals(AccountStatus.OK)) {
             return Mono.just(userDTO);
         } else {
@@ -50,12 +50,12 @@ public class ServiceComponentToLogin {
         }
     }
 
-    private UserDetails newValidUserByEmail(UserDto userDTO) {
+    private UserDetails newValidUserByEmail(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         return new User(userDTO.getEmail(), userDTO.getPassword(), authorities);
     }
 
-    private Set<GrantedAuthority> listAuthorities(UserDto userDTO) {
+    private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {
         return Arrays.stream(userDTO.getRoleType().get().split(","))
                 .map(String::trim)
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -70,7 +70,7 @@ public class ServiceComponentToLogin {
                 ;
     }
 
-    private Mono<UserDto> verifyAccountStatusById(UserDto userDTO) {
+    private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
         if (userDTO.getAccountStatus().equals(AccountStatus.PENDING)) {
             return Mono.just(userDTO);
         } else {
@@ -78,7 +78,7 @@ public class ServiceComponentToLogin {
         }
     }
 
-    private UserDetails newValidUserById(UserDto userDTO) {
+    private UserDetails newValidUserById(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         return new User(userDTO.get_id(), userDTO.getPassword(), authorities);
     }
