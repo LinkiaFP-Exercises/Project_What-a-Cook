@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static com.whatacook.cookers.model.responses.Response.error;
+import static com.whatacook.cookers.model.responses.Response.monoError;
 import static com.whatacook.cookers.model.responses.Response.success;
 import static com.whatacook.cookers.utilities.Util.msgError;
 
@@ -37,7 +38,7 @@ public final class UserService implements UserAccessContractModel {
                             ? success("User already exists", true)
                             : success("User does not exist yet", false));
         }
-        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
@@ -50,8 +51,8 @@ public final class UserService implements UserAccessContractModel {
             response = create.saveUser(userJson)
                     .map(saved ->success("User successfully created", saved));
         }
-        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
-        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
+        catch (UserServiceException e) { response = monoError(e); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
@@ -63,8 +64,8 @@ public final class UserService implements UserAccessContractModel {
             response = activate.byActivationCodeSentByEmail(activationCode)
                     .map(htmlContent -> success("Account successfully activated", htmlContent));
         }
-        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
-        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
+        catch (UserServiceException e) { response = monoError(e); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
@@ -75,8 +76,8 @@ public final class UserService implements UserAccessContractModel {
             response = activate.resendActivationCode(email)
                     .map(resended -> success("Activation mail successfully resented", resended));
         }
-        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
-        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
+        catch (UserServiceException e) { response = monoError(e); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
@@ -90,35 +91,34 @@ public final class UserService implements UserAccessContractModel {
                     .map(found ->
                             success("Player successfully read", found));
         }
-        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
 
     @Override
-    public Response updateOne(UserJson userJson) {
-        Response response = error(msgError("UPDATE a User"));
+    public Mono<Response> updateOne(UserJson userJson) {
+        Mono<Response> response;
 
         try {
             response = update.updateUser(userJson)
                     .map(updated ->
-                            success("Player successfully UPDATE", updated))
-                    .block();
+                            success("Player successfully UPDATE", updated));
         }
-        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (UserServiceException e) { response = monoError(e); }
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }
 
     @Override
-    public Response deleteOne(UserJson userJson) {
-        Response response = error(msgError("DELETE a User"));
+    public Mono<Response> deleteOne(UserJson userJson) {
+        Mono<Response> response;
 
         try {
-            response = delete.proceedIfApplicable(userJson).block();
+            response = delete.proceedIfApplicable(userJson);
         }
-        catch (Exception e) {response.addMessage(e.getMessage());}
+        catch (Exception e) { response = monoError(e); }
 
         return response;
     }

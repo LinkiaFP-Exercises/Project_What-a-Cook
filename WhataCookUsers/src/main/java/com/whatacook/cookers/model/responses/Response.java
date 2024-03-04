@@ -2,7 +2,9 @@ package com.whatacook.cookers.model.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.whatacook.cookers.model.exceptions.UserServiceException;
 import org.springframework.lang.Nullable;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
@@ -19,6 +21,13 @@ public class Response {
         return response;
     }
 
+    public static Mono<Response> monoError(String message) {
+        return Mono.just(error(message));
+    }
+    public static Mono<Response> monoError(Exception e) {
+        return monoError(e.getMessage());
+    }
+
     public static Response error(String message, @Nullable Object content) {
         Response response = new Response();
         response.put(SUCCESS, false);
@@ -26,6 +35,14 @@ public class Response {
         if (content != null)
             response.put(CONTENT, content);
         return response;
+    }
+
+    public static Mono<Response> monoError(String message, @Nullable Object content) {
+        return Mono.just(error(message, content));
+    }
+
+    public static Mono<Response> monoError(UserServiceException e) {
+        return monoError(e.getMessage(), e.getErrors());
     }
 
     public static Response success(String message, @Nullable Object content) {

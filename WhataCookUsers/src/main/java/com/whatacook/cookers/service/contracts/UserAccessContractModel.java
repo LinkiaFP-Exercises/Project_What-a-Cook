@@ -14,8 +14,8 @@ public interface UserAccessContractModel extends ReactiveUserDetailsService {
 
     Mono<Response> readOne(UserJson userJson);
 
-    Response updateOne(UserJson userJson);
+    Mono<Response> updateOne(UserJson userJson);
 
-    Response deleteOne(UserJson userJson);
+    Mono<Response> deleteOne(UserJson userJson);
 
 }

@@ -47,11 +47,11 @@ public class UserController {
 
     @PutMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
-    public Response update(@RequestBody UserJson userJson) { return service.updateOne(userJson); }
+    public Mono<Response> update(@RequestBody UserJson userJson) { return service.updateOne(userJson); }
 
     @DeleteMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
-    public Response deleteOne(@RequestBody UserJson userJson) { return service.deleteOne(userJson); }
+    public Mono<Response> deleteOne(@RequestBody UserJson userJson) { return service.deleteOne(userJson); }
 
 }
 
