@@ -10,7 +10,7 @@ public sealed interface UserAccessContractModel extends ReactiveUserDetailsServi
 
     Mono<Response> existsByEmail(UserJson userJson);
 
-    Response createOne(UserJustToSave userJson);
+    Mono<Response> createOne(UserJustToSave userJson);
 
     Mono<Response> readOne(UserJson userJson);
 

@@ -1,6 +1,7 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.responses.Response;
+import org.springframework.core.codec.DecodingException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -30,6 +31,7 @@ public class GlobalExceptionHandler {
 
         return Response.error(httpMessageError(HttpStatus.BAD_REQUEST, "Invalid or incorrect format!!!"), errorMsg);
     }
+
     @ExceptionHandler({WebExchangeBindException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
@@ -42,6 +44,14 @@ public class GlobalExceptionHandler {
                         (existing, replacement) -> existing));
 
         return Response.error(httpMessageError(HttpStatus.BAD_REQUEST, "Invalid or incorrect format!!!"), errors);
+    }
+
+    @ExceptionHandler({DecodingException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response handleValidationExceptions(DecodingException ex) {
+        String errorMessage = "Invalid request body or not present: A valid request body is required.";
+        return createErrorResponse(HttpStatus.BAD_REQUEST, errorMessage, ex);
     }
 
     @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class })

@@ -46,7 +46,6 @@ public class UserJson {
 
     public UserJson(UserDTO userDTO) {
 
-        this._id = userDTO.get_id();
         this.registration = userDTO.getRegistration();
         this.email = userDTO.getEmail();
         this.firstName = userDTO.getFirstName();
@@ -61,19 +60,6 @@ public class UserJson {
     public static UserJson from(UserDTO userDTO) {
 
         return new UserJson(userDTO);
-    }
-
-    public UserDTO toUserDTO() {
-
-        UserDTO userDTO = new UserDTO();
-
-        userDTO.setEmail(email);
-        userDTO.setPassword(encryptPassword(password));
-        userDTO.setFirstName(firstName);
-        userDTO.setSurNames(surNames);
-        userDTO.setBirthdate(birthdate);
-
-        return userDTO;
     }
 
 }

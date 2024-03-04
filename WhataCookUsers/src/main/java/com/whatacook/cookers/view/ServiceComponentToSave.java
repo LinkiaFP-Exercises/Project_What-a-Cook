@@ -5,6 +5,7 @@ import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Mono;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import static com.whatacook.cookers.utilities.Util.*;
 
+@AllArgsConstructor
 @Validated
 @Component
 public class ServiceComponentToSave {
@@ -21,20 +23,15 @@ public class ServiceComponentToSave {
     private final UserDAO DAO;
     private final EmailService emailService;
 
-    public ServiceComponentToSave(UserDAO DAO, EmailService emailService)  {
-        this.DAO = DAO;
-        this.emailService = emailService;
-    }
-
     public Mono<UserJson> saveUser(@Valid UserJustToSave userJustToSave) {
         return Mono.just(userJustToSave)
-                .flatMap(this::validateAttributesInUserJson)
+                .flatMap(this::validateAttributes)
                 .flatMap(this::checkEmailNotRegistered)
                 .flatMap(this::saveUserByJtsReturnDto)
                 .flatMap(emailService::createActivationCodeAndSendEmail);
     }
 
-    private Mono<UserJustToSave> validateAttributesInUserJson(UserJustToSave userJustToSave) {
+    private Mono<UserJustToSave> validateAttributes(UserJustToSave userJustToSave) {
         Map<String, Object> errors = new LinkedHashMap<>();
 
         if (isNullOrEmpty(userJustToSave.getEmail()))
@@ -50,32 +47,28 @@ public class ServiceComponentToSave {
         if (notValidBirthdate(userJustToSave.getBirthdate()))
             errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD' and more than 7 years!");
 
-        if (!errors.isEmpty()) {
-            return Mono.error(
-                    UserServiceException.pull("Look in content for errors", errors));
-        }
-
-        return Mono.just(userJustToSave);
+        if (!errors.isEmpty())
+            return UserServiceException.mono("Look in content for errors", errors);
+        else
+            return Mono.just(userJustToSave);
     }
 
     private Mono<UserJustToSave> checkEmailNotRegistered(UserJustToSave userJustToSave) {
         return DAO.existsByEmail(userJustToSave.getEmail())
-                .flatMap(exists -> {
-                    if (Boolean.TRUE.equals(exists)) {
-                        Map<String, Object> errors = new LinkedHashMap<>();
-                        errors.put("email", "This email is already registered!");
-                        return Mono.error(UserServiceException.pull("Look in content for errors", errors));
-                    }
-                    return Mono.just(userJustToSave);
-                });
+                .flatMap(exists -> exists
+                        ? UserServiceException.mono("This email is already registered!")
+                        : Mono.just(userJustToSave));
     }
 
     private Mono<UserDTO> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
-        userJustToSave.setFirstName(TitleCase(userJustToSave.getFirstName()));
-        userJustToSave.setSurNames(TitleCase(userJustToSave.getSurNames()));
-        UserDTO userToSave = userJustToSave.toUserDTO();
-        return DAO.save(userToSave)
-                .doOnError(throwable -> UserServiceException.throwUp(throwable.getMessage()));
+        return Mono.just(userJustToSave)
+                .flatMap(user -> {
+                    user.setFirstName(TitleCase(user.getFirstName()));
+                    user.setSurNames(TitleCase(user.getSurNames()));
+                    return Mono.just(user);
+                }).map(UserJustToSave::toUserDTO)
+                .flatMap(DAO::save)
+                .doOnError(UserServiceException::onErrorMap);
     }
 
 }

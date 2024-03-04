@@ -21,7 +21,7 @@ public class UserController {
 
     @PostMapping("${security.jwt.sign-in-url}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Response register(@Valid @RequestBody UserJustToSave userJson) { return service.createOne(userJson); }
+    public Mono<Response> register(@Valid @RequestBody UserJustToSave userJson) { return service.createOne(userJson); }
 
     @GetMapping("${app.endpoint.users-activate}")
     @ResponseStatus(HttpStatus.OK)

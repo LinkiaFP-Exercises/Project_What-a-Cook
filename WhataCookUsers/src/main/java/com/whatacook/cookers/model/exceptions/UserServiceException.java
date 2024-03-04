@@ -6,6 +6,8 @@ import reactor.core.publisher.Mono;
 
 import java.io.Serial;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @NoArgsConstructor
 @Getter
@@ -48,5 +50,19 @@ public final class UserServiceException extends RuntimeException {
         return Mono.error(new UserServiceException(message, errors));
     }
 
+    private static String joinMsgs(String message, Throwable throwable) {
+        return message + " 8==> " + throwable.getMessage();
+    }
 
+    public static Consumer<? super Throwable> onErrorMap(String message) {
+        return throwable -> new UserServiceException(joinMsgs(message, throwable));
+    }
+
+    public static Function<Throwable, UserServiceException> onErrorMap(String message, Map<String, Object> errors) {
+        return throwable -> new UserServiceException(message, errors);
+    }
+
+    public static void onErrorMap(Throwable throwable) {
+        throw new UserServiceException(throwable.getMessage());
+    }
 }

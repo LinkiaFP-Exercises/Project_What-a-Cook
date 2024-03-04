@@ -41,17 +41,15 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public Response createOne(UserJustToSave userJson) {
-        Response response = error(msgError("CREATE a User"));
+    public Mono<Response> createOne(UserJustToSave userJson) {
+        Mono<Response> response;
 
         try {
             response = create.saveUser(userJson)
-                    .map(saved ->
-                            success("User successfully created", saved))
-                    .block();
+                    .map(saved ->success("User successfully created", saved));
         }
-        catch (UserServiceException e) { response = error(e.getMessage(), e.getErrors()); }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (UserServiceException e) { response = Mono.just(error(e.getMessage(), e.getErrors())); }
+        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
 
         return response;
     }
