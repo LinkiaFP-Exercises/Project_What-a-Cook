@@ -5,19 +5,17 @@ import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Mono;
 
+@AllArgsConstructor
 @Component
 @Validated
 public class ServiceComponentToFind {
 
     private final UserDAO DAO;
-
-    public ServiceComponentToFind(UserDAO DAO) {
-        this.DAO = DAO;
-    }
 
     public Mono<Boolean> checkIfExistsByEmail(@Valid UserJson userJson) {
         return DAO.existsByEmail(userJson.getEmail())

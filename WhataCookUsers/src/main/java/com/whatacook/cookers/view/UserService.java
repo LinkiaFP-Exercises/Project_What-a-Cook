@@ -4,6 +4,7 @@ import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.model.responses.Response.success;
 import static com.whatacook.cookers.utilities.Util.msgError;
 
+@AllArgsConstructor
 @Service
 public final class UserService implements UserAccessContractModel {
     private final ServiceComponentToSave create;
@@ -22,15 +24,6 @@ public final class UserService implements UserAccessContractModel {
     private final ServiceComponentToLogin login;
     private final ServiceComponentToActivate activate;
 
-    public UserService(ServiceComponentToSave create, ServiceComponentToFind read, ServiceComponentToUpdate update,
-                       ServiceComponentToDelete delete, ServiceComponentToLogin login, ServiceComponentToActivate activate) {
-        this.create = create;
-        this.read = read;
-        this.update = update;
-        this.delete = delete;
-        this.login = login;
-        this.activate = activate;
-    }
 
     @Override
     public Mono<Response> existsByEmail(UserJson userJson) {

@@ -5,21 +5,19 @@ import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
 import com.whatacook.cookers.view.UserService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+@AllArgsConstructor
 @RestController
 @Validated
 public class UserController {
 
     private final UserService service;
-
-    public UserController(UserService service) {
-        this.service = service;
-    }
 
     @PostMapping("${security.jwt.sign-in-url}")
     @ResponseStatus(HttpStatus.CREATED)
