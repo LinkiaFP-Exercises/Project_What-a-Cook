@@ -42,6 +42,26 @@ public enum Htmls {
                     </div>
                 </body>
                 </html>
+            """),
+
+    ActivationEmail("""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <title>Activación de Cuenta</title>
+            </head>
+            <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                    <img src="%s" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
+                    <h1 style="color: #4F81BD;">Bienvenido a WhataCook, %s!</h1>
+                    <p>Para activar su cuenta, por favor haga clic en el siguiente botón:</p>
+                    <a href="%s" style="background-color: #4F81BD; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Activar Cuenta</a>
+                    <p style="font-size: 12px; margin-top: 15px;">Si no puede hacer clic en el botón, copie y pegue este enlace en su navegador:</p>
+                    <p style="font-size: 12px;"><a href="%s">%s</a></p>
+                </div>
+            </body>
+            </html>
             """);
 
     Htmls (String code) {this.code = code;}
