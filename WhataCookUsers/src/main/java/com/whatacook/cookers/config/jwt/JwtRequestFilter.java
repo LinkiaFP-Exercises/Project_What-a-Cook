@@ -3,11 +3,12 @@ package com.whatacook.cookers.config.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.responses.Response;
+import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.view.ActivationService;
 import com.whatacook.cookers.view.UserDAO;
 import com.whatacook.cookers.view.UserService;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,30 +25,16 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+@AllArgsConstructor
 @SuppressWarnings("ReactorTransformationOnMonoVoid")
 @Component
 public class JwtRequestFilter implements WebFilter {
 
     private final ActivationService activationService;
     private final UserService userService;
+    private final GlobalValues globalValues;
     private final JwtUtil jwtUtil;
     private final UserDAO DAO;
-
-    @Value("${links.wac.logo.small.png}")
-    private String wacLogoPngSmall;
-
-    @Value("${SPRING_MAIL_VALIDATION}")
-    private String mailToWac;
-
-    @Value("${app.endpoint.users-resend}")
-    private String urlToResendActvationMail;
-
-    public JwtRequestFilter(ActivationService activationService, UserService userService, JwtUtil jwtUtil, UserDAO dao) {
-        this.activationService = activationService;
-        this.userService = userService;
-        this.jwtUtil = jwtUtil;
-        DAO = dao;
-    }
 
     @SuppressWarnings("NullableProblems")
     @Override
@@ -79,7 +66,8 @@ public class JwtRequestFilter implements WebFilter {
 
     private Mono<Void> handleActivationCodeFlow(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
         String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
-        String FAIL_HTML_FOR_ACTIVATION = String.format(Htmls.FailActivation.get(), wacLogoPngSmall, urlToResendActvationMail, mailToWac);
+        String FAIL_HTML_FOR_ACTIVATION = String.format(Htmls.FailActivation.get(), globalValues.getWacLogoPngSmall(),
+                                            globalValues.getUrlToResendActvationMail(), globalValues.getMailToWac());
         return activationService.findByCode(activationCode)
                 .flatMap(activationDto -> setAuthenticated(activationDto.getId(), null, exchange, chain))
                     .switchIfEmpty(Mono.defer(() -> respondWithHtml(exchange, FAIL_HTML_FOR_ACTIVATION)));

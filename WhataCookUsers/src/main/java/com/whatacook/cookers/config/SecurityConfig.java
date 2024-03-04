@@ -2,7 +2,8 @@ package com.whatacook.cookers.config;
 
 import com.whatacook.cookers.config.jwt.JwtRequestFilter;
 import com.whatacook.cookers.config.jwt.JwtUtil;
-import org.springframework.beans.factory.annotation.Value;
+import com.whatacook.cookers.utilities.GlobalValues;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,17 +18,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
+@AllArgsConstructor
 @Configuration
 @EnableWebFluxSecurity
-@EnableConfigurationProperties(JwtUtil.class)
+@EnableConfigurationProperties({JwtUtil.class, GlobalValues.class})
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final GlobalValues globalValues;
 
-    @Value("${app.endpoint.users-check-email}")
-    private String pathToCheckIfEmailAlreadyExists;
-
-    public SecurityConfig(JwtUtil jwtUtil) { this.jwtUtil = jwtUtil; }
 
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, JwtRequestFilter jwtRequestFilter,
@@ -40,7 +39,7 @@ public class SecurityConfig {
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(authorizeExchangeSpec ->
                         authorizeExchangeSpec
-                                .pathMatchers(pathToCheckIfEmailAlreadyExists).permitAll()
+                                .pathMatchers(globalValues.getPathToCheckIfEmailAlreadyExists()).permitAll()
                                 .pathMatchers(jwtUtil.getLoginUrl()).permitAll()
                                 .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
                                 .anyExchange().authenticated()

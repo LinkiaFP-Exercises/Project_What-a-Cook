@@ -5,8 +5,10 @@ import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
+import com.whatacook.cookers.utilities.GlobalValues;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.AllArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -18,12 +20,7 @@ public class EmailService {
     private final JavaMailSender emailSender;
     private final SpringMailConfig springMailConfig;
     private final ActivationService activationService;
-
-    public EmailService(JavaMailSender emailSender, SpringMailConfig springMailConfig, ActivationService activationService) {
-        this.emailSender = emailSender;
-        this.springMailConfig = springMailConfig;
-        this.activationService = activationService;
-    }
+    private final GlobalValues globalValues;
 
     public Mono<UserJson> createActivationCodeAndSendEmail(UserDTO userDTO) {
         return activationService.createNew(userDTO)

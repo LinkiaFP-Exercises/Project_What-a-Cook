@@ -5,34 +5,23 @@ import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
-import org.springframework.beans.factory.annotation.Value;
+import com.whatacook.cookers.utilities.GlobalValues;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+@AllArgsConstructor
 @Component
 public class ServiceComponentToActivate {
 
     private final ActivationService activationService;
     private final EmailService emailService;
+    private final GlobalValues globalValues;
     private final UserDAO DAO;
 
-    @Value("${links.wac.logo.small.png}")
-    private String wacLogoPngSmall;
-
-    @Value("${SPRING_MAIL_VALIDATION}")
-    private String mailToWac;
-
-    @Value("${app.endpoint.users-resend}")
-    private String urlToResendActvationMail;
-
-    public ServiceComponentToActivate(ActivationService activationService, EmailService emailService, UserDAO DAO) {
-        this.activationService = activationService;
-        this.emailService = emailService;
-        this.DAO = DAO;
-    }
 
     public Mono<String> byActivationCodeSentByEmail(String activationCode) {
         return Mono.just(activationCode)
@@ -61,11 +50,12 @@ public class ServiceComponentToActivate {
     }
 
     private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
-        return String.format(Htmls.SuccessActivation.get(), wacLogoPngSmall, userDTO.getFirstName());
+        return String.format(Htmls.SuccessActivation.get(), globalValues.getWacLogoPngSmall(), userDTO.getFirstName());
     }
 
     private Mono<String> buildHtmlFailAccountActivatedContent(Throwable error) {
-        return Mono.just(String.format(Htmls.FailActivation.get(), wacLogoPngSmall, urlToResendActvationMail, mailToWac));
+        return Mono.just(String.format(Htmls.FailActivation.get(), globalValues.getWacLogoPngSmall(),
+                globalValues.getUrlToResendActvationMail(), globalValues.getMailToWac()));
     }
 
     public Mono<UserJson> resendActivationCode(String email) {
