@@ -42,6 +42,9 @@ public class SaveComponent {
             errors.put("email", "This email has invalid format!");
         if (isNullOrEmpty(userJustToSave.getPassword()))
             errors.put("password", "Password is missing!");
+        if (notValidPassword(userJustToSave.getPassword()))
+            errors.put("password", "Password is invalid format: 8 characters " +
+                    "-> uppercase lowercase letters numbers and special characters !");
         if (isNullOrEmpty(userJustToSave.getFirstName()))
             errors.put("firstName", "First Name is missing!");
         if (isNullOrEmpty(userJustToSave.getSurNames()))

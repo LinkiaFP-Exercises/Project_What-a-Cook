@@ -28,9 +28,9 @@ public class JwtAuthenticationController {
     }
 
     @PostMapping("${security.jwt.forgot-pass}")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody UserJson userJson) {
+    public Mono<ResponseEntity<Response>> forgotPassword(@Valid @RequestBody UserJson userJson) {
 
-        return ResponseEntity.ok().body("Instrucciones de recuperación enviadas al correo electrónico.");
+        return Mono.empty();
     }
 
     @PostMapping("")

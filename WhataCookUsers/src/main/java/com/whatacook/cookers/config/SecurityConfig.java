@@ -42,6 +42,7 @@ public class SecurityConfig {
                                 .pathMatchers(globalValues.getPathToCheckIfEmailAlreadyExists()).permitAll()
                                 .pathMatchers(jwtUtil.getLoginUrl()).permitAll()
                                 .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
+                                .pathMatchers(jwtUtil.getForgotPass()).permitAll()
                                 .anyExchange().authenticated()
                 ).addFilterAt(jwtRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();

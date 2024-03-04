@@ -76,16 +76,20 @@ public class UpdateComponent {
 
     private static void updatePassword(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
         Optional.ofNullable(updateInfo.getPassword())
-                .filter(pwd -> Util.encryptNotMatches(pwd, user.getPassword()))
-                .ifPresent(pwd -> {
-                    user.setPassword(Util.encryptPassword(pwd));
-                    updated.set(true);
+                .filter(pwd -> Util.encryptMatches(pwd, user.getPassword()))
+                .flatMap(pwd ->
+                        Optional.ofNullable(updateInfo.getNewPassword())
+                        .filter(Util::isValidPassword))
+                        .ifPresent(newPwd -> {
+                            user.setPassword(Util.encryptPassword(newPwd));
+                            updated.set(true);
                 });
     }
 
+
     private static void updateAccountStatus(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
        if (updateInfo.getAccountStatus() != null) {
-           boolean isCurrentStatusEligibleForUpdate = EnumSet.of(PENDING, OK, OFF, OUTDATED).contains(user.getAccountStatus());
+           boolean isCurrentStatusEligibleForUpdate = EnumSet.of(OK, OFF, OUTDATED).contains(user.getAccountStatus());
            AccountStatus toUpdate = AccountStatus.valueOf(updateInfo.getAccountStatus());
            boolean isNewStatusValid = !EnumSet.of(REQUEST_DELETE, MARKED_DELETE, DELETE).contains(toUpdate);
 

@@ -2,7 +2,8 @@ package com.whatacook.cookers.model.users;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
-import jakarta.validation.constraints.Email;
+import com.whatacook.cookers.utilities.ValidEmail;
+import com.whatacook.cookers.utilities.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -25,12 +26,13 @@ public class UserDTO {
     private String _id;
 
     @CreatedDate
-    private LocalDateTime registration = LocalDateTime.now();
+    private LocalDateTime registration;
 
     @NotBlank(message = "Email is mandatory")
-    @Email(message = "Properly formatted email is required", regexp = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+(?:.[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?.)+[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?")
+    @ValidEmail
     private String email;
 
+    @ValidPassword
     private String password;
 
     private String firstName;

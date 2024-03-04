@@ -1,7 +1,6 @@
 package com.whatacook.cookers.model.exceptions;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.io.Serial;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@RequiredArgsConstructor
 @Getter
 public final class UserServiceException extends RuntimeException {
 

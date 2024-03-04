@@ -38,6 +38,10 @@ public class Util {
         return notNullOrEmpty(email) && email.matches(buildEmailRegex());
     }
 
+    public static boolean notValidEmail(String email) {
+        return isNullOrEmpty(email) || !email.matches(buildEmailRegex());
+    }
+
     public static String buildEmailRegex() {
         String front = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+";
         String back = "[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}]";
@@ -45,8 +49,18 @@ public class Util {
         return String.format("%s(?:.%s)*@%s", front, front, domain);
     }
 
-    public static boolean notValidEmail(String email) {
-        return isNullOrEmpty(email) || !email.matches(buildEmailRegex());
+    public static boolean isValidPassword(String password) {
+        return notNullOrEmpty(password) && password.matches(buildPassRegex());
+    }
+
+    public static boolean notValidPassword(String password) {
+        return isNullOrEmpty(password) || !password.matches(buildPassRegex());
+    }
+
+    public static String buildPassRegex() {
+        String characters = "!¡|'´`¨^*+@·#$%&/{}()=-_:.;,<>?¿";
+        String regex = "^(?=.*[\\p{Ll}])(?=.*[\\p{Lu}])(?=.*\\p{N})(?=.*[%s])[\\p{L}\\p{N}%s]{8,}$";
+        return String.format(regex, characters, characters);
     }
 
     private static final BCryptPasswordEncoder BCrypt = new BCryptPasswordEncoder();
