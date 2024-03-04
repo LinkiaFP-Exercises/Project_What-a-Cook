@@ -3,7 +3,7 @@ package com.whatacook.cookers.controler;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
-import com.whatacook.cookers.view.UserService;
+import com.whatacook.cookers.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

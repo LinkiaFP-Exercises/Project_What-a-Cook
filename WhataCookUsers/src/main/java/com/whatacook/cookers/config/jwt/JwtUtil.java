@@ -1,7 +1,7 @@
 package com.whatacook.cookers.config.jwt;
 
 import com.whatacook.cookers.model.auth.AuthRequestDto;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
@@ -18,7 +17,7 @@ import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 
-@Getter @Setter @ToString
+@Getter @Setter
 @ConfigurationProperties(prefix = "security.jwt")
 public final class JwtUtil {
 
@@ -69,7 +68,7 @@ public final class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, username);
     }
-    public String generateToken(UserDTO userDTO) {
+    public String generateToken(UserDto userDTO) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("ID", userDTO.get_id());
         return doGenerateToken(claims, userDTO.getEmail());

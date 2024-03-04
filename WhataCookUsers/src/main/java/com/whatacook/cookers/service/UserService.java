@@ -1,9 +1,11 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
+import com.whatacook.cookers.service.components.*;
+import com.whatacook.cookers.service.contracts.UserAccessContractModel;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

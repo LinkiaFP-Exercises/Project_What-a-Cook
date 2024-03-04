@@ -1,9 +1,10 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
+import com.whatacook.cookers.service.contracts.UserDao;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import reactor.core.publisher.Mono;
 @Validated
 public class ServiceComponentToFind {
 
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
     public Mono<Boolean> checkIfExistsByEmail(@Valid UserJson userJson) {
         return Mono.just(userJson)
@@ -35,8 +36,8 @@ public class ServiceComponentToFind {
                 .map(UserJson::getEmail)
                 .filter(Util::isValidEmail)
                 .flatMap(email -> DAO.findByEmail(email)
-                        .switchIfEmpty(Mono.error(new UserServiceException("This player does not exist or email is invalid!"))))
-                .map(UserDTO::toJson);
+                        .switchIfEmpty(UserServiceException.mono("This player does not exist or email is invalid!")))
+                .map(UserDto::toJson);
     }
 
 }

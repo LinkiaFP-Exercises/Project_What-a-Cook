@@ -5,9 +5,9 @@ import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.utilities.Util;
-import com.whatacook.cookers.view.ActivationService;
-import com.whatacook.cookers.view.UserDAO;
-import com.whatacook.cookers.view.UserService;
+import com.whatacook.cookers.service.ActivationService;
+import com.whatacook.cookers.service.contracts.UserDao;
+import com.whatacook.cookers.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
@@ -34,7 +34,7 @@ public class JwtRequestFilter implements WebFilter {
     private final UserService userService;
     private final GlobalValues globalValues;
     private final JwtUtil jwtUtil;
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
     @SuppressWarnings("NullableProblems")
     @Override

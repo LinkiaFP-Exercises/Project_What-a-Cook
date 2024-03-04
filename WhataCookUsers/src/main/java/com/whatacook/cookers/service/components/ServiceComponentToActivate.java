@@ -1,11 +1,14 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.GlobalValues;
+import com.whatacook.cookers.service.ActivationService;
+import com.whatacook.cookers.service.EmailService;
+import com.whatacook.cookers.service.contracts.UserDao;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -20,16 +23,16 @@ public class ServiceComponentToActivate {
     private final ActivationService activationService;
     private final EmailService emailService;
     private final GlobalValues globalValues;
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
 
     public Mono<String> byActivationCodeSentByEmail(String activationCode) {
         return Mono.just(activationCode)
                 .flatMap(activationService::findByCode)
-                    .switchIfEmpty(Mono.error(UserServiceException.pull("This Code is Invalid")))
+                    .switchIfEmpty(UserServiceException.mono("This Code is Invalid"))
                 .flatMap(activationDto -> {
                     if (ChronoUnit.HOURS.between(activationDto.getExpiration(), LocalDateTime.now()) > 24)
-                        return Mono.error(UserServiceException.pull("This Code is Expired"));
+                        return UserServiceException.mono("This Code is Expired");
                     else
                         return Mono.just(activationDto);
                 })
@@ -42,14 +45,14 @@ public class ServiceComponentToActivate {
                                                 .then(activationService.deleteById(activationDto.getId()))
                                                 .thenReturn(userDTO);
                                     } else {
-                                        return Mono.error(UserServiceException.pull("The Account Status is not correct to activate account"));
+                                        return UserServiceException.mono("The Account Status is not correct to activate account");
                                     }
                                 }))
                     .map(this::buildHtmlOkAccountActivatedContent)
                 .onErrorResume(this::buildHtmlFailAccountActivatedContent);
     }
 
-    private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
+    private String buildHtmlOkAccountActivatedContent(UserDto userDTO) {
         return String.format(Htmls.SuccessActivation.get(), globalValues.getWacLogoPngSmall(), userDTO.getFirstName());
     }
 
@@ -60,7 +63,7 @@ public class ServiceComponentToActivate {
 
     public Mono<UserJson> resendActivationCode(String email) {
         return DAO.findByEmail(email)
-                    .switchIfEmpty(Mono.error(UserServiceException.pull("This Email is Invalid")))
+                    .switchIfEmpty(UserServiceException.mono("This Email is Invalid"))
                 .flatMap(userDTO -> activationService.findById(userDTO.get_id())
                         .flatMap(activationDto -> {
                             if (ChronoUnit.HOURS.between(activationDto.getExpiration(), LocalDateTime.now()) <= 24) {
@@ -69,7 +72,7 @@ public class ServiceComponentToActivate {
                                 return emailService.createActivationCodeAndSendEmail(userDTO);
                             }
                         }))
-                .onErrorMap(throwable -> UserServiceException.pull(throwable.getMessage()));
+                .onErrorMap(UserServiceException::onErrorMap);
     }
 
 }

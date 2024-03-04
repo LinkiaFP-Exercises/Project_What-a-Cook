@@ -1,9 +1,11 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
+import com.whatacook.cookers.service.EmailService;
+import com.whatacook.cookers.service.contracts.UserDao;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +22,7 @@ import static com.whatacook.cookers.utilities.Util.*;
 @Component
 public class ServiceComponentToSave {
 
-    private final UserDAO DAO;
+    private final UserDao DAO;
     private final EmailService emailService;
 
     public Mono<UserJson> saveUser(@Valid UserJustToSave userJustToSave) {
@@ -60,7 +62,7 @@ public class ServiceComponentToSave {
                         : Mono.just(userJustToSave));
     }
 
-    private Mono<UserDTO> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
+    private Mono<UserDto> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
         return Mono.just(userJustToSave)
                 .flatMap(user -> {
                     user.setFirstName(TitleCase(user.getFirstName()));
@@ -68,7 +70,7 @@ public class ServiceComponentToSave {
                     return Mono.just(user);
                 }).map(UserJustToSave::toUserDTO)
                 .flatMap(DAO::save)
-                .doOnError(UserServiceException::onErrorMap);
+                .doOnError(UserServiceException::doOnErrorMap);
     }
 
 }

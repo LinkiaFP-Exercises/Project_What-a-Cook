@@ -11,8 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.EnumSet;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,7 +19,7 @@ import java.util.EnumSet;
 @ToString
 @EqualsAndHashCode
 @Document(collection = "users")
-public class UserDTO {
+public class UserDto {
 
     @Id
     private String _id;
@@ -47,8 +45,8 @@ public class UserDTO {
 
     private LocalDateTime requestDeleteDate;
 
-    public static UserDTO justWithMail(String email) {
-        UserDTO userDTO = new UserDTO();
+    public static UserDto justWithMail(String email) {
+        UserDto userDTO = new UserDto();
         userDTO.setEmail(email);
         return userDTO;
     }

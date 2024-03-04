@@ -1,7 +1,7 @@
 package com.whatacook.cookers.model.exceptions;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.io.Serial;
@@ -9,10 +9,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Getter
-@Setter
-@ToString
 public final class UserServiceException extends RuntimeException {
 
     @Serial
@@ -28,20 +26,6 @@ public final class UserServiceException extends RuntimeException {
         this.errors = errors;
     }
 
-    @NotNull
-    public static UserServiceException pull(String message) {
-        return new UserServiceException(message);
-    }
-
-    public static void throwUp(String message) {
-        throw new UserServiceException(message);
-    }
-
-    @NotNull
-    public static UserServiceException pull(String message, Map<String, Object> errors) {
-        return new UserServiceException(message, errors);
-    }
-
     public static <T> Mono<T> mono(String message) {
         return Mono.error(new UserServiceException(message));
     }
@@ -49,20 +33,27 @@ public final class UserServiceException extends RuntimeException {
     public static <T> Mono<T> mono(String message, Map<String, Object> errors) {
         return Mono.error(new UserServiceException(message, errors));
     }
+    public static <T> Mono<T> mono(Throwable e) { return Mono.error(new UserServiceException(e.getMessage())); }
 
-    private static String joinMsgs(String message, Throwable throwable) {
+    private static String joinMessages(String message, Throwable throwable) {
         return message + " 8==> " + throwable.getMessage();
     }
 
-    public static Consumer<? super Throwable> onErrorMap(String message) {
-        return throwable -> new UserServiceException(joinMsgs(message, throwable));
+    public static Consumer<? super Throwable> doOnErrorMap(String message) {
+        //noinspection ThrowableNotThrown
+        return throwable -> new UserServiceException(joinMessages(message, throwable));
     }
 
-    public static Function<Throwable, UserServiceException> onErrorMap(String message, Map<String, Object> errors) {
+    public static Function<Throwable, UserServiceException> doOnErrorMap(String message, Map<String, Object> errors) {
         return throwable -> new UserServiceException(message, errors);
     }
 
-    public static void onErrorMap(Throwable throwable) {
+    public static void doOnErrorMap(Throwable throwable) {
         throw new UserServiceException(throwable.getMessage());
     }
+
+    public static Throwable onErrorMap(Throwable throwable) {
+        return new UserServiceException(throwable.getMessage());
+    }
+
 }

@@ -1,9 +1,11 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.utilities.Util;
+import com.whatacook.cookers.service.contracts.UserDao;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -16,17 +18,14 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Component
 @Validated
 public class ServiceComponentToLogin {
 
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
-    public ServiceComponentToLogin(UserDAO DAO) {
-        this.DAO = DAO;
-    }
-
-    Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
+    public Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
         return Mono.just(userEmailOrId)
                 .flatMap(info -> {
                     if (Util.isValidEmail(info))
@@ -38,25 +37,25 @@ public class ServiceComponentToLogin {
     }
     private Mono<UserDetails> findUserByEmail(String email) {
         return DAO.findByEmail(email)
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")))
+                .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusByEmail)
                 .map(this::newValidUserByEmail);
     }
 
-    private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
+    private Mono<UserDto> verifyAccountStatusByEmail(UserDto userDTO) {
         if (userDTO.getAccountStatus().equals(AccountStatus.OK)) {
             return Mono.just(userDTO);
         } else {
-            return Mono.error(new UserServiceException(userDTO.getAccountStatus().getDetails()));
+            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
         }
     }
 
-    private UserDetails newValidUserByEmail(UserDTO userDTO) {
+    private UserDetails newValidUserByEmail(UserDto userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         return new User(userDTO.getEmail(), userDTO.getPassword(), authorities);
     }
 
-    private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {
+    private Set<GrantedAuthority> listAuthorities(UserDto userDTO) {
         return Arrays.stream(userDTO.getRoleType().get().split(","))
                 .map(String::trim)
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -65,21 +64,21 @@ public class ServiceComponentToLogin {
 
     private Mono<UserDetails> findUserById(String id) {
         return DAO.findBy_id(id)
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")))
+                .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusById)
                 .map(this::newValidUserById)
                 ;
     }
 
-    private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
+    private Mono<UserDto> verifyAccountStatusById(UserDto userDTO) {
         if (userDTO.getAccountStatus().equals(AccountStatus.PENDING)) {
             return Mono.just(userDTO);
         } else {
-            return Mono.error(new UserServiceException(userDTO.getAccountStatus().getDetails()));
+            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
         }
     }
 
-    private UserDetails newValidUserById(UserDTO userDTO) {
+    private UserDetails newValidUserById(UserDto userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         return new User(userDTO.get_id(), userDTO.getPassword(), authorities);
     }

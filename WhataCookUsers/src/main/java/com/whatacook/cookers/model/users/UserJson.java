@@ -9,8 +9,6 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static com.whatacook.cookers.utilities.Util.encryptPassword;
-
 @NoArgsConstructor
 @Getter
 @Setter
@@ -44,7 +42,7 @@ public class UserJson {
 
     private LocalDateTime requestDeleteDate;
 
-    public UserJson(UserDTO userDTO) {
+    public UserJson(UserDto userDTO) {
 
         this.registration = userDTO.getRegistration();
         this.email = userDTO.getEmail();
@@ -57,7 +55,7 @@ public class UserJson {
         this.requestDeleteDate = userDTO.getRequestDeleteDate();
     }
 
-    public static UserJson from(UserDTO userDTO) {
+    public static UserJson from(UserDto userDTO) {
 
         return new UserJson(userDTO);
     }
