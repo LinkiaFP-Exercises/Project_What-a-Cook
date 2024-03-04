@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 public sealed interface UserAccessContractModel extends ReactiveUserDetailsService permits UserService {
 
-    Response existsByEmail(UserJson userJson);
+    Mono<Response> existsByEmail(UserJson userJson);
 
     Response createOne(UserJustToSave userJson);
 

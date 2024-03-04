@@ -21,7 +21,7 @@ public class ServiceComponentToFind {
 
     public Mono<Boolean> checkIfExistsByEmail(@Valid UserJson userJson) {
         return DAO.existsByEmail(userJson.getEmail())
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")));
+                    .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")));
     }
 
 

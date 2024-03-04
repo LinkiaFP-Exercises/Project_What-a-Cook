@@ -41,9 +41,7 @@ public class UserController {
     }
 
     @GetMapping("${app.endpoint.users-check-email}")
-    public Response existsByEmail(@Valid @RequestBody UserJson userJson) {
-        return service.existsByEmail(userJson);
-    }
+    public Mono<Response> existsByEmail(@Valid @RequestBody UserJson userJson) { return service.existsByEmail(userJson); }
 
     @GetMapping("${app.endpoint.find-by-email}")
     @PreAuthorize("hasRole('USER')")

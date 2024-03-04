@@ -33,17 +33,16 @@ public final class UserService implements UserAccessContractModel {
     }
 
     @Override
-    public Response existsByEmail(UserJson userJson) {
-        Response response = error(msgError("FIND IF EXISTS a User by e-mail"));
+    public Mono<Response> existsByEmail(UserJson userJson) {
+        Mono<Response> response;
 
         try {
             response = read.checkIfExistsByEmail(userJson)
                     .map(alreadyExists -> alreadyExists
                             ? success("User already exists", true)
-                            : success("User does not exist yet", false))
-                    .block();
+                            : success("User does not exist yet", false));
         }
-        catch (Exception e) { response.addMessage(e.getMessage()); }
+        catch (Exception e) { response = Mono.just(error(e.getMessage())); }
 
         return response;
     }
