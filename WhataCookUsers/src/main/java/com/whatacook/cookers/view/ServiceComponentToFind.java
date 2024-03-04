@@ -18,8 +18,15 @@ public class ServiceComponentToFind {
     private final UserDAO DAO;
 
     public Mono<Boolean> checkIfExistsByEmail(@Valid UserJson userJson) {
-        return DAO.existsByEmail(userJson.getEmail())
-                    .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")));
+        return Mono.just(userJson)
+                .map(UserJson::getEmail)
+                .flatMap(email -> {
+                    if (Util.isValidEmail(email))
+                        return DAO.existsByEmail(email)
+                                .switchIfEmpty(UserServiceException.mono("Email not found!"));
+                    else
+                        return UserServiceException.mono("Invalid email format!");
+                });
     }
 
 

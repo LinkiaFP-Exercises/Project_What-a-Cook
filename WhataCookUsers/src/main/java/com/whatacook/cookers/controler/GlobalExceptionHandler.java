@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Response handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -29,6 +30,19 @@ public class GlobalExceptionHandler {
 
         return Response.error(httpMessageError(HttpStatus.BAD_REQUEST, "Invalid or incorrect format!!!"), errorMsg);
     }
+    @ExceptionHandler({WebExchangeBindException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Response handleValidationExceptions(WebExchangeBindException ex) {
+        @SuppressWarnings("DataFlowIssue")
+        Map<String, String> errors = ex.getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        FieldError::getDefaultMessage,
+                        (existing, replacement) -> existing));
+
+        return Response.error(httpMessageError(HttpStatus.BAD_REQUEST, "Invalid or incorrect format!!!"), errors);
+    }
 
     @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -37,12 +51,12 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Invalid or incorrect requisition!!!", ex);
     }
 
-    @ExceptionHandler({ RuntimeException.class })
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    @ResponseBody
-    public Response handleRequestNotFound(Exception ex) {
-        return createErrorResponse(HttpStatus.NOT_FOUND, "SORRY BABY, the fault is ours!!!", ex);
-    }
+//    @ExceptionHandler({ RuntimeException.class })
+//    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+//    @ResponseBody
+//    public Response handleRequestNotFound(Exception ex) {
+//        return createErrorResponse(HttpStatus.NOT_FOUND, "SORRY BABY, the fault is ours!!!", ex);
+//    }
 
     @ExceptionHandler({ EmptyResultDataAccessException.class, NoSuchElementException.class })
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
