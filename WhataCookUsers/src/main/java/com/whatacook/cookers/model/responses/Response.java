@@ -80,9 +80,7 @@ public class Response {
         return this.map.toString();
     }
 
-    private Response() {
-        map = new HashMap<String, Object>();
-    }
+    private Response() { map = new HashMap<>(); }
 
     private void put(String key, Object value) {
         map.put(key, value);

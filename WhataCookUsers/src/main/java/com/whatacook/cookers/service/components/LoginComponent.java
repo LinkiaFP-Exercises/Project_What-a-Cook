@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,9 +31,8 @@ public class LoginComponent {
                 .flatMap(info -> {
                     if (Util.isValidEmail(info))
                         return findUserByEmail(info);
-                    else {
+                    else
                         return findUserById(info);
-                    }
                 });
     }
     private Mono<UserDetails> findUserByEmail(String email) {
@@ -43,7 +43,8 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
-        if (userDTO.getAccountStatus().equals(AccountStatus.OK)) {
+        if (EnumSet.of(AccountStatus.OK, AccountStatus.OFF)
+                .contains(userDTO.getAccountStatus()))  {
             return Mono.just(userDTO);
         } else {
             return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
@@ -71,7 +72,8 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
-        if (userDTO.getAccountStatus().equals(AccountStatus.PENDING)) {
+        if (EnumSet.of(AccountStatus.PENDING, AccountStatus.OUTDATED)
+                .contains(userDTO.getAccountStatus())) {
             return Mono.just(userDTO);
         } else {
             return UserServiceException.mono(userDTO.getAccountStatus().getDetails());

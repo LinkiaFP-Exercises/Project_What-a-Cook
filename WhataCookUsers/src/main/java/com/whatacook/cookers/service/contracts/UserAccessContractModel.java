@@ -10,7 +10,8 @@ public interface UserAccessContractModel extends ReactiveUserDetailsService {
 
     Mono<Response> existsByEmail(UserJson userJson);
 
-    Mono<Response> createOne(UserJustToSave userJson);
+//    Mono<Response> createOne(UserJustToSave userJson);
+//    transferred for authentication service
 
     Mono<Response> readOne(UserJson userJson);
 

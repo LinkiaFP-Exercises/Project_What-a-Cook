@@ -1,13 +1,13 @@
 package com.whatacook.cookers.config.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.responses.Response;
+import com.whatacook.cookers.service.ActivationService;
+import com.whatacook.cookers.service.ResetService;
+import com.whatacook.cookers.service.UserService;
+import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.utilities.Util;
-import com.whatacook.cookers.service.ActivationService;
-import com.whatacook.cookers.service.contracts.UserDao;
-import com.whatacook.cookers.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
@@ -25,12 +25,15 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import static com.whatacook.cookers.utilities.Util.convertToJsonAsBytes;
+
 @AllArgsConstructor
 @SuppressWarnings("ReactorTransformationOnMonoVoid")
 @Component
 public class JwtRequestFilter implements WebFilter {
 
     private final ActivationService activationService;
+    private final ResetService resetService;
     private final UserService userService;
     private final GlobalValues globalValues;
     private final JwtUtil jwtUtil;
@@ -39,6 +42,7 @@ public class JwtRequestFilter implements WebFilter {
     @SuppressWarnings("NullableProblems")
     @Override
     public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+
         if (exchange.getRequest().getHeaders().containsKey(jwtUtil.getHeader())){
             return handleTokenAuthenticationFlow(exchange, chain);
         }
@@ -47,6 +51,12 @@ public class JwtRequestFilter implements WebFilter {
         }
         else if (exchange.getRequest().getQueryParams().containsKey(jwtUtil.getResend())) {
             return handleEmailResendFlow(jwtUtil.getResend(), exchange, chain);
+        }
+        else if (exchange.getRequest().getQueryParams().containsKey(jwtUtil.getResetCode())) {
+            return handleEmailResetPasswordFlow(jwtUtil.getResetCode(), exchange, chain);
+        }
+        else if (exchange.getRequest().getQueryParams().containsKey(jwtUtil.getCodeToSet())) {
+            return handleSetNewPasswordFlow(jwtUtil.getCodeToSet(), exchange, chain);
         }
         else {
             return chain.filter(exchange);
@@ -66,8 +76,8 @@ public class JwtRequestFilter implements WebFilter {
 
     private Mono<Void> handleActivationCodeFlow(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
         String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
-        String FAIL_HTML_FOR_ACTIVATION = String.format(Htmls.FailActivation.get(), globalValues.getWacLogoPngSmall(),
-                                            globalValues.getUrlToResendActvationMail(), globalValues.getMailToWac());
+        String FAIL_HTML_FOR_ACTIVATION = String.format(Htmls.FailActivation.get(), globalValues.getUrlWacLogoPngSmall(),
+                                            globalValues.getPathToResendActvationMail(), globalValues.getMailToWac());
         return activationService.findByCode(activationCode)
                 .flatMap(activationDto -> setAuthenticated(activationDto.getId(), null, exchange, chain))
                     .switchIfEmpty(Mono.defer(() -> respondWithHtml(exchange, FAIL_HTML_FOR_ACTIVATION)));
@@ -80,6 +90,20 @@ public class JwtRequestFilter implements WebFilter {
                 .flatMap(userDTO -> activationService.findById(userDTO.get_id()))
                         .flatMap(activationDto -> setAuthenticated(activationDto.getId(), null, exchange, chain))
                 .switchIfEmpty(Mono.defer(() -> respondWithJson(exchange, Response.error("Email not found."))));
+    }
+
+    private Mono<Void> handleEmailResetPasswordFlow(String keyResetCode, ServerWebExchange exchange, WebFilterChain chain) {
+        String resetCode = exchange.getRequest().getQueryParams().getFirst(keyResetCode);
+        return resetService.findByCode(resetCode)
+                .flatMap(resetDto -> setAuthenticated(resetDto.getId(), null, exchange, chain))
+                .switchIfEmpty(Mono.defer(() -> respondWithHtml(exchange, "<h1>Fallo en el filter!</h1>")));
+    }
+
+    private Mono<Void> handleSetNewPasswordFlow(String keyCodeToSet, ServerWebExchange exchange, WebFilterChain chain) {
+        String codeToSet = exchange.getRequest().getQueryParams().getFirst(keyCodeToSet);
+        return resetService.findByCode(codeToSet)
+                .flatMap(resetDto -> setAuthenticated(resetDto.getId(), null, exchange, chain))
+                .switchIfEmpty(Mono.defer(() -> respondWithHtml(exchange, "<h1>Fallo en el filter!</h1>")));
     }
 
     private Mono<Void> setAuthenticated(String userEmailOrId, String token, ServerWebExchange exchange, WebFilterChain chain) {
@@ -106,11 +130,9 @@ public class JwtRequestFilter implements WebFilter {
         if (!exchange.getResponse().isCommitted()) {
             exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            try {
-                byte[] jsonBytes = new ObjectMapper().writeValueAsBytes(response);
-                DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(jsonBytes);
-                return exchange.getResponse().writeWith(Mono.just(dataBuffer));
-            } catch (Exception e) { return Mono.error(e); }
+            byte[] jsonBytes = convertToJsonAsBytes(response);
+            DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(jsonBytes);
+            return exchange.getResponse().writeWith(Mono.just(dataBuffer));
         } else { return Mono.empty(); }
     }
 

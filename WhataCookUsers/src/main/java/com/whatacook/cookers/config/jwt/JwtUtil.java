@@ -27,6 +27,8 @@ public final class JwtUtil {
     private String header;
     private String activation;
     private String resend;
+    private String resetCode;
+    private String codeToSet;
     private String prefix;
     private String issuer;
     private String audience;
