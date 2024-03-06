@@ -60,13 +60,13 @@ fi
 
 # Paso 2: Construir la imagen Docker
 print_message "Construyendo imagen Docker $DOCKER_IMAGE_NAME..."
-docker build -t $DOCKER_IMAGE_NAME:$COMMIT_HASH .
+docker build -t $DOCKER_IMAGE_NAME:"$COMMIT_HASH" .
 
 # Verificar si el servicio ya existe
-SERVICE_EXISTS=$(docker service ls | grep $APP_NAME | wc -l)
+SERVICE_EXISTS=$(docker service ls | grep -c $APP_NAME)
 
 # Paso 3: Crear o actualizar el servicio con los secrets
-if [ $SERVICE_EXISTS -eq 0 ]; then
+if [ "$SERVICE_EXISTS" -eq 0 ]; then
     print_message "Creando nuevo servicio $APP_NAME..."
     docker service create --name $APP_NAME \
       --secret $SECRET_DB_URI \
@@ -77,10 +77,10 @@ if [ $SERVICE_EXISTS -eq 0 ]; then
       --secret $SECRET_SMAIL_MAIL \
       --secret $SECRET_JWT \
       -p $PORT:$PORT \
-      $DOCKER_IMAGE_NAME:$COMMIT_HASH
+      $DOCKER_IMAGE_NAME:"$COMMIT_HASH"
 else
     print_message "Actualizando servicio existente $APP_NAME..."
-    docker service update --image $DOCKER_IMAGE_NAME:$COMMIT_HASH $APP_NAME \
+    docker service update --image $DOCKER_IMAGE_NAME:"$COMMIT_HASH" $APP_NAME \
       --secret-rm $SECRET_DB_URI \
       --secret-rm $SECRET_USER \
       --secret-rm $SECRET_PASSWORD \
@@ -99,25 +99,13 @@ else
 fi
 
 # Después de crear o actualizar el servicio
-docker service ls | grep $APP_NAME
-if [ $? -eq 0 ]; then
+if docker service ls | grep -q $APP_NAME; then
     print_message "El servicio $APP_NAME está funcionando."
 else
     echo "${RED}No se pudo iniciar el servicio $APP_NAME.${NC}"
     exit 1
 fi
 
-
-# Eliminar imágenes antiguas de la aplicación
-# Lista las imágenes no utilizadas que coincidan con el nombre de tu aplicación pero que no tengan el hash de commit actual
-OLD_IMAGES=$(docker images -f "dangling=true" -f "reference=${DOCKER_IMAGE_NAME}" | grep -v $COMMIT_HASH | awk '{print $3}')
-if [ ! -z "$OLD_IMAGES" ]; then
-    echo "Eliminando imágenes antiguas..."
-    echo $OLD_IMAGES | xargs -r docker rmi
-    print_message "Imágenes antiguas eliminadas exitosamente."
-else
-    print_message "No se encontraron imágenes antiguas para eliminar."
-fi
 
 
 print_message "Aplicación $APP_NAME desplegada exitosamente."
