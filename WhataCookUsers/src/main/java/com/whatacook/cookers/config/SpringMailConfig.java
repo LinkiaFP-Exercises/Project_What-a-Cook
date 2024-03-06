@@ -29,18 +29,13 @@ public class SpringMailConfig {
 
         try {
             String USER = "SPRING_MAIL_VALIDATION";
-            String PASS = "SPRING_MAIL_PASSWORD";
             String APP_PASS = "GMAIL_APP_PASSWORD";
 
             springMailUser = DockerConfig.readSecret(USER);
-            springMailPass = DockerConfig.readSecret(PASS);
             gMailAppPass = DockerConfig.readSecret(APP_PASS);
 
-            if (StringUtils.hasText(springMailUser)
-                    && StringUtils.hasText(springMailPass)
-                        && StringUtils.hasText(gMailAppPass)) {
+            if (StringUtils.hasText(springMailUser) && StringUtils.hasText(gMailAppPass)) {
                 System.setProperty("SPRING_MAIL_VALIDATION", springMailUser.trim());
-                System.setProperty("SPRING_MAIL_PASSWORD", springMailPass.trim());
                 System.setProperty("GMAIL_APP_PASSWORD", gMailAppPass.trim());
             }
         } catch (IOException e) {  throw new RuntimeException(e); }

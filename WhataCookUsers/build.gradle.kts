@@ -24,6 +24,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt:0.12.5")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("org.springframework.boot:spring-boot-starter-logging:3.2.3")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -35,4 +36,5 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.instrument.traceUsage=false")
 }
