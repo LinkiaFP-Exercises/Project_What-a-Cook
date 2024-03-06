@@ -15,17 +15,20 @@ public class MongoConfig {
     public void init() {
         try {
             String USER = "MONGODB_USER_CLUSTER";
-            String PASS = "MONGODB_USER_CLUSTER";
-            String BBDD = "MONGODB_USER_CLUSTER";
+            String PASS = "MONGODB_PASSWORD_CLUSTER";
+            String BBDD = "MONGODB_USERS_DATABASE";
+            String URI = "MONGO_URI_WAC_F_USERS";
 
             String mongoUser = DockerConfig.readSecret(USER);
             String mongoPass = DockerConfig.readSecret(PASS);
             String mongoDb = DockerConfig.readSecret(BBDD);
+            String mongoUri = DockerConfig.readSecret(URI);
 
             if (StringUtils.hasText(mongoUser) && StringUtils.hasText(mongoPass) && StringUtils.hasText(mongoDb)) {
                 System.setProperty("MONGODB_USER_CLUSTER", mongoUser.trim());
                 System.setProperty("MONGODB_PASSWORD_CLUSTER", mongoPass.trim());
                 System.setProperty("MONGODB_USERS_DATABASE", mongoDb.trim());
+                System.setProperty("MONGO_URI_WAC_F_USERS", mongoUri.trim());
             }
 
         } catch (IOException e) {
