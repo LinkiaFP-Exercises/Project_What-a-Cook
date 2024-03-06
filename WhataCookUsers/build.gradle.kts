@@ -16,14 +16,14 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation ("org.springframework.boot:spring-boot-starter-mail:3.2.3")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-web-services")
-    implementation ("org.springframework.boot:spring-boot-starter-mail:3.2.3")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
+    implementation("org.springframework.boot:spring-boot-starter-logging:3.2.3")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

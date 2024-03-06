@@ -1,4 +1,4 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import static com.whatacook.cookers.model.constants.AccountStatus.*;
 
@@ -7,6 +7,7 @@ import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
+import com.whatacook.cookers.service.contracts.UserDao;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -19,18 +20,18 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Component
-public class ServiceComponentToUpdate {
+public class UpdateComponent {
 
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
-    public ServiceComponentToUpdate(UserDAO DAO)  {
+    public UpdateComponent(UserDao DAO)  {
         this.DAO = DAO;
     }
 
-    Mono<UserJson> updateUser(UserJson userJson) {
+    public Mono<UserJson> updateUser(UserJson userJson) {
         return DAO.findBy_id(userJson.get_id())
-                .switchIfEmpty(Mono.error(
-                        new UserServiceException("User not found with this ID", Map.of("_id", userJson.get_id()))))
+                .switchIfEmpty(UserServiceException.mono(
+                        "User not found with this ID", Map.of("_id", userJson.get_id())))
                 .flatMap(oldUser -> updatePlayerIfNecessary(oldUser, userJson))
                 .flatMap(this::updateUserByDtoReturnJson);
     }
@@ -47,7 +48,7 @@ public class ServiceComponentToUpdate {
                     updateAccountStatus(user, updateInfo, updated);
 
                     if (!updated.get()) {
-                        return Mono.error(new UserServiceException("No update required."));
+                        return UserServiceException.mono("No update required.");
                     }
                     return Mono.just(user);
                 });
@@ -75,16 +76,20 @@ public class ServiceComponentToUpdate {
 
     private static void updatePassword(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
         Optional.ofNullable(updateInfo.getPassword())
-                .filter(pwd -> Util.encryptNotMatches(pwd, user.getPassword()))
-                .ifPresent(pwd -> {
-                    user.setPassword(Util.encryptPassword(pwd));
-                    updated.set(true);
+                .filter(pwd -> Util.encryptMatches(pwd, user.getPassword()))
+                .flatMap(pwd ->
+                        Optional.ofNullable(updateInfo.getNewPassword())
+                        .filter(Util::isValidPassword))
+                        .ifPresent(newPwd -> {
+                            user.setPassword(Util.encryptPassword(newPwd));
+                            updated.set(true);
                 });
     }
 
+
     private static void updateAccountStatus(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
        if (updateInfo.getAccountStatus() != null) {
-           boolean isCurrentStatusEligibleForUpdate = EnumSet.of(PENDING, OK, OFF, OUTDATED).contains(user.getAccountStatus());
+           boolean isCurrentStatusEligibleForUpdate = EnumSet.of(OK, OFF, OUTDATED).contains(user.getAccountStatus());
            AccountStatus toUpdate = AccountStatus.valueOf(updateInfo.getAccountStatus());
            boolean isNewStatusValid = !EnumSet.of(REQUEST_DELETE, MARKED_DELETE, DELETE).contains(toUpdate);
 

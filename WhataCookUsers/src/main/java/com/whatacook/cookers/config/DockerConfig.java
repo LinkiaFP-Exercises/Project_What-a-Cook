@@ -12,4 +12,5 @@ public class DockerConfig {
     }
 
     private static final String rootPath = "/run/secrets/";
+    
 }

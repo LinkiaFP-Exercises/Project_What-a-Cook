@@ -1,19 +1,17 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.service.contracts.ActivationDao;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-
+@AllArgsConstructor
 @Service
 public class ActivationService {
 
     private final ActivationDao DAO;
-
-    public ActivationService(ActivationDao dao) { DAO = dao; }
 
     public Mono<ActivationDto> createNew(UserDTO userDTO) { return DAO.save(ActivationDto.to(userDTO)); }
 

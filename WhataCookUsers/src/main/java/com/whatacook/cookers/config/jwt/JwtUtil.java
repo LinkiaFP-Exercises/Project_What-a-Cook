@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
@@ -18,14 +17,18 @@ import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 
-@Getter @Setter @ToString
+@Getter @Setter
 @ConfigurationProperties(prefix = "security.jwt")
 public final class JwtUtil {
 
     private String loginUrl;
     private String signInUrl;
+    private String forgotPass;
     private String header;
     private String activation;
+    private String resend;
+    private String resetCode;
+    private String codeToSet;
     private String prefix;
     private String issuer;
     private String audience;

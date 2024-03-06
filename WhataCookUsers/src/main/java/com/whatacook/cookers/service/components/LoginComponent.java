@@ -1,10 +1,11 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.utilities.Util;
-import jakarta.validation.Valid;
+import com.whatacook.cookers.service.contracts.UserDao;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -14,41 +15,39 @@ import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Component
 @Validated
-public class ServiceComponentToLogin {
+public class LoginComponent {
 
-    private final UserDAO DAO;
+    private final UserDao DAO;
 
-    public ServiceComponentToLogin(UserDAO DAO) {
-        this.DAO = DAO;
-    }
-
-    Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
+    public Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
         return Mono.just(userEmailOrId)
                 .flatMap(info -> {
                     if (Util.isValidEmail(info))
                         return findUserByEmail(info);
-                    else {
+                    else
                         return findUserById(info);
-                    }
                 });
     }
     private Mono<UserDetails> findUserByEmail(String email) {
         return DAO.findByEmail(email)
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")))
+                .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusByEmail)
                 .map(this::newValidUserByEmail);
     }
 
     private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
-        if (userDTO.getAccountStatus().equals(AccountStatus.OK)) {
+        if (EnumSet.of(AccountStatus.OK, AccountStatus.OFF)
+                .contains(userDTO.getAccountStatus()))  {
             return Mono.just(userDTO);
         } else {
-            return Mono.error(new UserServiceException(userDTO.getAccountStatus().getDetails()));
+            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
         }
     }
 
@@ -66,17 +65,18 @@ public class ServiceComponentToLogin {
 
     private Mono<UserDetails> findUserById(String id) {
         return DAO.findBy_id(id)
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")))
+                .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusById)
                 .map(this::newValidUserById)
                 ;
     }
 
     private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
-        if (userDTO.getAccountStatus().equals(AccountStatus.PENDING)) {
+        if (EnumSet.of(AccountStatus.PENDING, AccountStatus.OUTDATED)
+                .contains(userDTO.getAccountStatus())) {
             return Mono.just(userDTO);
         } else {
-            return Mono.error(new UserServiceException(userDTO.getAccountStatus().getDetails()));
+            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
         }
     }
 

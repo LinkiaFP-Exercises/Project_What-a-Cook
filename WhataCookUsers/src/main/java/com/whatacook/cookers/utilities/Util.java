@@ -1,5 +1,7 @@
 package com.whatacook.cookers.utilities;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 
@@ -38,6 +40,10 @@ public class Util {
         return notNullOrEmpty(email) && email.matches(buildEmailRegex());
     }
 
+    public static boolean notValidEmail(String email) {
+        return isNullOrEmpty(email) || !email.matches(buildEmailRegex());
+    }
+
     public static String buildEmailRegex() {
         String front = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+";
         String back = "[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}]";
@@ -45,8 +51,33 @@ public class Util {
         return String.format("%s(?:.%s)*@%s", front, front, domain);
     }
 
-    public static boolean notValidEmail(String email) {
-        return isNullOrEmpty(email) || !email.matches(buildEmailRegex());
+    public static boolean isValidPassword(String password) {
+        return notNullOrEmpty(password) && password.matches(buildPassRegex());
+    }
+
+    public static boolean notValidPassword(String password) {
+        return isNullOrEmpty(password) || !password.matches(buildPassRegex());
+    }
+
+    public static String buildPassRegex() {
+        String characters = "!¡|'´`¨^*+@·#$%&/{}()=-_:.;,<>?¿";
+        String regex = "^(?=.*[\\p{Ll}])(?=.*[\\p{Lu}])(?=.*\\p{N})(?=.*[%s])[\\p{L}\\p{N}%s]{8,}$";
+        return String.format(regex, characters, characters);
+    }
+
+    public static String convertToJsonAsString(Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Error converting to JSON.\"}";
+        }
+    }
+    public static byte[] convertToJsonAsBytes(Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsBytes(obj);
+        } catch (JsonProcessingException e) {
+            return "{\"error\": \"Error converting to JSON.\"}".getBytes();
+        }
     }
 
     private static final BCryptPasswordEncoder BCrypt = new BCryptPasswordEncoder();

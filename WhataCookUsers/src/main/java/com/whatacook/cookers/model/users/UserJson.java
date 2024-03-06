@@ -2,14 +2,13 @@ package com.whatacook.cookers.model.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.Email;
+import com.whatacook.cookers.utilities.ValidEmail;
+import com.whatacook.cookers.utilities.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-import static com.whatacook.cookers.utilities.Util.encryptPassword;
 
 @NoArgsConstructor
 @Getter
@@ -24,29 +23,26 @@ public class UserJson {
 
     private LocalDateTime registration;
 
-//    @NotBlank(message = "Email is mandatory")
-//    @Email(message = "Properly formatted email is required", regexp="[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+(?:.[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?.)+[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?")
+    @NotBlank(message = "Email is mandatory")
+    @ValidEmail
     private String email;
 
+    @ValidPassword
     private String password;
 
+    @ValidPassword
+    private String newPassword;
+
     private String firstName;
-
     private String surNames;
-
     private LocalDate birthdate;
-
     private String roleType;
-
     private String accountStatus;
-
     private String accountStatusMsg;
-
     private LocalDateTime requestDeleteDate;
 
     public UserJson(UserDTO userDTO) {
 
-        this._id = userDTO.get_id();
         this.registration = userDTO.getRegistration();
         this.email = userDTO.getEmail();
         this.firstName = userDTO.getFirstName();
@@ -58,22 +54,6 @@ public class UserJson {
         this.requestDeleteDate = userDTO.getRequestDeleteDate();
     }
 
-    public static UserJson from(UserDTO userDTO) {
-
-        return new UserJson(userDTO);
-    }
-
-    public UserDTO toUserDTO() {
-
-        UserDTO userDTO = new UserDTO();
-
-        userDTO.setEmail(email);
-        userDTO.setPassword(encryptPassword(password));
-        userDTO.setFirstName(firstName);
-        userDTO.setSurNames(surNames);
-        userDTO.setBirthdate(birthdate);
-
-        return userDTO;
-    }
+    public static UserJson from(UserDTO userDTO) { return new UserJson(userDTO); }
 
 }

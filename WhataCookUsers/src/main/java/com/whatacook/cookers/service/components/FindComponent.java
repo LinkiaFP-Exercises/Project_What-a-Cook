@@ -1,27 +1,33 @@
-package com.whatacook.cookers.view;
+package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
+import com.whatacook.cookers.service.contracts.UserDao;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Mono;
 
+@AllArgsConstructor
 @Component
 @Validated
-public class ServiceComponentToFind {
+public class FindComponent {
 
-    private final UserDAO DAO;
-
-    public ServiceComponentToFind(UserDAO DAO) {
-        this.DAO = DAO;
-    }
+    private final UserDao DAO;
 
     public Mono<Boolean> checkIfExistsByEmail(@Valid UserJson userJson) {
-        return DAO.existsByEmail(userJson.getEmail())
-                .switchIfEmpty(Mono.error(new UserServiceException("USER NOT FOUND!")));
+        return Mono.just(userJson)
+                .map(UserJson::getEmail)
+                .flatMap(email -> {
+                    if (Util.isValidEmail(email))
+                        return DAO.existsByEmail(email)
+                                .switchIfEmpty(UserServiceException.mono("Email not found!"));
+                    else
+                        return UserServiceException.mono("Invalid email format!");
+                });
     }
 
 
@@ -30,16 +36,8 @@ public class ServiceComponentToFind {
                 .map(UserJson::getEmail)
                 .filter(Util::isValidEmail)
                 .flatMap(email -> DAO.findByEmail(email)
-                        .switchIfEmpty(Mono.error(new UserServiceException("This player does not exist or email is invalid!"))))
+                        .switchIfEmpty(UserServiceException.mono("This player does not exist or email is invalid!")))
                 .map(UserDTO::toJson);
     }
 
-
-    public Mono<UserDTO> justFindByEmail(String email) {
-        return Mono.just(email)
-                .filter(Util::isValidEmail)
-                .flatMap(DAO::findByEmail)
-                    .switchIfEmpty(Mono.error(new UserServiceException("This player does not exist or email is invalid!")));
-
-    }
 }

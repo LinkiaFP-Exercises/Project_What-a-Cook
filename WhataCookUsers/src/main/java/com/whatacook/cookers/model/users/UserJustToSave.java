@@ -2,6 +2,8 @@ package com.whatacook.cookers.model.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.whatacook.cookers.utilities.ValidEmail;
+import com.whatacook.cookers.utilities.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,10 +23,11 @@ import static com.whatacook.cookers.utilities.Util.encryptPassword;
 public class UserJustToSave {
 
     @NotBlank(message = "Email is mandatory")
-    @Email(message = "Properly formatted email is required", regexp="[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+(?:.[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?.)+[\\p{L}\\p{N}](?:[a-z0-9-]*[\\p{L}\\p{N}])?")
+    @ValidEmail
     private String email;
 
     @NotBlank(message = "Password is mandatory")
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "FirstName is mandatory")

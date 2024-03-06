@@ -1,107 +1,64 @@
 package com.whatacook.cookers.config;
 
-import com.whatacook.cookers.config.jwt.JwtAuthenticationEntryPoint;
 import com.whatacook.cookers.config.jwt.JwtRequestFilter;
 import com.whatacook.cookers.config.jwt.JwtUtil;
-import com.whatacook.cookers.view.UserService;
-import org.springframework.beans.factory.annotation.Value;
+import com.whatacook.cookers.utilities.GlobalValues;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
-@ComponentScan
+@AllArgsConstructor
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-@EnableConfigurationProperties(JwtUtil.class)
+@EnableWebFluxSecurity
+@EnableConfigurationProperties({JwtUtil.class, GlobalValues.class})
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final GlobalValues globalValues;
 
-    private final JwtRequestFilter jwtRequestFilter;
 
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    @Bean
+    public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, JwtRequestFilter jwtRequestFilter,
+                                              ReactiveAuthenticationManager reactiveAuthenticationManager) {
 
-    private final UserService userService;
-
-    @Value("${app.endpoint.all-under-root}")
-    private String allPathsUnderRoot;
-
-    @Value("${app.endpoint.users-check-email}")
-    private String pathToCheckIfEmailAlreadyExists;
-
-    public SecurityConfig(JwtUtil jwtUtil, JwtRequestFilter jwtRequestFilter,
-                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, UserService userService) {
-        this.jwtUtil = jwtUtil;
-        this.jwtRequestFilter = jwtRequestFilter;
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-        this.userService = userService;
+        return httpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                .authenticationManager(reactiveAuthenticationManager)
+                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+                .authorizeExchange(authorizeExchangeSpec ->
+                        authorizeExchangeSpec
+                                .pathMatchers(globalValues.getPathToCheckIfEmailAlreadyExists()).permitAll()
+                                .pathMatchers(jwtUtil.getLoginUrl()).permitAll()
+                                .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
+                                .pathMatchers(jwtUtil.getForgotPass()).permitAll()
+                                .anyExchange().authenticated()
+                ).addFilterAt(jwtRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .build();
     }
 
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-
-        AuthenticationManagerBuilder authenticationManagerBuilder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder());
-
-        httpSecurity
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(requests ->
-                        requests
-                                .requestMatchers(HttpMethod.GET, pathToCheckIfEmailAlreadyExists).permitAll()
-                                .requestMatchers(HttpMethod.POST, jwtUtil.getLoginUrl()).permitAll()
-                                .requestMatchers(HttpMethod.POST, jwtUtil.getSignInUrl()).permitAll()
-                                .anyRequest().authenticated())
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        ;
-
-        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return httpSecurity.build();
-    }
-
-    @Bean
-    WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring()
-                .requestMatchers(HttpMethod.POST, jwtUtil.getLoginUrl())
-                .requestMatchers(HttpMethod.POST, jwtUtil.getSignInUrl())
-                .requestMatchers(HttpMethod.GET, pathToCheckIfEmailAlreadyExists);
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(allPathsUnderRoot, new CorsConfiguration().applyPermitDefaultValues());
-        return source;
+    public ReactiveAuthenticationManager reactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService,
+                                                                       PasswordEncoder passwordEncoder) {
+        var authenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
+        authenticationManager.setPasswordEncoder(passwordEncoder);
+        return authenticationManager;
     }
 
 }
