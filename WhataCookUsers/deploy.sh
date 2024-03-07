@@ -39,10 +39,7 @@ COMMIT_HASH=$(git rev-parse --short HEAD)
 PORT=8080
 
 # Secretos de Docker
-SECRET_USER="MONGODB_USER_CLUSTER"
-SECRET_PASSWORD="MONGODB_PASSWORD_CLUSTER"
-SECRET_DB="MONGODB_USERS_DATABASE"
-SECRET_DB_URI="MONGO_URI_WAC_F_USERS"
+SECRET_DB_URI="MONGO_URI_WHATACOOK_USERS"
 SECRET_GMAIL_PASS="GMAIL_APP_PASSWORD"
 SECRET_SMAIL_MAIL="SPRING_MAIL_VALIDATION"
 SECRET_JWT="JWT_SECRET"
@@ -63,16 +60,13 @@ print_message "Construyendo imagen Docker $DOCKER_IMAGE_NAME..."
 docker build -t $DOCKER_IMAGE_NAME:"$COMMIT_HASH" .
 
 # Verificar si el servicio ya existe
-SERVICE_EXISTS=$(docker service ls | grep -c $APP_NAME)
+SERVICE_EXISTS=$(docker service ls | grep $APP_NAME | wc -l)
 
 # Paso 3: Crear o actualizar el servicio con los secrets
 if [ "$SERVICE_EXISTS" -eq 0 ]; then
     print_message "Creando nuevo servicio $APP_NAME..."
     docker service create --name $APP_NAME \
       --secret $SECRET_DB_URI \
-      --secret $SECRET_USER \
-      --secret $SECRET_PASSWORD \
-      --secret $SECRET_DB \
       --secret $SECRET_GMAIL_PASS \
       --secret $SECRET_SMAIL_MAIL \
       --secret $SECRET_JWT \
@@ -80,18 +74,12 @@ if [ "$SERVICE_EXISTS" -eq 0 ]; then
       $DOCKER_IMAGE_NAME:"$COMMIT_HASH"
 else
     print_message "Actualizando servicio existente $APP_NAME..."
-    docker service update --image $DOCKER_IMAGE_NAME:"$COMMIT_HASH" $APP_NAME \
+    docker service update --force \
       --secret-rm $SECRET_DB_URI \
-      --secret-rm $SECRET_USER \
-      --secret-rm $SECRET_PASSWORD \
-      --secret-rm $SECRET_DB \
       --secret-rm $SECRET_GMAIL_PASS \
       --secret-rm $SECRET_SMAIL_MAIL \
       --secret-rm $SECRET_JWT \
       --secret-add source=$SECRET_DB_URI,target=$SECRET_DB_URI \
-      --secret-add source=$SECRET_USER,target=$SECRET_USER \
-      --secret-add source=$SECRET_PASSWORD,target=$SECRET_PASSWORD \
-      --secret-add source=$SECRET_DB,target=$SECRET_DB \
       --secret-add source=$SECRET_GMAIL_PASS,target=$SECRET_GMAIL_PASS \
       --secret-add source=$SECRET_SMAIL_MAIL,target=$SECRET_SMAIL_MAIL \
       --secret-add source=$SECRET_JWT,target=$SECRET_JWT \
