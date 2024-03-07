@@ -1,7 +1,8 @@
 # Imagen base oficial de OpenJDK 21 y ligera
-FROM openjdk:21-jdk-slim
+FROM openjdk:23-jdk-slim
 
-LABEL authors="faunoguazina"
+LABEL authors="Fauno Guazina"
+LABEL maintainer="https://about.me/prof.guazina"
 
 # Puerto en el que corre la aplicación
 ARG PORT=8080
