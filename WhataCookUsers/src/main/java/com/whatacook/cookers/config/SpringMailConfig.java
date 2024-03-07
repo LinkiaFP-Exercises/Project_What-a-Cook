@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,14 +15,13 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.util.Properties;
 
+@Slf4j
 @NoArgsConstructor
 @Setter @Getter
 @Configuration
 public class SpringMailConfig {
 
     private String springMailUser;
-    @Getter(AccessLevel.NONE)
-    private String springMailPass;
     @Getter(AccessLevel.NONE)
     private String gMailAppPass;
     @PostConstruct
@@ -34,10 +34,14 @@ public class SpringMailConfig {
             springMailUser = DockerConfig.readSecret(USER);
             gMailAppPass = DockerConfig.readSecret(APP_PASS);
 
-            if (StringUtils.hasText(springMailUser) && StringUtils.hasText(gMailAppPass)) {
-                System.setProperty("SPRING_MAIL_VALIDATION", springMailUser.trim());
-                System.setProperty("GMAIL_APP_PASSWORD", gMailAppPass.trim());
-            }
+            if (StringUtils.hasText(springMailUser))
+                System.setProperty(USER, springMailUser.trim());
+            log.warn("springMailUser : " + StringUtils.hasText(springMailUser));
+
+            if (StringUtils.hasText(gMailAppPass))
+                System.setProperty(APP_PASS, gMailAppPass.trim());
+            log.warn("springMailUser : " + StringUtils.hasText(gMailAppPass));
+
         } catch (IOException e) {  throw new RuntimeException(e); }
 
     }
