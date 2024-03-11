@@ -35,7 +35,4 @@ public class GlobalValues {
     @Value("${global.values.url.check.email.is.used}")
     private String pathToCheckIfEmailAlreadyExists;
 
-    @Value("${global.values.code.reset-password-encrypt}")
-    private String resetPasswordEncrypt;
-
 }
