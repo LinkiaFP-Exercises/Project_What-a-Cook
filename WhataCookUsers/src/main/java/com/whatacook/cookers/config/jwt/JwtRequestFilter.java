@@ -8,10 +8,13 @@ import com.whatacook.cookers.service.UserService;
 import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.utilities.Util;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,8 +26,12 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.utilities.Util.convertToJsonAsBytes;
 
 @AllArgsConstructor
@@ -63,16 +70,43 @@ public class JwtRequestFilter implements WebFilter {
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private Mono<Void> handleTokenAuthenticationFlow(ServerWebExchange exchange, WebFilterChain chain) {
         String requestToken = exchange.getRequest().getHeaders().getFirst(jwtUtil.getHeader());
-        if (jwtUtil.hasToken(requestToken) && jwtUtil.isValidToken(requestToken)) {
-            String tokenWithoutPrefix = jwtUtil.extractPrefix(requestToken);
-            String username = jwtUtil.getUsernameFromToken(tokenWithoutPrefix);
-            return setAuthenticated(username, tokenWithoutPrefix, exchange, chain);
-        } else {
-            return chain.filter(exchange);
-        }
+
+        return Mono.just(requestToken)
+                .filter(token -> jwtUtil.hasToken(token) && jwtUtil.isValidToken(token))
+                .flatMap(token -> {
+                    String tokenWithoutPrefix = jwtUtil.extractPrefix(token);
+                    String username = jwtUtil.getUsernameFromToken(tokenWithoutPrefix);
+                    return setAuthenticated(username, tokenWithoutPrefix, exchange, chain);
+                })
+                .onErrorResume(ExpiredJwtException.class, e -> sendUNauthorizedResponse(exchange, "Token expired. Please login again."))
+                .onErrorResume(JwtException.class, e -> sendUNauthorizedResponse(exchange, "Invalid token."))
+                .switchIfEmpty(chain.filter(exchange));
     }
+
+    private Mono<Void> sendUNauthorizedResponse(ServerWebExchange exchange, String errorMessage) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(status);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("timestamp", LocalDateTime.now().toString());
+        errorDetails.put("status", status.value());
+        errorDetails.put("error", status.getReasonPhrase());
+        errorDetails.put("message", errorMessage);
+        errorDetails.put("path", exchange.getRequest().getPath().value());
+
+        Response errorResponse = error(errorMessage, errorDetails);
+
+        byte[] bytes = convertToJsonAsBytes(errorResponse);
+
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer));
+    }
+
 
     private Mono<Void> handleActivationCodeFlow(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
         String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
@@ -89,7 +123,7 @@ public class JwtRequestFilter implements WebFilter {
         return Mono.just(Objects.requireNonNull(emailToResend)).filter(Util::isValidEmail).flatMap(DAO::findByEmail)
                 .flatMap(userDTO -> activationService.findById(userDTO.get_id()))
                         .flatMap(activationDto -> setAuthenticated(activationDto.getId(), null, exchange, chain))
-                .switchIfEmpty(Mono.defer(() -> respondWithJson(exchange, Response.error("Email not found."))));
+                .switchIfEmpty(Mono.defer(() -> respondWithJson(exchange, error("Email not found."))));
     }
 
     private Mono<Void> handleEmailResetPasswordFlow(String keyResetCode, ServerWebExchange exchange, WebFilterChain chain) {
