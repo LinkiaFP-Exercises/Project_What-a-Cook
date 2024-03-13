@@ -21,9 +21,12 @@ import java.util.function.Function;
 @ConfigurationProperties(prefix = "security.jwt")
 public final class JwtUtil {
 
+    private String authRoot;
     private String loginUrl;
     private String signInUrl;
     private String forgotPass;
+    private String openApiRootUrl;
+    private String swaggerUiRootUrl;
     private String header;
     private String activation;
     private String resend;

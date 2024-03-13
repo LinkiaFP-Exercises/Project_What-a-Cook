@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.2.3"
     id("io.spring.dependency-management") version "1.1.4"
+    id("org.openapi.generator") version "7.4.0"
 }
 
 group = "com.whatacook"
@@ -23,8 +24,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
     implementation("javax.xml.bind:jaxb-api:2.3.0")
-    implementation("org.springframework.boot:spring-boot-starter-logging:3.2.3")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
