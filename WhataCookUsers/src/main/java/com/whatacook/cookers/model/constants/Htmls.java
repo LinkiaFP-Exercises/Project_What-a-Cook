@@ -90,6 +90,28 @@ public enum Htmls {
             """
     ),
 
+    FailReset("""
+            <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Reinicio de Contraseña Fallido</title>
+                </head>
+                <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+                    <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #dda; border-radius: 8px; background-color: #FFEEDD;">
+                        <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
+                        <h1 style="color: #CC7700;">No fue posible procesar tu solicitud de reinicio de contraseña.</h1>
+                        <p style="font-size: 17px">
+                        Por favor, intenta reiniciar tu contraseña nuevamente utilizando el enlace proporcionado en el correo electrónico de reinicio.</p>
+                        <p style="font-size: 13px";>
+                            Si sigues teniendo problemas,\s
+                            <a href="mailto:EMAIL_WAC" style="color: #FFA500;">contacta con soporte</a>.</p>
+                    </div>
+                </body>
+                </html>
+        """
+    ),
+
     FormToSendNewPassword("""
             <!DOCTYPE html>
             <html lang="es">
