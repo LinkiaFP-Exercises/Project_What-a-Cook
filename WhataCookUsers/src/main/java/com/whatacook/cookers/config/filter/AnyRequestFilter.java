@@ -1,7 +1,6 @@
 package com.whatacook.cookers.config.filter;
 
 import com.whatacook.cookers.config.jwt.JwtUtil;
-import lombok.AllArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
@@ -10,33 +9,50 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@AllArgsConstructor
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 public class AnyRequestFilter implements WebFilter {
 
-    private final JwtUtil jwtUtil;
-    private final TokenAuthenticationFlowHandler tokenAuthenticationFlowHandler;
-    private final ActivationCodeFlowHandler activationCodeFlowHandler;
-    private final EmailResendFlowHandler emailResendFlowHandler;
-    private final EmailResetPasswordFlowHandler emailResetPasswordFlowHandler;
-    private final SetNewPasswordFlowHandler setNewPasswordFlowHandler;
+    private final Map<String, RequestHandler> handlers;
+
+    public AnyRequestFilter(JwtUtil jwtUtil, TokenAuthenticationFlowHandler tokenAuthenticationFlowHandler,
+                            ActivationCodeFlowHandler activationCodeFlowHandler,
+                            EmailResendFlowHandler emailResendFlowHandler,
+                            EmailResetPasswordFlowHandler emailResetPasswordFlowHandler,
+                            SetNewPasswordFlowHandler setNewPasswordFlowHandler) {
+        handlers = new HashMap<>();
+
+        handlers.put(jwtUtil.getHeader(), (exchange, chain, keys) -> tokenAuthenticationFlowHandler.handle(exchange, chain));
+        handlers.put(jwtUtil.getActivation(), (exchange, chain, keys) -> activationCodeFlowHandler.handle(keys[0], exchange, chain));
+        handlers.put(jwtUtil.getResend(), (exchange, chain, keys) -> emailResendFlowHandler.handle(keys[0], exchange, chain));
+        handlers.put(jwtUtil.getResetCode(), (exchange, chain, keys) -> emailResetPasswordFlowHandler.handle(keys[0], exchange, chain));
+        handlers.put(jwtUtil.getCodeToSet(), (exchange, chain, keys) -> setNewPasswordFlowHandler.handle(keys[0], exchange, chain));
+    }
 
     @SuppressWarnings("NullableProblems")
     @Override
     public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
-        if (exchange.getRequest().getHeaders().containsKey(jwtUtil.getHeader()))
-            return tokenAuthenticationFlowHandler.handle(exchange, chain);
-        else if (queryParams.containsKey(jwtUtil.getActivation()))
-            return activationCodeFlowHandler.handle(jwtUtil.getActivation(), exchange, chain);
-        else if (queryParams.containsKey(jwtUtil.getResend()))
-            return emailResendFlowHandler.handle(jwtUtil.getResend(), exchange, chain);
-        else if (queryParams.containsKey(jwtUtil.getResetCode()))
-            return emailResetPasswordFlowHandler.handle(jwtUtil.getResetCode(), exchange, chain);
-        else if (queryParams.containsKey(jwtUtil.getCodeToSet()))
-            return setNewPasswordFlowHandler.handle(jwtUtil.getCodeToSet(), exchange, chain);
-        else
-            return chain.filter(exchange);
+
+        for (Map.Entry<String, RequestHandler> entry : handlers.entrySet()) {
+            if (exchange.getRequest().getHeaders().containsKey(entry.getKey())
+                    || queryParams.containsKey(entry.getKey())) {
+
+                String[] key = queryParams.containsKey(entry.getKey())
+                        ? new String[]{queryParams.getFirst(entry.getKey())} : new String[]{};
+                return entry.getValue().handle(exchange, chain, key);
+            }
+        }
+
+        return chain.filter(exchange);
+    }
+
+    @FunctionalInterface
+    public interface RequestHandler {
+        Mono<Void> handle(ServerWebExchange exchange, WebFilterChain chain, String... keys);
     }
 
 }
