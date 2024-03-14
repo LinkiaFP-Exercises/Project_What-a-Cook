@@ -12,7 +12,7 @@ public enum Htmls {
             <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
                     <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
-                    <h1 style="color: #4F81BD;">Bienvenido a WhataCook, FIRST_NAME!</h1>
+                    <h1 style="color: #4F81BD;">Bienvenido a WhataCook, USER_NAME!</h1>
                     <p>Para activar su cuenta, por favor haga clic en el siguiente botón:</p>
                     <a href="ACTIVATION_LINK" style="background-color: #4F81BD; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Activar Cuenta</a>
                     <p style="font-size: 12px; margin-top: 15px;">Si no puede hacer clic en el botón, copie y pegue este enlace en su navegador:</p>
@@ -57,7 +57,7 @@ public enum Htmls {
                 <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                     <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
                         <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
-                            <h1 style="color: #4F81BD;">¡Hola, FIRST_NAME!</h1>
+                            <h1 style="color: #4F81BD;">¡Hola, USER_NAME!</h1>
                                 <h3>Su cuenta ha sido activada exitosamente.</h3>
                                     <p>Puede volver a la aplicación y continuar con el inicio de sesión.</p>
                     </div>
@@ -76,7 +76,7 @@ public enum Htmls {
             <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
                     <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
-                    <h1 style="color: #4F81BD;">¡Hola, FIRST_NAME!</h1>
+                    <h1 style="color: #4F81BD;">¡Hola, USER_NAME!</h1>
                     <h2 style="color: #4F81BD;">Restablecimiento de Contraseña</h2>
                     <p>Hemos recibido una solicitud para restablecer la contraseña de su cuenta.</p>
                     <p>Para restablecer su contraseña, haga clic en el siguiente botón:</p>

@@ -55,7 +55,7 @@ public class ActivateComponent {
     private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
         return Htmls.SuccessActivation.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("FIRST_NAME", userDTO.getFirstName());
+                .replace("USER_NAME", userDTO.getFirstName());
     }
 
     private Mono<String> buildHtmlFailAccountActivatedContent(Throwable error) {

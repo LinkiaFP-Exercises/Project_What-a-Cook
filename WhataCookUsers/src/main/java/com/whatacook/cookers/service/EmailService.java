@@ -54,7 +54,7 @@ public class EmailService {
         String activationLink = globalValues.getUrlActivationAccount() + activationDto.getCode();
         return Htmls.ActivationEmail.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("FIRST_NAME", userDTO.getFirstName())
+                .replace("USER_NAME", userDTO.getFirstName())
                 .replace("ACTIVATION_LINK", activationLink);
     }
 
@@ -90,7 +90,7 @@ public class EmailService {
         String activationLink = globalValues.getUrlResetPassword() + resetCode.getCode();
         return Htmls.ResetPasswordMail.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("FIRST_NAME", userDTO.getFirstName())
+                .replace("USER_NAME", userDTO.getFirstName())
                 .replace("ACTIVATION_LINK", activationLink);
     }
 }
