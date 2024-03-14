@@ -1,7 +1,6 @@
 package com.whatacook.cookers.config.jwt;
 
 import com.whatacook.cookers.model.auth.AuthRequestDto;
-import com.whatacook.cookers.model.users.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -10,17 +9,19 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Getter @Setter
 @ConfigurationProperties(prefix = "security.jwt")
 public final class JwtUtil {
 
+    private String authRoot;
     private String loginUrl;
     private String signInUrl;
     private String forgotPass;
@@ -39,8 +40,6 @@ public final class JwtUtil {
     public SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(this.secret.getBytes());
     }
-
-    public String getIdFromToken(String token) { return getUsernameFromToken(token); }
 
     public String getUsernameFromToken(String token) { return getClaimFromToken(token, Claims::getSubject); }
 
@@ -67,15 +66,6 @@ public final class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, AuthRequestDto.getUsername());
     }
-    public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
-        return doGenerateToken(claims, username);
-    }
-    public String generateToken(UserDTO userDTO) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("ID", userDTO.get_id());
-        return doGenerateToken(claims, userDTO.getEmail());
-    }
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
@@ -97,10 +87,6 @@ public final class JwtUtil {
         else if (token.split("\\.").length != 3) throw new JwtException("This Token is not ours");
         else if (isExpired(token)) throw new JwtException("This Token has Expired");
         else return true;
-    }
-
-    public Boolean verifyUserFromToken(String token, UserDetails userDetails) {
-        return (getUsernameFromToken(token).equals(userDetails.getUsername()));
     }
 
 }

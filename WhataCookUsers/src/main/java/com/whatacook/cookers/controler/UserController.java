@@ -3,6 +3,7 @@ package com.whatacook.cookers.controler;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.UserService;
+import com.whatacook.cookers.utilities.ValidEmail;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,30 +20,6 @@ public class UserController {
 
     private final UserService service;
 
-    @GetMapping("${app.endpoint.users-activate}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<ResponseEntity<String>> activate(@RequestParam("activationCode") String activationCode) {
-        return service.activateAccount(activationCode);
-    }
-
-    @GetMapping("${app.endpoint.users-resend}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<Response> resendActivation(@RequestParam("emailToResend") String emailToResend) {
-        return service.resendActivateCode(emailToResend);
-    }
-
-    @GetMapping("${app.endpoint.reset-pass}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<ResponseEntity<String>> resetPassword(@RequestParam("resetCode") String resetCode) {
-        return service.resetPasswordByCode(resetCode);
-    }
-
-    @PostMapping("${app.endpoint.set-new-pass}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<ResponseEntity<String>> setNewPassword(@RequestBody UserJson userJson) {
-        return service.setNewPasswordByCode(userJson);
-    }
-
     @PostMapping("${app.endpoint.users-check-email}")
     public Mono<Response> existsByEmail(@Valid @RequestBody UserJson userJson) { return service.existsByEmail(userJson); }
 
@@ -57,6 +34,30 @@ public class UserController {
     @DeleteMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
     public Mono<Response> deleteOne(@RequestBody UserJson userJson) { return service.deleteOne(userJson); }
+
+    @GetMapping("${app.endpoint.users-activate}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<ResponseEntity<String>> activate(@RequestParam("activationCode") String activationCode) {
+        return service.activateAccount(activationCode);
+    }
+
+    @GetMapping("${app.endpoint.users-resend}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<Response> resendActivation(@ValidEmail @RequestParam("emailToResend") String emailToResend) {
+        return service.resendActivateCode(emailToResend);
+    }
+
+    @GetMapping("${app.endpoint.reset-pass}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<ResponseEntity<String>> resetPassword(@RequestParam("resetCode") String resetCode) {
+        return service.resetPasswordByCode(resetCode);
+    }
+
+    @PostMapping("${app.endpoint.set-new-pass}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<ResponseEntity<String>> setNewPassword(@RequestBody UserJson userJson) {
+        return service.setNewPasswordByCode(userJson);
+    }
 
 }
 

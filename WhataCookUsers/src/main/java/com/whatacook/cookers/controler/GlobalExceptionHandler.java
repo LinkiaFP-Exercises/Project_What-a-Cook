@@ -1,6 +1,9 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.responses.Response;
+import io.jsonwebtoken.ClaimJwtException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.core.codec.DecodingException;
@@ -92,6 +95,13 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Response handleRequestNotFound(Exception ex) {
         return createErrorResponse(HttpStatus.NOT_FOUND, "SORRY BABY, the fault is ours!!!", ex);
+    }
+
+    @ExceptionHandler({JwtException.class, ExpiredJwtException.class, ClaimJwtException.class})
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public Response handleJwtException(Exception ex) {
+        return createErrorResponse(HttpStatus.UNAUTHORIZED, "Please, Log in again!!!", ex);
     }
 
     private Response createErrorResponse(HttpStatus status, String customMessage, Exception ex) {

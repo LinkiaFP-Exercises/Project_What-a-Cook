@@ -1,6 +1,6 @@
 package com.whatacook.cookers.config;
 
-import com.whatacook.cookers.config.jwt.JwtRequestFilter;
+import com.whatacook.cookers.config.filter.AnyRequestFilter;
 import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.utilities.GlobalValues;
 import lombok.AllArgsConstructor;
@@ -29,7 +29,7 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, JwtRequestFilter jwtRequestFilter,
+    public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, AnyRequestFilter anyRequestFilter,
                                               ReactiveAuthenticationManager reactiveAuthenticationManager) {
 
         return httpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -44,7 +44,7 @@ public class SecurityConfig {
                                 .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
                                 .pathMatchers(jwtUtil.getForgotPass()).permitAll()
                                 .anyExchange().authenticated()
-                ).addFilterAt(jwtRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                ).addFilterAt(anyRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 
