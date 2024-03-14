@@ -11,7 +11,7 @@ public enum Htmls {
             </head>
             <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                    <img src="%s" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
+                    <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
                     <h1 style="color: #4F81BD;">Bienvenido a WhataCook, %s!</h1>
                     <p>Para activar su cuenta, por favor haga clic en el siguiente botón:</p>
                     <a href="%s" style="background-color: #4F81BD; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Activar Cuenta</a>
@@ -31,16 +31,16 @@ public enum Htmls {
                     </head>
                     <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                         <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #dda; border-radius: 8px; background-color: #FFEEDD;">
-                            <img src="%s" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
+                            <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
                             <h1 style="color: #CC7700;">Lamentamos mucho, pero no fue posible activar su cuenta.</h1>
                             <p style="font-size: 17px">
                             Por favor, intenta activar tu cuenta nuevamente utilizando el enlace proporcionado en el correo electrónico de activación.</p>
                             <p style="font-size: 13px";>
                                 También puede
-                                <a href="%s" style="color: #FFA500;">solicitar un nuevo código de activación</a>.</p>
+                                <a href="PATH_TO_RESEND" style="color: #FFA500;">solicitar un nuevo código de activación</a>.</p>
                             <p style="font-size: 11px";>
                                 Si sigues teniendo problemas,\s
-                                <a href="mailto:%s" style="color: #FFA500;">contacta con soporte</a>.</p>
+                                <a href="mailto:EMAIL_WAC"" style="color: #FFA500;">contacta con soporte</a>.</p>
                         </div>
                     </body>
                     </html>
@@ -56,7 +56,7 @@ public enum Htmls {
                 </head>
                 <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                     <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                        <img src="%s" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
+                        <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
                             <h1 style="color: #4F81BD;">¡Hola, %s!</h1>
                                 <h3>Su cuenta ha sido activada exitosamente.</h3>
                                     <p>Puede volver a la aplicación y continuar con el inicio de sesión.</p>
@@ -75,7 +75,7 @@ public enum Htmls {
             </head>
             <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                    <img src="%s" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
+                    <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 100px; height: auto;"/>
                     <h1 style="color: #4F81BD;">¡Hola, %s!</h1>
                     <h2 style="color: #4F81BD;">Restablecimiento de Contraseña</h2>
                     <p>Hemos recibido una solicitud para restablecer la contraseña de su cuenta.</p>

@@ -25,8 +25,10 @@ public class ActivationCodeFlowHandlerImpl implements ActivationCodeFlowHandler 
     @Override
     public Mono<Void> handle(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
         String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
-        String FAIL_HTML_FOR_ACTIVATION = String.format(Htmls.FailActivation.get(), globalValues.getUrlWacLogoPngSmall(),
-                globalValues.getPathToResendActvationMail(), globalValues.getMailToWac());
+        String FAIL_HTML_FOR_ACTIVATION = Htmls.FailActivation.get()
+                                            .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                                            .replace("PATH_TO_RESEND", globalValues.getPathToResendActvationMail())
+                                            .replace("EMAIL_WAC", globalValues.getMailToWac());
         return activationService.findByCode(activationCode)
                 .flatMap(activationDto -> authenticationManager.setAuthenticated(activationDto.getId(), null, exchange, chain))
                 .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange, FAIL_HTML_FOR_ACTIVATION)));
