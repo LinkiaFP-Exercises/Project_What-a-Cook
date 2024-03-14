@@ -88,7 +88,9 @@ public class EmailService {
 
     private String buildHtmlContentToResetAccount(ResetDto resetCode, UserDTO userDTO) {
         String activationLink = globalValues.getUrlResetPassword() + resetCode.getCode();
-        return String.format(Htmls.ResetPasswordMail.get(), globalValues.getUrlWacLogoPngSmall(),
-                userDTO.getFirstName(), activationLink, activationLink, activationLink);
+        return Htmls.ResetPasswordMail.get()
+                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("FIRST_NAME", userDTO.getFirstName())
+                .replace("ACTIVATION_LINK", activationLink);
     }
 }
