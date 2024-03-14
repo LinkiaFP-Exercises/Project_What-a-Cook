@@ -52,8 +52,10 @@ public class EmailService {
 
     private String buildHtmlContentToActivateAccount(ActivationDto activationDto, UserDTO userDTO) {
         String activationLink = globalValues.getUrlActivationAccount() + activationDto.getCode();
-        return String.format(Htmls.ActivationEmail.get(), globalValues.getUrlWacLogoPngSmall(),
-                        userDTO.getFirstName(), activationLink, activationLink, activationLink);
+        return Htmls.ActivationEmail.get()
+                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("FIRST_NAME", userDTO.getFirstName())
+                .replace("ACTIVATION_LINK", activationLink);
     }
 
     private Mono<Void> sendEmail(MimeMessage message) {
