@@ -29,9 +29,10 @@ public class FindComponent {
         return Mono.just(userJson)
                 .map(UserJson::getEmail)
                 .filter(Util::isValidEmail)
-                .flatMap(email -> DAO.findByEmail(email)
-                        .switchIfEmpty(UserServiceException.mono("This player does not exist or email is invalid!")))
-                .map(UserDTO::toJson);
+                .flatMap(DAO::findByEmail)
+                .switchIfEmpty(UserServiceException.mono("This user does not exist or email is invalid!"))
+                .map(UserDTO::toJson)
+                .doOnError(UserServiceException::onErrorMap);
     }
 
 }
