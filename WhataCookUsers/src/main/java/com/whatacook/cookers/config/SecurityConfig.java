@@ -43,8 +43,6 @@ public class SecurityConfig {
                                 .pathMatchers(jwtUtil.getLoginUrl()).permitAll()
                                 .pathMatchers(jwtUtil.getSignInUrl()).permitAll()
                                 .pathMatchers(jwtUtil.getForgotPass()).permitAll()
-                                .pathMatchers(jwtUtil.getOpenApiRootUrl()).permitAll()
-                                .pathMatchers(jwtUtil.getSwaggerUiRootUrl()).permitAll()
                                 .anyExchange().authenticated()
                 ).addFilterAt(anyRequestFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
