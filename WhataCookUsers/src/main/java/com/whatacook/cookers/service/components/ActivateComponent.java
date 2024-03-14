@@ -53,12 +53,16 @@ public class ActivateComponent {
     }
 
     private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
-        return String.format(Htmls.SuccessActivation.get(), globalValues.getUrlWacLogoPngSmall(), userDTO.getFirstName());
+        return Htmls.SuccessActivation.get()
+                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("FIRST_NAME", userDTO.getFirstName());
     }
 
     private Mono<String> buildHtmlFailAccountActivatedContent(Throwable error) {
-        return Mono.just(String.format(Htmls.FailActivation.get(), globalValues.getUrlWacLogoPngSmall(),
-                globalValues.getPathToResendActvationMail(), globalValues.getMailToWac()));
+        return Mono.just(Htmls.FailActivation.get()
+                            .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                            .replace("PATH_TO_RESEND", globalValues.getPathToResendActvationMail())
+                            .replace("EMAIL_WAC", globalValues.getMailToWac()));
     }
 
     public Mono<UserJson> resendActivationCode(String email) {
