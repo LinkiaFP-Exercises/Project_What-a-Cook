@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 
+@SuppressWarnings("unused")
 public class Util {
 
     public static String msgError(String input) {
@@ -21,6 +22,10 @@ public class Util {
     }
 
     public static boolean isNullOrEmpty(String something) { return !StringUtils.hasText(something); }
+
+    public static boolean isNullOrEmptyOrLiteralNull(String something) {
+        return !StringUtils.hasText(something) || "null".equalsIgnoreCase(something.trim());
+    }
 
     public static boolean notNullOrEmpty(String something) { return StringUtils.hasText(something); }
 
@@ -60,9 +65,10 @@ public class Util {
     }
 
     public static String buildPassRegex() {
-        String characters = "!¡|'´`¨^*+@·#$%&/{}()=-_:.;,<>?¿";
+        String characters = "!¡|'´`¨\\^*+@·#$%&/{}()=\\-_:.;,<>?¿";
+        String charactersUnicode = "\\u0021\\u00A1\\u007C\\u0027\\u00B4\\u0060\\u00A8\\u005E\\u002A\\u002B\\u0040\\u00B7\\u0023\\u0024\\u0025\\u0026\\u002F\\u007B\\u007D\\u0028\\u0029\\u003D\\u005C\\u002D\\u005F\\u003A\\u002E\\u003B\\u002C\\u003C\\u003E\\u003F\\u00BF";
         String regex = "^(?=.*[\\p{Ll}])(?=.*[\\p{Lu}])(?=.*\\p{N})(?=.*[%s])[\\p{L}\\p{N}%s]{8,}$";
-        return String.format(regex, characters, characters);
+        return String.format(regex, charactersUnicode, charactersUnicode);
     }
 
     public static String convertToJsonAsString(Object obj) {

@@ -35,7 +35,7 @@ public class EmailService {
         return Mono.fromCallable(() -> buildMimeMessage(activationDto, userDTO))
                 .flatMap(this::sendEmail)
                     .retry(2)
-                .thenReturn(userDTO.toJson())
+                .thenReturn(userDTO.toJsonWithoutId())
                 .doOnError(UserServiceException::doOnErrorMap);
     }
 

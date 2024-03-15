@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.whatacook.cookers.utilities.ValidEmail;
 import com.whatacook.cookers.utilities.ValidPassword;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -31,9 +28,11 @@ public class UserJustToSave {
     private String password;
 
     @NotBlank(message = "FirstName is mandatory")
+    @NotNull @NotEmpty
     private String firstName;
 
     @NotBlank(message = "Surnames is mandatory")
+    @NotNull @NotEmpty
     private String surNames;
 
     @NotNull(message = "Birthdate is mandatory")

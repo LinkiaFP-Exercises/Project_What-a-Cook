@@ -1,11 +1,13 @@
 package com.whatacook.cookers.controler;
 
+import com.whatacook.cookers.config.SpringMailConfig;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.service.contracts.ActivationDao;
 import com.whatacook.cookers.service.contracts.ResetDao;
 import com.whatacook.cookers.service.contracts.UserDao;
+import com.whatacook.cookers.utilities.GlobalValues;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +27,10 @@ public class BaseTestClass {
 
     @Autowired
     protected WebTestClient webTestClient;
+    @Autowired
+    protected SpringMailConfig springMailConfig;
+    @Autowired
+    protected GlobalValues globalValues;
 
     @MockBean
     protected UserDao userDao;
@@ -33,7 +39,9 @@ public class BaseTestClass {
     @MockBean
     protected ResetDao resetDaoDAO;
     @MockBean
-    protected JavaMailSender mailSender;
+    protected JavaMailSender emailSender;
+
+
 
     protected static String requestBodyOnlyMail(String email) {
         return "{ \"email\": \"" + email + "\" }";

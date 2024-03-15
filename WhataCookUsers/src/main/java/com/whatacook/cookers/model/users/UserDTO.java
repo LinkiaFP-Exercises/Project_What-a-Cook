@@ -51,4 +51,9 @@ public class UserDTO {
         return UserJson.from(this);
     }
 
+    public UserJson toJsonWithoutId() {
+        this.set_id(null);
+        return UserJson.from(this);
+    }
+
 }
