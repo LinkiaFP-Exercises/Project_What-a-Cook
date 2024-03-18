@@ -67,7 +67,7 @@ public final class JwtUtil {
         return doGenerateToken(claims, AuthRequestDto.getUsername());
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String subject) {
+    public String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
@@ -75,6 +75,20 @@ public final class JwtUtil {
                 .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSecretKey()).compact();
+    }
+
+    public String generateExpiredTokenForTest(Map<String, Object> claims, String subject) {
+        long nowMillis = System.currentTimeMillis();
+        Date now = new Date(nowMillis - expiration * 2);
+        Date expiredDate = new Date(nowMillis - expiration);
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .audience().add(audience).and()
+                .issuer(issuer)
+                .issuedAt(now)
+                .expiration(expiredDate)
                 .signWith(getSecretKey()).compact();
     }
 

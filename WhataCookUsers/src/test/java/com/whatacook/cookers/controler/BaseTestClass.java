@@ -19,6 +19,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
@@ -43,7 +45,6 @@ public class BaseTestClass {
     protected ResetDao resetDaoDAO;
     @MockBean
     protected JavaMailSender emailSender;
-
 
 
     protected static String requestBodyOnlyMail(String email) {
@@ -77,15 +78,51 @@ public class BaseTestClass {
         userDTO.setAccountStatus(AccountStatus.PENDING);
         return userDTO;
     }
+
     protected static UserDTO userDtoBasicOk() {
         UserDTO userDTO = userDtoBasicPending();
         userDTO.setAccountStatus(AccountStatus.OK);
         return userDTO;
     }
 
+    protected static UserDTO userDtoAdminOk(String email) {
+        UserDTO userDTO = userDtoBasicOk();
+        userDTO.setRoleType(Role.FULL);
+        userDTO.setEmail(email);
+        return userDTO;
+    }
+
+    protected static UserDTO userDtoOtherOk(String email) {
+        UserDTO userDTO = userDtoBasicOk();
+        userDTO.setEmail(email);
+        return userDTO;
+    }
+
+    protected String tokenUserOk() {
+        return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), EMAIL);
+    }
+
+    protected String tokenAdminOk(String email) {
+        return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.CHIEF), email);
+    }
+
+    protected String tokenOtherUserOk(String email) {
+        return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), email);
+    }
+
+    protected String tokenExpired(String email) {
+        return jwtUtil.getPrefix() + jwtUtil.generateExpiredTokenForTest(tokenRole(Role.BASIC), email);
+    }
+
+    protected HashMap<String, Object> tokenRole(Role role) {
+        HashMap<String, Object> claims = new HashMap<>();
+        claims.put("roles", List.of("ROLE_" + role.get()));
+        return claims;
+    }
+
     public static final String ID = "65db4a16e6cd946d5eb775fa";
     public static final LocalDateTime LOCAL_DATE_TIME = LocalDateTime.of(2024, 1, 20, 16, 20);
-    public static final String EMAIL = "esgotilha@protonmail.ch";
+    public static final String EMAIL = "fulano@test.ch";
     public static final String PASSWORD = "Test!234";
     public static final String PASSWORD_ENCRYPT = "$2a$10$FlrzGLiGkTe7blCuE6ZyMOwJ8Ru/D6aAmlvuQgJvRqd/cpCJvQUWa";
     public static final String FIRST_NAME = "Fulano";
