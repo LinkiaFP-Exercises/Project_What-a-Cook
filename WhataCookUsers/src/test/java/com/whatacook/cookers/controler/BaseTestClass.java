@@ -1,6 +1,7 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.config.SpringMailConfig;
+import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
 import com.whatacook.cookers.model.users.UserDTO;
@@ -31,6 +32,8 @@ public class BaseTestClass {
     protected SpringMailConfig springMailConfig;
     @Autowired
     protected GlobalValues globalValues;
+    @Autowired
+    protected JwtUtil jwtUtil;
 
     @MockBean
     protected UserDao userDao;
@@ -66,7 +69,7 @@ public class BaseTestClass {
         userDTO.set_id(ID);
         userDTO.setRegistration(LOCAL_DATE_TIME);
         userDTO.setEmail(EMAIL);
-        userDTO.setPassword(PASSWORD);
+        userDTO.setPassword(PASSWORD_ENCRYPT);
         userDTO.setFirstName(FIRST_NAME);
         userDTO.setSurNames(SUR_NAMES);
         userDTO.setBirthdate(BIRTHDATE);
@@ -84,6 +87,7 @@ public class BaseTestClass {
     public static final LocalDateTime LOCAL_DATE_TIME = LocalDateTime.of(2024, 1, 20, 16, 20);
     public static final String EMAIL = "esgotilha@protonmail.ch";
     public static final String PASSWORD = "Test!234";
+    public static final String PASSWORD_ENCRYPT = "$2a$10$FlrzGLiGkTe7blCuE6ZyMOwJ8Ru/D6aAmlvuQgJvRqd/cpCJvQUWa";
     public static final String FIRST_NAME = "Fulano";
     public static final String SUR_NAMES = "Ciclano Beltrano";
     public static final LocalDate BIRTHDATE = LocalDate.of(1982, 7, 19);

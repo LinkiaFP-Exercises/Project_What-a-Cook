@@ -67,8 +67,7 @@ public class LoginComponent {
         return DAO.findBy_id(id)
                 .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusById)
-                .map(this::newValidUserById)
-                ;
+                .map(this::newValidUserById);
     }
 
     private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
