@@ -54,10 +54,10 @@ public class CheckEmailTest extends BaseTestClass {
         String errorKey = "ERROR";
         return Stream.of(
                 Arguments.of(requestBodyOnlyMail("email@ro ot.com"), false, messageMail, mailKey),
-                Arguments.of(requestBodyOnlyMail(""), false, messageMail, mailKey),
+                Arguments.of(requestBodyOnlyMail(empty), false, messageMail, mailKey),
                 Arguments.of(requestBodyOnlyMail(null), false, messageMail, mailKey),
                 Arguments.of(badlyJson, false, messageBody, errorKey),
-                Arguments.of("", false, messageBody, errorKey)
+                Arguments.of(empty, false, messageBody, errorKey)
         );
     }
 

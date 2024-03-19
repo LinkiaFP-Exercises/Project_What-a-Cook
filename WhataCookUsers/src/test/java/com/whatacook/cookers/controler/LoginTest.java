@@ -8,12 +8,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import reactor.core.publisher.Mono;
 
 import java.util.stream.Stream;
 
+import static com.whatacook.cookers.model.constants.AccountStatus.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,7 +26,6 @@ public class LoginTest extends BaseTestClass {
             "\"username\": \"" + EMAIL + "\"," +
             "\"password\": \"" + PASSWORD + "\"" +
             "}";
-
 
     @Test
     void testLoginIsSuccessful() {
@@ -45,20 +44,11 @@ public class LoginTest extends BaseTestClass {
                 });
     }
 
-    @Test
-    void testLoginFailedPendingAccount() {
-        String message = "Falta confirmar el e-mail para activar la cuenta";
-        executeLoginTest(message, Mono.just(userDtoBasicPending()));
-    }
-
-    @Test
-    void testLoginFailedUserNotFound() {
-        String message = "USER NOT FOUND";
-        executeLoginTest(message, Mono.empty());
-    }
-
-    private void executeLoginTest(String expectedMessagePart, Mono<UserDTO> userResponse) {
+    @ParameterizedTest
+    @MethodSource("provideVariablesForLoginRequests")
+    void executeLoginTest(String expectedMessagePart, Mono<UserDTO> userResponse) {
         Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(userResponse);
+        Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
 
         webTestClient.post().uri(loginEndpoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +57,20 @@ public class LoginTest extends BaseTestClass {
                 .expectStatus().isUnauthorized()
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").value(message -> Assertions.assertThat(message).asString().contains(expectedMessagePart));
+                .jsonPath("$.message").value(message ->
+                        Assertions.assertThat(message).asString().contains(expectedMessagePart));
+    }
+
+    private static Stream<Arguments> provideVariablesForLoginRequests() {
+        return Stream.of(
+                Arguments.of("USER NOT FOUND", Mono.empty()),
+                Arguments.of(PENDING.getDetails(), Mono.just(userDtoBasicPending())),
+                Arguments.of(OFF.getDetails(), Mono.just(userDtoBasicAccountStatus(OFF))),
+                Arguments.of(OUTDATED.getDetails(), Mono.just(userDtoBasicAccountStatus(OUTDATED))),
+                Arguments.of(REQUEST_DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(REQUEST_DELETE))),
+                Arguments.of(MARKED_DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(MARKED_DELETE))),
+                Arguments.of(DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(DELETE)))
+        );
     }
 
     @ParameterizedTest
@@ -75,6 +78,7 @@ public class LoginTest extends BaseTestClass {
     void testLoginIsBadRequest(String requestBody, boolean success, String message, String key) {
         testFailRequest_400(loginEndpoint, requestBody, success, message, key);
     }
+
     private static Stream<Arguments> provideVariablesForFailRequests() {
         String reqBodyWithoutPass = "{ \"username\": \"" + EMAIL + "\" }";
         String reqBodyWithoutUser = "{ \"password\": \"" + PASSWORD + "\" }";
@@ -90,7 +94,7 @@ public class LoginTest extends BaseTestClass {
                 Arguments.of("{}", false, validationError, keyPass),
                 Arguments.of("{}", false, validationError, keyUser),
                 Arguments.of(reqBodyBadJson, false, reqBodyError, keyError),
-                Arguments.of("", false, reqBodyError, keyError)
+                Arguments.of(empty, false, reqBodyError, keyError)
         );
     }
 

@@ -57,11 +57,15 @@ public class UserController {
                     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
                     boolean isAdmin = authentication.getAuthorities().stream()
                             .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-                    if (isAdmin || userDetails.getUsername().equalsIgnoreCase(userJson.getEmail())) {
-                        return action.apply(userJson, userDetails);
-                    } else {
-                        return UserServiceException.mono("No tienes permiso para acceder a esta información.");
-                    }
+
+                    String username = userDetails.getUsername();
+                    boolean isOwnUser = (userJson.get_id() == null)
+                                                    ? username.contains(userJson.getEmail())
+                                                    :username.contains(userJson.get_id());
+
+                    return (isAdmin || isOwnUser)
+                            ? action.apply(userJson, userDetails)
+                            : UserServiceException.mono("No tienes permiso para acceder a esta información.");
                 });
     }
 

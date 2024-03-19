@@ -5,8 +5,6 @@ import reactor.core.publisher.Mono;
 
 import java.io.Serial;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Getter
 public final class UserServiceException extends RuntimeException {
@@ -31,19 +29,9 @@ public final class UserServiceException extends RuntimeException {
     public static <T> Mono<T> mono(String message, Map<String, Object> errors) {
         return Mono.error(new UserServiceException(message, errors));
     }
-    public static <T> Mono<T> mono(Throwable e) { return Mono.error(new UserServiceException(e.getMessage())); }
 
-    private static String joinMessages(String message, Throwable throwable) {
-        return message + " 8==> " + throwable.getMessage();
-    }
-
-    public static Consumer<? super Throwable> doOnErrorMap(String message) {
-        //noinspection ThrowableNotThrown
-        return throwable -> new UserServiceException(joinMessages(message, throwable));
-    }
-
-    public static Function<Throwable, UserServiceException> doOnErrorMap(String message, Map<String, Object> errors) {
-        return throwable -> new UserServiceException(message, errors);
+    public static <T> Mono<T> mono(Throwable e) {
+        return Mono.error(new UserServiceException(e.getMessage()));
     }
 
     public static void doOnErrorMap(Throwable throwable) {
@@ -52,6 +40,10 @@ public final class UserServiceException extends RuntimeException {
 
     public static Throwable onErrorMap(Throwable throwable) {
         return new UserServiceException(throwable.getMessage());
+    }
+
+    public static UserServiceException passNotMatch() {
+        return new UserServiceException("Password doesn't match!");
     }
 
 }

@@ -19,6 +19,8 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.whatacook.cookers.model.constants.AccountStatus.*;
+
 @AllArgsConstructor
 @Component
 @Validated
@@ -35,6 +37,7 @@ public class LoginComponent {
                         return findUserById(info);
                 });
     }
+
     private Mono<UserDetails> findUserByEmail(String email) {
         return DAO.findByEmail(email)
                 .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
@@ -43,17 +46,17 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
-        if (EnumSet.of(AccountStatus.OK, AccountStatus.OFF)
-                .contains(userDTO.getAccountStatus()))  {
+        if (userDTO.getAccountStatus().equals(OK))
             return Mono.just(userDTO);
-        } else {
+        else if (userDTO.getAccountStatus().equals(DELETE))
+            return DAO.delete(userDTO).then(UserServiceException.mono(DELETE.getDetails()));
+        else
             return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
-        }
     }
 
     private UserDetails newValidUserByEmail(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
-        return new User(userDTO.getEmail(), userDTO.getPassword(), authorities);
+        return new User(userDTO.getEmail() + userDTO.get_id(), userDTO.getPassword(), authorities);
     }
 
     private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {

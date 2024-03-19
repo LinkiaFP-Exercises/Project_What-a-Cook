@@ -2,7 +2,6 @@ package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -58,32 +57,19 @@ public class ReadUserTest extends BaseTestClass {
         final String unAuthMessage = "No tienes permiso para acceder a esta información";
         String emailTest = "other@email.com";
         Mockito.when(userDao.findByEmail(emailTest)).thenReturn(Mono.just(userDtoOtherOk(emailTest)));
-        baseTestReadUserByEmail_Fail(tokenOtherUserOk(emailTest), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenOtherUserOk(emailTest), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
     @Test
     void testReadUserByUserExpiredToken() {
         final String unAuthMessage = "Token expired. Please login again";
-        baseTestReadUserByEmail_Fail(tokenExpired(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenExpired(EMAIL), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
     @Test
     void testReadUserByUserInvalidToken() {
         final String unAuthMessage = "Invalid token";
-        baseTestReadUserByEmail_Fail("a" + tokenUserOk(), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, "a" + tokenUserOk(), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
-
-    void baseTestReadUserByEmail_Fail(String token, String message) {
-        webTestClient.post().uri(readOneEndpoint)
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBodyOnlyMail(EMAIL))
-                .exchange()
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").value(text -> Assertions.assertThat(text).asString().contains(message));
-    }
-
 
 }

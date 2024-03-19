@@ -46,12 +46,15 @@ public class BaseTestClass {
     @MockBean
     protected JavaMailSender emailSender;
 
+    protected static final String empty = "";
+    protected static final String blank = "    ";
+
 
     protected static String requestBodyOnlyMail(String email) {
         return "{ \"email\": \"" + email + "\" }";
     }
 
-    protected static String requestBodyFull(String email, String password, String firstName, String surNames, String birthdate) {
+    protected static String requestBodyFullWithoutID(String email, String password, String firstName, String surNames, String birthdate) {
         return "{\n" +
                 "    \"email\": \"" + email + "\",\n" +
                 "    \"password\": \"" + password + "\",\n" +
@@ -61,8 +64,31 @@ public class BaseTestClass {
                 "}";
     }
 
+    protected static String requestBodyFullWhitID(String _id, String email, String password, String firstName, String surNames, String birthdate) {
+        return "{\n" +
+                "    \"_id\": \"" + _id + "\",\n" +
+                "    \"email\": \"" + email + "\",\n" +
+                "    \"password\": \"" + password + "\",\n" +
+                "    \"firstName\": \"" + firstName + "\",\n" +
+                "    \"surNames\": \"" + surNames + "\",\n" +
+                "    \"birthdate\": \"" + birthdate + "\"\n" +
+                "}";
+    }
+
+    protected static String requestBodyFullWhitIdAndNewPassword(String _id, String email, String password, String newPassword, String firstName, String surNames, String birthdate) {
+        return "{\n" +
+                "    \"_id\": \"" + _id + "\",\n" +
+                "    \"email\": \"" + email + "\",\n" +
+                "    \"password\": \"" + password + "\",\n" +
+                "    \"newPassword\": \"" + newPassword + "\",\n" +
+                "    \"firstName\": \"" + firstName + "\",\n" +
+                "    \"surNames\": \"" + surNames + "\",\n" +
+                "    \"birthdate\": \"" + birthdate + "\"\n" +
+                "}";
+    }
+
     protected static String requestBodyFullyFill() {
-        return requestBodyFull(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
+        return requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
     }
 
     protected static UserDTO userDtoBasicPending() {
@@ -76,6 +102,12 @@ public class BaseTestClass {
         userDTO.setBirthdate(BIRTHDATE);
         userDTO.setRoleType(Role.BASIC);
         userDTO.setAccountStatus(AccountStatus.PENDING);
+        return userDTO;
+    }
+
+    protected static UserDTO userDtoBasicAccountStatus(AccountStatus status) {
+        UserDTO userDTO = userDtoBasicPending();
+        userDTO.setAccountStatus(status);
         return userDTO;
     }
 
@@ -140,6 +172,30 @@ public class BaseTestClass {
                 .jsonPath("$.success").isEqualTo(success)
                 .jsonPath("$.message").value(text -> Assertions.assertThat(text).asString().contains(message))
                 .jsonPath("$.content").value(content -> assertThat(content).asInstanceOf(MAP).containsKeys(key));
+    }
+
+    void testPost401EndpointWithTokenSuccessFalseMessageContains(String endpoint, String token, String requestBody, String message) {
+        webTestClient.post().uri(endpoint)
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange()
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").value(text -> Assertions.assertThat(text).asString().contains(message));
+    }
+
+    void testPutEndpointWithTokenSuccessFalseMessageContains(String endpoint, String token, String requestBody, int http, String message) {
+        webTestClient.put().uri(endpoint)
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange()
+                .expectStatus().isEqualTo(http)
+                .expectBody()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").value(text -> Assertions.assertThat(text).asString().contains(message));
     }
 
 }

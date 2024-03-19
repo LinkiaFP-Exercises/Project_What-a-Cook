@@ -36,18 +36,18 @@ public class SaveComponent {
     private Mono<UserJustToSave> validateAttributes(UserJustToSave userJustToSave) {
         Map<String, Object> errors = new LinkedHashMap<>();
 
-        if (isNullOrEmpty(userJustToSave.getEmail()))
+        if (isNullOrEmptyOrLiteralNull(userJustToSave.getEmail()))
             errors.put("email", "E-mail is missing!");
         if (notValidEmail(userJustToSave.getEmail()))
             errors.put("email", "This email has invalid format!");
-        if (isNullOrEmpty(userJustToSave.getPassword()))
+        if (isNullOrEmptyOrLiteralNull(userJustToSave.getPassword()))
             errors.put("password", "Password is missing!");
         if (notValidPassword(userJustToSave.getPassword()))
             errors.put("password", "Password is invalid format: 8 characters " +
                     "-> uppercase lowercase letters numbers and special characters !");
-        if (isNullOrEmpty(userJustToSave.getFirstName()))
+        if (isNullOrEmptyOrLiteralNull(userJustToSave.getFirstName()))
             errors.put("firstName", "First Name is missing!");
-        if (isNullOrEmpty(userJustToSave.getSurNames()))
+        if (isNullOrEmptyOrLiteralNull(userJustToSave.getSurNames()))
             errors.put("surNames", "Last Name is missing!");
         if (notValidBirthdate(userJustToSave.getBirthdate()))
             errors.put("birthdate", "Missing or invalid format : 'YYYY-MM-DD' and more than 7 years!");

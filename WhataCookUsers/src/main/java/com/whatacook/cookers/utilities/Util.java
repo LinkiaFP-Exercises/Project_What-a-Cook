@@ -7,31 +7,35 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 
-@SuppressWarnings("unused")
 public class Util {
-
-    public static String msgError(String input) {
-        return String.format("Something went wrong trying to %s 8==> ", input);
-    }
 
     public static boolean isValidBirthdate(LocalDate birthdate) {
         return birthdate != null && !birthdate.isAfter(LocalDate.now().minusYears(7));
     }
+
     public static boolean notValidBirthdate(LocalDate birthdate) {
         return birthdate == null || birthdate.isAfter(LocalDate.now().minusYears(7));
     }
 
-    public static boolean isNullOrEmpty(String something) { return !StringUtils.hasText(something); }
-
-    public static boolean isNullOrEmptyOrLiteralNull(String something) {
-        return !StringUtils.hasText(something) || "null".equalsIgnoreCase(something.trim());
+    public static boolean isNullOrEmpty(String something) {
+        return !StringUtils.hasText(something);
     }
 
-    public static boolean notNullOrEmpty(String something) { return StringUtils.hasText(something); }
+    public static boolean isNullOrEmptyOrLiteralNull(String something) {
+        return isNullOrEmpty(something) || "null".equalsIgnoreCase(something.trim());
+    }
 
-    public static String TitleCase(String toConvert) { return TitleCase.all(toConvert); }
+    public static boolean notNullOrEmpty(String something) {
+        return StringUtils.hasText(something) && !"null".equalsIgnoreCase(something.trim());
+    }
 
-    public static String encryptPassword(String toEncrypt) { return BCrypt.encode(toEncrypt); }
+    public static String TitleCase(String toConvert) {
+        return isNullOrEmptyOrLiteralNull(toConvert) ? null : TitleCase.all(toConvert);
+    }
+
+    public static String encryptPassword(String toEncrypt) {
+        return BCrypt.encode(toEncrypt);
+    }
 
     public static boolean encryptMatches(String rawPassword, String encodedPassword) {
         return notNullOrEmpty(rawPassword) && BCrypt.matches(rawPassword, encodedPassword);
@@ -65,7 +69,7 @@ public class Util {
     }
 
     public static String buildPassRegex() {
-        String characters = "!¡|'´`¨\\^*+@·#$%&/{}()=\\-_:.;,<>?¿";
+//        String characters = "!¡|'´`¨\\^*+@·#$%&/{}()=\\-_:.;,<>?¿";
         String charactersUnicode = "\\u0021\\u00A1\\u007C\\u0027\\u00B4\\u0060\\u00A8\\u005E\\u002A\\u002B\\u0040\\u00B7\\u0023\\u0024\\u0025\\u0026\\u002F\\u007B\\u007D\\u0028\\u0029\\u003D\\u005C\\u002D\\u005F\\u003A\\u002E\\u003B\\u002C\\u003C\\u003E\\u003F\\u00BF";
         String regex = "^(?=.*[\\p{Ll}])(?=.*[\\p{Lu}])(?=.*\\p{N})(?=.*[%s])[\\p{L}\\p{N}%s]{8,}$";
         return String.format(regex, charactersUnicode, charactersUnicode);
@@ -78,6 +82,7 @@ public class Util {
             return "{\"error\": \"Error converting to JSON.\"}";
         }
     }
+
     public static byte[] convertToJsonAsBytes(Object obj) {
         try {
             return new ObjectMapper().writeValueAsBytes(obj);

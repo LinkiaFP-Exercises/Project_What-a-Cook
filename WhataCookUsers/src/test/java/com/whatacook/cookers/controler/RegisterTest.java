@@ -88,8 +88,8 @@ public class RegisterTest extends BaseTestClass {
     private void assertHtmlContentContains(MimeMessage mimeMessage, String activationURL) throws MessagingException, IOException, EncoderException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         mimeMessage.writeTo(output);
-        String inlineHtml = output.toString(StandardCharsets.UTF_8).replace("\n", "")
-                                    .replace("\r", "").replace("=3D", "");
+        final String inlineHtml = output.toString(StandardCharsets.UTF_8).replace("\n", empty)
+                .replace("\r", empty).replace("=3D", empty);
         assertNotNull(inlineHtml, "No se encontró contenido HTML en el mensaje.");
         assertTrue(inlineHtml.contains(globalValues.getUrlWacLogoPngSmall()), "El mensaje no contiene el logo esperado.");
         assertTrue(inlineHtml.contains("Bienvenido a WhataCook, " + FIRST_NAME + "!"), "El mensaje no contiene el saludo esperado.");
@@ -103,22 +103,22 @@ public class RegisterTest extends BaseTestClass {
     }
 
     private static Stream<Arguments> provideVariablesForFailRequests() {
-        String bodyWithoutEmail = requestBodyFull("", PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithoutPass = requestBodyFull(EMAIL, "", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithoutFname = requestBodyFull(EMAIL, PASSWORD, "", SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithoutSname = requestBodyFull(EMAIL, PASSWORD, FIRST_NAME, "", BIRTHDATE_STR);
-        String bodyWithoutBdate = requestBodyFull(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, "");
-        String bodyWithEmailBlanc = requestBodyFull("     ", PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithPassBlanc = requestBodyFull(EMAIL, "     ", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithFnameBlanc = requestBodyFull(EMAIL, PASSWORD, "    ", SUR_NAMES, BIRTHDATE_STR);
-        String bodyWithSnameBlanc = requestBodyFull(EMAIL, PASSWORD, FIRST_NAME, "    ", BIRTHDATE_STR);
-        String bodyWithBdateBlanc = requestBodyFull(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, "     ");
-        String withoutLowercaseLetter = requestBodyFull(EMAIL, "1234!ABC", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String withoutUppercaseLetter = requestBodyFull(EMAIL, "1234!abc", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String withoutDigit = requestBodyFull(EMAIL, "Abcd!efg", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String withoutSpecialChar = requestBodyFull(EMAIL, "Abcd1Efg", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String shorterThan8Char = requestBodyFull(EMAIL, "A1b!ef", FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
-        String messageError = "Invalid or incorrect format";
+        final String bodyWithoutEmail = requestBodyFullWithoutID(empty, PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithoutPass = requestBodyFullWithoutID(EMAIL, empty, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithoutFname = requestBodyFullWithoutID(EMAIL, PASSWORD, empty, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithoutSname = requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, empty, BIRTHDATE_STR);
+        final String bodyWithoutBdate = requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, empty);
+        final String bodyWithEmailBlanc = requestBodyFullWithoutID(blank, PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithPassBlanc = requestBodyFullWithoutID(EMAIL, blank, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithFnameBlanc = requestBodyFullWithoutID(EMAIL, PASSWORD, blank, SUR_NAMES, BIRTHDATE_STR);
+        final String bodyWithSnameBlanc = requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, blank, BIRTHDATE_STR);
+        final String bodyWithBdateBlanc = requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, blank);
+        final String reqBodyPassWithoutLowercaseLetter = registerReqBoRdyNewPass("1234!ABC");
+        final String reqBodyPassWithoutUppercaseLetter = registerReqBoRdyNewPass("1234!abc");
+        final String reqBodyPassWithoutDigit = registerReqBoRdyNewPass("Abcd!efg");
+        final String reqBodyPassWithoutSpecialChar = registerReqBoRdyNewPass("Abcd1Efg");
+        final String reqBodyPassShorterThan8Char = registerReqBoRdyNewPass("A1b!ef");
+        final String messageError = "Invalid or incorrect format";
         return Stream.of(
                 Arguments.of(bodyWithoutEmail, false, messageError, "email"),
                 Arguments.of(bodyWithoutPass, false, messageError, "password"),
@@ -130,13 +130,17 @@ public class RegisterTest extends BaseTestClass {
                 Arguments.of(bodyWithFnameBlanc, false, messageError, "firstName"),
                 Arguments.of(bodyWithSnameBlanc, false, messageError, "surNames"),
                 Arguments.of(bodyWithBdateBlanc, false, messageError, "birthdate"),
-                Arguments.of(withoutLowercaseLetter, false, messageError, "password"),
-                Arguments.of(withoutUppercaseLetter, false, messageError, "password"),
-                Arguments.of(withoutDigit, false, messageError, "password"),
-                Arguments.of(withoutSpecialChar, false, messageError, "password"),
-                Arguments.of(shorterThan8Char, false, messageError, "password"),
-                Arguments.of("", false, "Invalid request body or not present", "ERROR")
+                Arguments.of(reqBodyPassWithoutLowercaseLetter, false, messageError, "password"),
+                Arguments.of(reqBodyPassWithoutUppercaseLetter, false, messageError, "password"),
+                Arguments.of(reqBodyPassWithoutDigit, false, messageError, "password"),
+                Arguments.of(reqBodyPassWithoutSpecialChar, false, messageError, "password"),
+                Arguments.of(reqBodyPassShorterThan8Char, false, messageError, "password"),
+                Arguments.of(empty, false, "Invalid request body or not present", "ERROR")
         );
+    }
+
+    private static String registerReqBoRdyNewPass(String newPassword) {
+        return requestBodyFullWithoutID(EMAIL, newPassword, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
     }
 
 }
