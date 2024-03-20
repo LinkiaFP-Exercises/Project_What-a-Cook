@@ -37,3 +37,16 @@ Dirigido a personas de todas las edades y niveles de habilidad en la cocina, enf
 - **15 de abril de 2024:** Entrega de una previa general de la aplicación con sus funcionalidades básicas y diseño general del frontend. 
 - **31 de mayo de 2024:** ENTREGA FINAL - proyecto finalizado y documentado
 - **14 de junio de 2024:** Defensa del Proyecto: Presentación que incluye la exposición del trabajo realizado, los resultados obtenidos y las conclusiones alcanzadas. 
+
+## 9. Testear con Docker
+
+Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar un contenedor siguiendo estos pasos:
+
+1. Primero, construye la imagen Docker usando el siguiente comando:
+```bash
+docker build --pull . -t faunog/whatacook:cookers-app_9bf45ce
+```
+2. Una vez construida la imagen, puedes ejecutar la aplicación utilizando Docker. Para más detalles sobre cómo ejecutar el contenedor y acceder a la aplicación, te recomendamos consultar la documentación oficial de Docker.
+   Puedes encontrar la imagen Docker de WhataCook en Docker Hub en el siguiente enlace:
+   [faunog/whatacook:cookers-app_9bf45ce](https://hub.docker.com/layers/faunog/whatacook/cookers-app_9bf45ce/images/sha256-4ae53a77376b6f1392d68daaea6d36c7e746b455b22577108848ccf43c1a1448?context=repo)
+   Este enlace te llevará directamente a la versión específica de la imagen que puedes usar para probar WhataCook - Users.
