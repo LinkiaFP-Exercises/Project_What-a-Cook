@@ -108,6 +108,7 @@ public class BaseTestClass {
     protected static UserDTO userDtoBasicAccountStatus(AccountStatus status) {
         UserDTO userDTO = userDtoBasicPending();
         userDTO.setAccountStatus(status);
+        userDTO.setRequestDeleteDate(LocalDateTime.now().minusYears(3));
         return userDTO;
     }
 

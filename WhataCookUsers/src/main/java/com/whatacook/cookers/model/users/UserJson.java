@@ -56,6 +56,8 @@ public class UserJson {
         this.requestDeleteDate = userDTO.getRequestDeleteDate();
     }
 
+    public UserJson(String id) { _id = id; }
+
     public static UserJson from(UserDTO userDTO) { return new UserJson(userDTO); }
 
 }

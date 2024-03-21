@@ -2,7 +2,6 @@ package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.users.UserDTO;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -27,9 +26,11 @@ public class LoginTest extends BaseTestClass {
             "\"password\": \"" + PASSWORD + "\"" +
             "}";
 
-    @Test
-    void testLoginIsSuccessful() {
-        Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(Mono.just(userDtoBasicOk()));
+    @ParameterizedTest
+    @MethodSource("provideVariablesForSuccessLoginRequests")
+    void testLoginIsSuccessful(Mono<UserDTO> userResponse) {
+        Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(userResponse);
+        Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
         webTestClient.post().uri(loginEndpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
@@ -44,11 +45,22 @@ public class LoginTest extends BaseTestClass {
                 });
     }
 
+    private static Stream<Arguments> provideVariablesForSuccessLoginRequests() {
+        return Stream.of(
+                Arguments.of(Mono.just(userDtoBasicOk())),
+                Arguments.of(Mono.just(userDtoBasicAccountStatus(OFF))),
+                Arguments.of(Mono.just(userDtoBasicAccountStatus(REQUEST_DELETE)))
+        );
+    }
+
     @ParameterizedTest
-    @MethodSource("provideVariablesForLoginRequests")
-    void executeLoginTest(String expectedMessagePart, Mono<UserDTO> userResponse) {
+    @MethodSource("provideVariablesForNoSuccessLoginRequests")
+    void testLoginFail(String expectedMessagePart, Mono<UserDTO> userResponse) {
         Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(userResponse);
+        Mockito.when(userDao.findBy_id(Mockito.anyString())).thenReturn(userResponse);
         Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
+        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArguments()[0]));
 
         webTestClient.post().uri(loginEndpoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -61,15 +73,13 @@ public class LoginTest extends BaseTestClass {
                         Assertions.assertThat(message).asString().contains(expectedMessagePart));
     }
 
-    private static Stream<Arguments> provideVariablesForLoginRequests() {
+    private static Stream<Arguments> provideVariablesForNoSuccessLoginRequests() {
+        String deleteMsg = "Your account has been terminated";
         return Stream.of(
                 Arguments.of("USER NOT FOUND", Mono.empty()),
                 Arguments.of(PENDING.getDetails(), Mono.just(userDtoBasicPending())),
-                Arguments.of(OFF.getDetails(), Mono.just(userDtoBasicAccountStatus(OFF))),
                 Arguments.of(OUTDATED.getDetails(), Mono.just(userDtoBasicAccountStatus(OUTDATED))),
-                Arguments.of(REQUEST_DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(REQUEST_DELETE))),
-                Arguments.of(MARKED_DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(MARKED_DELETE))),
-                Arguments.of(DELETE.getDetails(), Mono.just(userDtoBasicAccountStatus(DELETE)))
+                Arguments.of(deleteMsg, Mono.just(userDtoBasicAccountStatus(MARKED_DELETE)))
         );
     }
 

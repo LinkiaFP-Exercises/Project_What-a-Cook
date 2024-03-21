@@ -3,8 +3,8 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
-import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.service.contracts.UserDao;
+import com.whatacook.cookers.utilities.Util;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,6 +27,7 @@ import static com.whatacook.cookers.model.constants.AccountStatus.*;
 public class LoginComponent {
 
     private final UserDao DAO;
+    private final DeleteComponent deleteComponent;
 
     public Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
         return Mono.just(userEmailOrId)
@@ -46,12 +47,14 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
-        if (userDTO.getAccountStatus().equals(OK))
+        final AccountStatus accountStatus = userDTO.getAccountStatus();
+        if (EnumSet.of(OK, OFF, REQUEST_DELETE).contains(accountStatus))
             return Mono.just(userDTO);
-        else if (userDTO.getAccountStatus().equals(DELETE))
-            return DAO.delete(userDTO).then(UserServiceException.mono(DELETE.getDetails()));
+        else if (MARKED_DELETE.equals(accountStatus))
+            return deleteComponent.proceedIfApplicable(userDTO.toJson())
+                    .flatMap(response -> UserServiceException.mono(response.getMessage()));
         else
-            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
+            return UserServiceException.mono(accountStatus.getDetails());
     }
 
     private UserDetails newValidUserByEmail(UserDTO userDTO) {

@@ -45,8 +45,8 @@ public class UserController {
 
     @DeleteMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
-    public Mono<Response> deleteOne(@RequestBody UserJson userJson) {
-        return executeIfAuthorized(userJson, (json, userDetails) -> service.deleteOne(json));
+    public Mono<Response> deleteOne(@RequestParam("id") String id) {
+        return executeIfAuthorized(new UserJson(id), (json, userDetails) -> service.deleteOne(json));
     }
 
     private Mono<Response> executeIfAuthorized(UserJson userJson,

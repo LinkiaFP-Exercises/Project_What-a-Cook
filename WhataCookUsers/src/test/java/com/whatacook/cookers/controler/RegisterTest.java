@@ -57,6 +57,7 @@ public class RegisterTest extends BaseTestClass {
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(true)
                 .jsonPath("$.message").isEqualTo("User successfully created")
+                .jsonPath("$.content.registration").isNotEmpty()
                 .jsonPath("$.content.email").isEqualTo(EMAIL)
                 .jsonPath("$.content.firstName").isEqualTo(FIRST_NAME)
                 .jsonPath("$.content.surNames").isEqualTo(SUR_NAMES)

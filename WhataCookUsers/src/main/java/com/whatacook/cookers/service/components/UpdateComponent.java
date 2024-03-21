@@ -93,8 +93,8 @@ public class UpdateComponent {
         if (updateInfo.getAccountStatus() != null) {
             boolean isCurrentStatusEligibleForUpdate =
                     EnumSet.of(OK, OFF, OUTDATED, REQUEST_DELETE).contains(user.getAccountStatus());
-            AccountStatus toUpdate = AccountStatus.valueOf(updateInfo.getAccountStatus());
-            boolean isNewStatusValid = !EnumSet.of(MARKED_DELETE, DELETE).contains(toUpdate);
+            AccountStatus toUpdate = valueOf(updateInfo.getAccountStatus());
+            boolean isNewStatusValid = !MARKED_DELETE.equals(toUpdate);
 
             if (isCurrentStatusEligibleForUpdate && isNewStatusValid) {
                 boolean isAccountStatusUpdated =
