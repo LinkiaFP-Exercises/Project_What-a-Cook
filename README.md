@@ -50,3 +50,8 @@ docker build --pull . -t faunog/whatacook:cookers-app_9bf45ce
    Puedes encontrar la imagen Docker de WhataCook en Docker Hub en el siguiente enlace:
    [faunog/whatacook:cookers-app_9bf45ce](https://hub.docker.com/layers/faunog/whatacook/cookers-app_9bf45ce/images/sha256-4ae53a77376b6f1392d68daaea6d36c7e746b455b22577108848ccf43c1a1448?context=repo)
    Este enlace te llevará directamente a la versión específica de la imagen que puedes usar para probar WhataCook - Users.
+
+## 10. Postman requests
+
+Puedes encontrar la colección de requests con detalles de como utilizar cada uno de los endpoints en el seguiente enlace:
+[WhataCook - @Cookers-NewTests](https://documenter.getpostman.com/view/12946439/2sA35A8QuD)
