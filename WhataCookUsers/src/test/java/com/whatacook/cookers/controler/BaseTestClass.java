@@ -42,7 +42,7 @@ public class BaseTestClass {
     @MockBean
     protected ActivationDao activationDao;
     @MockBean
-    protected ResetDao resetDaoDAO;
+    protected ResetDao resetDao;
     @MockBean
     protected JavaMailSender emailSender;
 
