@@ -23,8 +23,7 @@ public class ActivationCodeFlowHandlerImpl implements ActivationCodeFlowHandler 
 
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
-    public Mono<Void> handle(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain) {
-        String activationCode = exchange.getRequest().getQueryParams().getFirst(keyActivationCode);
+    public Mono<Void> handle(String activationCode, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_ACTIVATION = Htmls.FailActivation.get()
                                             .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                                             .replace("PATH_TO_RESEND", globalValues.getPathToResendActvationMail())
