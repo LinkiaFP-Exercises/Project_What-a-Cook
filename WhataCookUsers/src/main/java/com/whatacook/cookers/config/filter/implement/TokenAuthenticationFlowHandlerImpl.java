@@ -27,9 +27,7 @@ public class TokenAuthenticationFlowHandlerImpl implements TokenAuthenticationFl
     private final AuthenticationManager authenticationManager;
 
     @Override
-    public Mono<Void> handle(ServerWebExchange exchange, WebFilterChain chain) {
-        String requestToken = exchange.getRequest().getHeaders().getFirst(jwtUtil.getHeader());
-
+    public Mono<Void> handle(String requestToken, ServerWebExchange exchange, WebFilterChain chain) {
         return Mono.justOrEmpty(requestToken)
                 .filter(token -> jwtUtil.hasToken(token) && jwtUtil.isValidToken(token))
                 .flatMap(token -> {

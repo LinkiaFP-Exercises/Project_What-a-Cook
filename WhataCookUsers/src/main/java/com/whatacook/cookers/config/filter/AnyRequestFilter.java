@@ -8,7 +8,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -21,12 +20,20 @@ public class AnyRequestFilter implements WebFilter {
                             EmailResendFlowHandler emailResendFlowHandler,
                             EmailResetPasswordFlowHandler emailResetPasswordFlowHandler,
                             SetNewPasswordFlowHandler setNewPasswordFlowHandler) {
-        handlers = new HashMap<>();
-        handlers.put(jwtUtil.getHeader(), tokenAuthenticationFlowHandler::handle);
-        handlers.put(jwtUtil.getActivation(), (exchange, chain) -> activationCodeFlowHandler.handle(getKeyFromRequest(exchange, jwtUtil.getActivation()), exchange, chain));
-        handlers.put(jwtUtil.getResend(), (exchange, chain) -> emailResendFlowHandler.handle(getKeyFromRequest(exchange, jwtUtil.getResend()), exchange, chain));
-        handlers.put(jwtUtil.getResetCode(), (exchange, chain) -> emailResetPasswordFlowHandler.handle(getKeyFromRequest(exchange, jwtUtil.getResetCode()), exchange, chain));
-        handlers.put(jwtUtil.getCodeToSet(), (exchange, chain) -> setNewPasswordFlowHandler.handle(getKeyFromRequest(exchange, jwtUtil.getCodeToSet()), exchange, chain));
+        handlers = Map.of(
+                jwtUtil.getHeader(), createHandler(tokenAuthenticationFlowHandler::handle, jwtUtil.getHeader()),
+                jwtUtil.getActivation(), createHandler(activationCodeFlowHandler::handle, jwtUtil.getActivation()),
+                jwtUtil.getResend(), createHandler(emailResendFlowHandler::handle, jwtUtil.getResend()),
+                jwtUtil.getResetCode(), createHandler(emailResetPasswordFlowHandler::handle, jwtUtil.getResetCode()),
+                jwtUtil.getCodeToSet(), createHandler(setNewPasswordFlowHandler::handle, jwtUtil.getCodeToSet())
+        );
+    }
+
+    private RequestHandler createHandler(TriFunction<String, ServerWebExchange, WebFilterChain, Mono<Void>> handlerFunction, String jwtKey) {
+        return (exchange, chain) -> {
+            String paramValue = getHeaderOrParamValue(exchange, jwtKey);
+            return handlerFunction.apply(paramValue, exchange, chain);
+        };
     }
 
     @SuppressWarnings("NullableProblems") @Override
@@ -43,13 +50,20 @@ public class AnyRequestFilter implements WebFilter {
                 exchange.getRequest().getQueryParams().containsKey(key);
     }
 
-    private String getKeyFromRequest(ServerWebExchange exchange, String key) {
-        return exchange.getRequest().getQueryParams().getFirst(key);
+    private String getHeaderOrParamValue(ServerWebExchange exchange, String key) {
+        return (exchange.getRequest().getHeaders().containsKey(key))
+                ? exchange.getRequest().getHeaders().getFirst(key)
+                : exchange.getRequest().getQueryParams().getFirst(key);
     }
 
     @FunctionalInterface
     public interface RequestHandler {
         Mono<Void> handle(ServerWebExchange exchange, WebFilterChain chain);
+    }
+
+    @FunctionalInterface
+    public interface TriFunction<T, U, V, R> {
+        R apply(T t, U u, V v);
     }
 
 }

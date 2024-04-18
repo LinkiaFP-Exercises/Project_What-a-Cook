@@ -5,6 +5,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public interface TokenAuthenticationFlowHandler {
-    Mono<Void> handle(ServerWebExchange exchange, WebFilterChain chain);
+    Mono<Void> handle(String requestToken, ServerWebExchange exchange, WebFilterChain chain);
 
 }

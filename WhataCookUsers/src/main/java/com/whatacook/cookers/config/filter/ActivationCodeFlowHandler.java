@@ -5,5 +5,5 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public interface ActivationCodeFlowHandler {
-    Mono<Void> handle(String keyActivationCode, ServerWebExchange exchange, WebFilterChain chain);
+    Mono<Void> handle(String activationCode, ServerWebExchange exchange, WebFilterChain chain);
 }

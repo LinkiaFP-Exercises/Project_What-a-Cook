@@ -22,8 +22,7 @@ public class SetNewPasswordFlowHandlerImpl implements SetNewPasswordFlowHandler 
 
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
-    public Mono<Void> handle(String keyCodeToSet, ServerWebExchange exchange, WebFilterChain chain) {
-        String codeToSet = exchange.getRequest().getQueryParams().getFirst(keyCodeToSet);
+    public Mono<Void> handle(String codeToSet, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_RESET = Htmls.FailSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());

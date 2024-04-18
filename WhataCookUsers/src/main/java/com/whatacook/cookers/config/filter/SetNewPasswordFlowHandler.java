@@ -5,5 +5,5 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public interface SetNewPasswordFlowHandler {
-    Mono<Void> handle(String keyCodeToSet, ServerWebExchange exchange, WebFilterChain chain);
+    Mono<Void> handle(String codeToSet, ServerWebExchange exchange, WebFilterChain chain);
 }

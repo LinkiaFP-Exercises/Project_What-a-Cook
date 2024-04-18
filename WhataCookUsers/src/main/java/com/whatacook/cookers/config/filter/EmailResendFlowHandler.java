@@ -5,5 +5,5 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public interface EmailResendFlowHandler {
-    Mono<Void> handle(String keyEmailToResend, ServerWebExchange exchange, WebFilterChain chain);
+    Mono<Void> handle(String emailToResend, ServerWebExchange exchange, WebFilterChain chain);
 }

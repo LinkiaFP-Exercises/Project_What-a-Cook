@@ -5,5 +5,5 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public interface EmailResetPasswordFlowHandler {
-    Mono<Void> handle(String keyResetCode, ServerWebExchange exchange, WebFilterChain chain);
+    Mono<Void> handle(String resetCode, ServerWebExchange exchange, WebFilterChain chain);
 }
