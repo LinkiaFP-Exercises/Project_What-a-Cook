@@ -9,6 +9,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class AnyRequestFilter implements WebFilter {
@@ -51,9 +52,8 @@ public class AnyRequestFilter implements WebFilter {
     }
 
     private String getHeaderOrParamValue(ServerWebExchange exchange, String key) {
-        return (exchange.getRequest().getHeaders().containsKey(key))
-                ? exchange.getRequest().getHeaders().getFirst(key)
-                : exchange.getRequest().getQueryParams().getFirst(key);
+        return Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(key))
+                .orElse(exchange.getRequest().getQueryParams().getFirst(key));
     }
 
     @FunctionalInterface
