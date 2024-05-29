@@ -2,6 +2,7 @@ package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.config.SpringMailConfig;
 import com.whatacook.cookers.config.jwt.JwtUtil;
+import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
 import com.whatacook.cookers.model.users.UserDTO;
@@ -9,7 +10,14 @@ import com.whatacook.cookers.service.contracts.ActivationDao;
 import com.whatacook.cookers.service.contracts.ResetDao;
 import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.GlobalValues;
+import io.netty.handler.codec.EncoderException;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 import org.assertj.core.api.Assertions;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,13 +25,18 @@ import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseTestClass {
@@ -48,7 +61,8 @@ public class BaseTestClass {
 
     protected static final String empty = "";
     protected static final String blank = "    ";
-
+    ArgumentCaptor<ActivationDto> activationCaptor;
+    ArgumentCaptor<MimeMessage> mimeMessageCaptor;
 
     protected static String requestBodyOnlyMail(String email) {
         return "{ \"email\": \"" + email + "\" }";
@@ -197,6 +211,42 @@ public class BaseTestClass {
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").value(text -> Assertions.assertThat(text).asString().contains(message));
+    }
+
+    ActivationDto mokitoVerifyActvationDaoSaveAndAssertActivationCode(String oldActivationCode) {
+        Mockito.verify(activationDao).save(activationCaptor.capture());
+        ActivationDto capturedActivation = activationCaptor.getValue();
+        assertAll(
+                () -> assertNotNull(capturedActivation.getCode()),
+                () -> assertFalse(capturedActivation.getCode().equals(oldActivationCode)),
+                () -> assertTrue(ChronoUnit.HOURS.between(capturedActivation.getExpiration(), LocalDateTime.now()) <= 24),
+                () -> assertEquals(capturedActivation.getId(), ID)
+        );
+        return capturedActivation;
+    }
+
+    void mokitoVerifyEmailSenderAndCompareActivationCodeAndmimeMsg(ActivationDto activationDto) {
+        Mockito.verify(emailSender, Mockito.times(1)).send(mimeMessageCaptor.capture());
+        MimeMessage mimeMessage = mimeMessageCaptor.getValue();
+        assertAll(
+                () -> assertEquals(EMAIL, mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()),
+                () -> assertEquals("WhataCook : Activación de cuenta", mimeMessage.getSubject()),
+                () -> assertEquals(springMailConfig.getSpringMailUser(), mimeMessage.getFrom()[0].toString()),
+                () -> assertInstanceOf(MimeMultipart.class, mimeMessage.getContent()),
+                () -> assertHtmlActivationMailContentContains(mimeMessage, globalValues.getUrlActivationAccount() + activationDto.getCode())
+        );
+    }
+
+    void assertHtmlActivationMailContentContains(MimeMessage mimeMessage, String activationURL) throws MessagingException, IOException, EncoderException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        mimeMessage.writeTo(output);
+        //convertir el html en linea sin carateres raros para poder verificar por el metodo contains
+        final String inlineHtml = output.toString(StandardCharsets.UTF_8).replace("\n", empty)
+                .replace("\r", empty).replace("=3D", empty);
+        assertNotNull(inlineHtml, "No se encontró contenido HTML en el mensaje.");
+        assertTrue(inlineHtml.contains(globalValues.getUrlWacLogoPngSmall()), "El mensaje no contiene el logo esperado.");
+        assertTrue(inlineHtml.contains("Bienvenido a WhataCook, " + FIRST_NAME + "!"), "El mensaje no contiene el saludo esperado.");
+        assertTrue(inlineHtml.contains(activationURL), "El mensaje no contiene el CODIGO esperado.");
     }
 
 }
