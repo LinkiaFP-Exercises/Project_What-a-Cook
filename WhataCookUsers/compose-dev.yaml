@@ -1,12 +1,23 @@
+version: '3.8'
+
 services:
   app:
-    entrypoint:
-    - sleep
-    - infinity
-    image: docker/dev-environments-default:stable-1
-    init: true
-    volumes:
-    - type: bind
-      source: /var/run/docker.sock
-      target: /var/run/docker.sock
+    image: faunog/whatacook:cookers-app_9bf45ce
+    container_name: cookers-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - secrets.env
 
+
+#services:
+#  app:
+#    entrypoint:
+#    - sleep
+#    - infinity
+ #   image: docker/dev-environments-default:stable-1
+  #  init: true
+   # volumes:
+    #- type: bind
+     # source: /var/run/docker.sock
+      #target: /var/run/docker.sock
