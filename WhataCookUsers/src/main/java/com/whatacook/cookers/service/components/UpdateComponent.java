@@ -11,6 +11,7 @@ import com.whatacook.cookers.service.contracts.UserDao;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
@@ -24,7 +25,7 @@ public class UpdateComponent {
 
     private final UserDao DAO;
 
-    public UpdateComponent(UserDao DAO)  {
+    public UpdateComponent(UserDao DAO) {
         this.DAO = DAO;
     }
 
@@ -48,7 +49,7 @@ public class UpdateComponent {
                     updateAccountStatus(user, updateInfo, updated);
 
                     if (!updated.get()) {
-                        return UserServiceException.mono("No update required.");
+                        return UserServiceException.mono("No update required or data is invalid.");
                     }
                     return Mono.just(user);
                 });
@@ -65,39 +66,42 @@ public class UpdateComponent {
     }
 
     private static void updateEmail(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
-        boolean isEmailUpdated = updateAttribute(user::getEmail, updateInfo::getEmail, user::setEmail);
+        boolean isEmailUpdated = updateAttribute(user::getEmail, () -> verifyEmail(updateInfo.getEmail()), user::setEmail);
         updated.set(isEmailUpdated || updated.get());
     }
 
     private static void updateBirthdate(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
-        boolean isBirthdateUpdated = updateAttribute(user::getBirthdate, updateInfo::getBirthdate, user::setBirthdate);
+        boolean isBirthdateUpdated = updateAttribute(user::getBirthdate, () -> verifyBirthdate(updateInfo.getBirthdate()), user::setBirthdate);
         updated.set(isBirthdateUpdated || updated.get());
     }
 
     private static void updatePassword(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
-        Optional.ofNullable(updateInfo.getPassword())
-                .filter(pwd -> Util.encryptMatches(pwd, user.getPassword()))
-                .flatMap(pwd ->
-                        Optional.ofNullable(updateInfo.getNewPassword())
-                        .filter(Util::isValidPassword))
-                        .ifPresent(newPwd -> {
-                            user.setPassword(Util.encryptPassword(newPwd));
-                            updated.set(true);
-                });
+        if (updateInfo.getNewPassword() != null) {
+            Optional.ofNullable(updateInfo.getPassword())
+                    .filter(pwd -> Util.encryptMatches(pwd, user.getPassword()))
+                    .orElseThrow(UserServiceException::passNotMatch);
+            Optional.ofNullable(updateInfo.getNewPassword())
+                    .filter(Util::isValidPassword)
+                    .ifPresent(newPwd -> {
+                        user.setPassword(Util.encryptPassword(newPwd));
+                        updated.set(true);
+                    });
+        }
     }
 
-
     private static void updateAccountStatus(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
-       if (updateInfo.getAccountStatus() != null) {
-           boolean isCurrentStatusEligibleForUpdate = EnumSet.of(OK, OFF, OUTDATED).contains(user.getAccountStatus());
-           AccountStatus toUpdate = AccountStatus.valueOf(updateInfo.getAccountStatus());
-           boolean isNewStatusValid = !EnumSet.of(REQUEST_DELETE, MARKED_DELETE, DELETE).contains(toUpdate);
+        if (updateInfo.getAccountStatus() != null) {
+            boolean isCurrentStatusEligibleForUpdate =
+                    EnumSet.of(OK, OFF, OUTDATED, REQUEST_DELETE).contains(user.getAccountStatus());
+            AccountStatus toUpdate = valueOf(updateInfo.getAccountStatus());
+            boolean isNewStatusValid = !MARKED_DELETE.equals(toUpdate);
 
-           if (isCurrentStatusEligibleForUpdate && isNewStatusValid) {
-               boolean isAccountStatusUpdated = updateAttribute(user::getAccountStatus, () -> toUpdate, user::setAccountStatus);
-               updated.set(isAccountStatusUpdated || updated.get());
-           }
-       }
+            if (isCurrentStatusEligibleForUpdate && isNewStatusValid) {
+                boolean isAccountStatusUpdated =
+                        updateAttribute(user::getAccountStatus, () -> toUpdate, user::setAccountStatus);
+                updated.set(isAccountStatusUpdated || updated.get());
+            }
+        }
     }
 
     private Mono<UserJson> updateUserByDtoReturnJson(UserDTO userToSave) {
@@ -116,6 +120,14 @@ public class UpdateComponent {
 
     private static String verifyNames(String nameOrSurname) {
         return Optional.ofNullable(nameOrSurname).map(Util::TitleCase).orElse(null);
+    }
+
+    private static String verifyEmail(String email) {
+        return Optional.ofNullable(email).filter(Util::isValidEmail).orElse(null);
+    }
+
+    private static LocalDate verifyBirthdate(LocalDate localDate) {
+        return Optional.ofNullable(localDate).filter(Util::isValidBirthdate).orElse(null);
     }
 
 }

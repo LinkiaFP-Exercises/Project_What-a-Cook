@@ -52,18 +52,17 @@ public class AuthService {
     }
 
     public Mono<ResponseEntity<Response>> sendEmailCodeToResetPassword(@Valid UserJson userJson) {
-        return Mono.just(userJson)
-                .map(UserJson::getEmail)
-                .flatMap(DAO::findByEmail)
+        return DAO.findByEmail(userJson.getEmail())
                 .flatMap(userDTO -> {
-                    if (userDTO.getBirthdate().equals(userJson.getBirthdate()))
+                    if (userDTO.getBirthdate().equals(userJson.getBirthdate())) {
                         return emailService.createResetCodeAndSendEmail(userDTO)
-                                .flatMap(user -> Mono.just(ResponseEntity
-                                        .ok(success("Email sent with reset code", user))));
-                    else
+                                .map(user -> ResponseEntity.ok(success("Email sent with reset code", user)));
+                    } else {
                         return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                 .body(error("Incorrect information")));
-                });
+                    }
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.ok(error("Unregistered email"))));
     }
 
 }

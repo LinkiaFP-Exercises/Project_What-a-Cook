@@ -6,7 +6,6 @@ import com.whatacook.cookers.utilities.ValidEmail;
 import com.whatacook.cookers.utilities.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,8 +24,7 @@ public class UserDTO {
     @Id
     private String _id;
 
-    @CreatedDate
-    private LocalDateTime registration;
+    private LocalDateTime registration = LocalDateTime.now();
 
     @NotBlank(message = "Email is mandatory")
     @ValidEmail
@@ -48,6 +46,11 @@ public class UserDTO {
     private LocalDateTime requestDeleteDate;
 
     public UserJson toJson() {
+        return UserJson.from(this);
+    }
+
+    public UserJson toJsonWithoutId() {
+        this.set_id(null);
         return UserJson.from(this);
     }
 

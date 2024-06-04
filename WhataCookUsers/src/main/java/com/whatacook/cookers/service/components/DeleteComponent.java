@@ -30,20 +30,16 @@ public class DeleteComponent {
             case OK -> handleOkStatus(userDTO);
             case REQUEST_DELETE -> handleRequestDeleteStatus(userDTO);
             case MARKED_DELETE -> handleMarkedDeleteStatus(userDTO);
-            case DELETE -> handleDeleteStatus(userDTO);
             default -> UserServiceException.mono("Invalid account status to request deletion");
         };
     }
 
     private Mono<Response> handleOkStatus(UserDTO userDTO) {
-        if (userDTO.getRequestDeleteDate() == null) {
-            userDTO.setAccountStatus(AccountStatus.REQUEST_DELETE);
-            userDTO.setRequestDeleteDate(LocalDateTime.now());
-            return DAO.save(userDTO)
-                    .map(savedUserDTO -> Response.success("REQUEST_DELETE set, you have one year to revoke the deletion", savedUserDTO))
-                    .onErrorResume(UserServiceException::mono);
-        }
-        return Mono.just(Response.success("Already in OK status without deletion request date", userDTO));
+        userDTO.setAccountStatus(AccountStatus.REQUEST_DELETE);
+        userDTO.setRequestDeleteDate(LocalDateTime.now());
+        return DAO.save(userDTO)
+                .map(savedUserDTO -> Response.success("REQUEST_DELETE set, you have one year to revoke the deletion", savedUserDTO.toJson()))
+                .onErrorResume(UserServiceException::mono);
     }
 
     private Mono<Response> handleRequestDeleteStatus(UserDTO userDTO) {
@@ -51,31 +47,21 @@ public class DeleteComponent {
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 1) {
             userDTO.setAccountStatus(AccountStatus.MARKED_DELETE);
             return DAO.save(userDTO)
-                    .map(savedUserDTO -> Response.success("MARKED_DELETE set, your account has been invalidated you have one year to request your data", savedUserDTO))
+                    .map(savedUserDTO -> Response.success("MARKED_DELETE set, your account has been invalidated you have one year to request your data", savedUserDTO.toJson()))
                     .onErrorResume(UserServiceException::mono);
         }
-        return Mono.just(Response.success("REQUEST_DELETE request is not yet a year old", userDTO));
+        return Mono.just(Response.success("REQUEST_DELETE request is not yet a year old", userDTO.toJson()));
     }
 
     private Mono<Response> handleMarkedDeleteStatus(UserDTO userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 2) {
-            userDTO.setAccountStatus(AccountStatus.DELETE);
-            return DAO.save(userDTO)
-                    .map(savedUserDTO -> Response.success("DELETE set, after two years your account has been set to be terminated", savedUserDTO))
-                    .onErrorResume(UserServiceException::mono);
-        }
-        return Mono.just(Response.success("MARKED_DELETE request is not yet a year old", userDTO));
-    }
-
-    private Mono<Response> handleDeleteStatus(UserDTO userDTO) {
-        LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
-        if (requestDeleteDate != null && ChronoUnit.DAYS.between(requestDeleteDate, LocalDateTime.now()) >= 3) {
             return DAO.delete(userDTO)
                     .thenReturn(Response.success("Your account has been terminated", true))
                     .onErrorResume(UserServiceException::mono);
         }
-        return Mono.just(Response.success("DELETE request is not yet a year old", userDTO));
+        String message = "Your account is set to be deleted, but you still have time to request your data";
+        return Mono.just(Response.success(message, userDTO.toJson()));
     }
 
 }

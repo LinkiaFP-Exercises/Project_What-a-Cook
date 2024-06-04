@@ -22,13 +22,16 @@ public class SetNewPasswordFlowHandlerImpl implements SetNewPasswordFlowHandler 
 
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
-    public Mono<Void> handle(String keyCodeToSet, ServerWebExchange exchange, WebFilterChain chain) {
-        String codeToSet = exchange.getRequest().getQueryParams().getFirst(keyCodeToSet);
+    public Mono<Void> handle(String codeToSet, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_RESET = Htmls.FailSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
         return resetService.findByCode(codeToSet)
                 .flatMap(resetDto -> authenticationManager.setAuthenticated(resetDto.getId(), null, exchange, chain))
-                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange, FAIL_HTML_FOR_RESET)));
+                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", "Code Not Found"))))
+                .onErrorResume(throwable -> Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", throwable.getMessage()))));
     }
 }

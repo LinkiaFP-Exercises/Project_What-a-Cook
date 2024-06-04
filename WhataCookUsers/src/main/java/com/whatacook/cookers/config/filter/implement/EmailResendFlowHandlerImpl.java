@@ -28,9 +28,7 @@ public class EmailResendFlowHandlerImpl implements EmailResendFlowHandler {
 
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
-    public Mono<Void> handle(String keyEmailToResend, ServerWebExchange exchange, WebFilterChain chain) {
-        String emailToResend = exchange.getRequest().getQueryParams().getFirst(keyEmailToResend);
-
+    public Mono<Void> handle(String emailToResend, ServerWebExchange exchange, WebFilterChain chain) {
         return Mono.just(Objects.requireNonNull(emailToResend)).filter(Util::isValidEmail).flatMap(DAO::findByEmail)
                 .flatMap(userDTO -> activationService.findById(userDTO.get_id()))
                 .flatMap(activationDto -> authenticationManager.setAuthenticated(activationDto.getId(), null, exchange, chain))
@@ -39,7 +37,7 @@ public class EmailResendFlowHandlerImpl implements EmailResendFlowHandler {
 
     private Mono<Void> respondWithJson(ServerWebExchange exchange, Object response) {
         if (!exchange.getResponse().isCommitted()) {
-            exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+            exchange.getResponse().setStatusCode(HttpStatus.OK);
             exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
             byte[] jsonBytes = convertToJsonAsBytes(response);
             DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(jsonBytes);

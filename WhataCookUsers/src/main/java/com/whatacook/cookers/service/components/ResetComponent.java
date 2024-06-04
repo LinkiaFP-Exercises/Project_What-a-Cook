@@ -37,7 +37,7 @@ public class ResetComponent {
                         return UserServiceException.mono("This Code is Expired");
                     else
                         return Mono.just(resetDto);
-                }).flatMap(resetDto -> DAO.findById(resetDto.getId())
+                }).flatMap(resetDto -> DAO.findBy_id(resetDto.getId())
                         .flatMap(userDTO -> resetService.createNew(userDTO)
                                 .flatMap(newCode -> {
                                    userDTO.setPassword(encryptPassword(newCode.getCode()));
@@ -69,26 +69,27 @@ public class ResetComponent {
                     // To not expose the ID, the ID provided is the same reset password code
                     if (Util.encryptMatches(userJson.get_id(), userDTO.getPassword())
                             && Util.isValidPassword(userJson.getNewPassword())) {
-                        userDTO.setPassword(userJson.getNewPassword());
+                        userDTO.setPassword(encryptPassword(userJson.getNewPassword()));
                         return DAO.save(userDTO);
                     } else
                         return UserServiceException.mono("Reset code is invalid");
-                }).map(this::buildHtmlSuccessSetNewPassword)
+                }).flatMap(this::buildHtmlSuccessSetNewPassword)
                 .onErrorResume(this::buildHtmlFailSetNewPassword);
     }
 
-    private String buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
-        return Htmls.SuccessSetNewPassword.get()
-                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("USER_NAME", userDTO.getFirstName());
+    private Mono<String> buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
+        return resetService.deleteById(userDTO.get_id())
+                .then(Mono.fromCallable(() -> Htmls.SuccessSetNewPassword.get()
+                        .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                        .replace("USER_NAME", userDTO.getFirstName())));
     }
 
     private Mono<String> buildHtmlFailSetNewPassword(Throwable throwable) {
-        System.out.println(throwable);
         return Mono.just(Htmls.FailSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("EMAIL_WAC", globalValues.getMailToWac())
-                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword()));
+                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
+                .replace("errorDescriptionValue", throwable.getMessage()));
     }
 
 }

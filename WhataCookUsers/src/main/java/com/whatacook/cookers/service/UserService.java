@@ -84,7 +84,7 @@ public final class UserService implements UserAccessContractModel {
     public Mono<Response> readOne(UserJson userJson) {
         return read.findUserByEmail(userJson)
                 .map(found ->
-                        success("Player successfully read", found))
+                        success("User successfully read", found))
                 .onErrorResume(UserServiceException.class, Response::monoError)
                 .onErrorResume(Exception.class, Response::monoError);
 
@@ -94,7 +94,7 @@ public final class UserService implements UserAccessContractModel {
     public Mono<Response> updateOne(UserJson userJson) {
         return update.updateUser(userJson)
                 .map(updated ->
-                        success("Player successfully UPDATE", updated))
+                        success("User successfully UPDATED", updated))
                 .onErrorResume(UserServiceException.class, Response::monoError)
                 .onErrorResume(Exception.class, Response::monoError);
     }

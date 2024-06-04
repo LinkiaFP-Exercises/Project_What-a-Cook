@@ -43,7 +43,8 @@ public class UserJson {
 
     public UserJson(UserDTO userDTO) {
 
-        this._id = userDTO.get_id();
+        if (userDTO.get_id() != null)
+            this._id = userDTO.get_id();
         this.registration = userDTO.getRegistration();
         this.email = userDTO.getEmail();
         this.firstName = userDTO.getFirstName();
@@ -54,6 +55,8 @@ public class UserJson {
         this.accountStatusMsg = userDTO.getAccountStatus().getDetails();
         this.requestDeleteDate = userDTO.getRequestDeleteDate();
     }
+
+    public UserJson(String id) { _id = id; }
 
     public static UserJson from(UserDTO userDTO) { return new UserJson(userDTO); }
 

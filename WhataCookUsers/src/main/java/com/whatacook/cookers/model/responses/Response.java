@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import static com.whatacook.cookers.utilities.Util.notNullOrEmpty;
 
+@SuppressWarnings("unused")
 @JsonPropertyOrder({"success", "message"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response {

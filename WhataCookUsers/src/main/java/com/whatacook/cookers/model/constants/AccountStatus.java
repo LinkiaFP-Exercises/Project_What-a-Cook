@@ -4,11 +4,10 @@ public enum AccountStatus {
 
     PENDING("Falta confirmar el e-mail para activar la cuenta!"),
     OK("Cuenta activada correctamente!"),
-    OFF("Cuenta desactivada!"),
-    OUTDATED("Hay que actualizar el PASSWORD!"),
+    OFF("Cuenta desactivada, solicite activación"),
+    OUTDATED("Contraseña desactualizada, solicite actualización"),
     REQUEST_DELETE("Borrado de cuenta solicitado!"),
-    MARKED_DELETE("Cuenta marcada para ser borrada!"),
-    DELETE("CUENTA BORRADA!");
+    MARKED_DELETE("Cuenta marcada para ser borrada!");
 
     AccountStatus(String message) {
         this.message = message;

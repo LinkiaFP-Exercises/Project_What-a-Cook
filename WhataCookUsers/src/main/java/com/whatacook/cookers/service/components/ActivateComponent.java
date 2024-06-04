@@ -37,7 +37,7 @@ public class ActivateComponent {
                         return Mono.just(activationDto);
                 })
                 .flatMap(activationDto ->
-                        DAO.findById(activationDto.getId())
+                        DAO.findBy_id(activationDto.getId())
                                 .flatMap(userDTO -> {
                                     if (userDTO.getAccountStatus() == AccountStatus.PENDING) {
                                         userDTO.setAccountStatus(AccountStatus.OK);

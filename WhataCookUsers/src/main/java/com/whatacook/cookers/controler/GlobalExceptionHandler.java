@@ -59,9 +59,14 @@ public class GlobalExceptionHandler {
     public Response handleConstraintViolationException(ConstraintViolationException ex) {
         var errors = ex.getConstraintViolations().stream()
                 .collect(Collectors.toMap(
-                        violation -> violation.getPropertyPath().toString(), // Obtén el campo que causó la violación
-                        ConstraintViolation::getMessage // El mensaje de error para esa violación
+                        violation -> {
+                            String path = violation.getPropertyPath().toString();
+                            return path.substring(path.lastIndexOf('.') + 1); // Retorna solo el nombre del campo
+                        },
+                        ConstraintViolation::getMessage, // El mensaje de error para esa violación
+                        (existingValue, newValue) -> existingValue // En caso de campos duplicados, mantiene el primer mensaje de error encontrado
                 ));
+
 
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Validation error", errors);
     }

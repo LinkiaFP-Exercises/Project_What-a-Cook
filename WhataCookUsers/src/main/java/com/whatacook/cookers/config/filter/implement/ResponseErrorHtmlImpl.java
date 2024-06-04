@@ -15,7 +15,7 @@ public class ResponseErrorHtmlImpl implements ResponseErrorHtml {
     @Override
     public Mono<Void> send(ServerWebExchange exchange, String htmlContent) {
         if (!exchange.getResponse().isCommitted()) {
-            exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+            exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
             exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_HTML);
             DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(htmlContent.getBytes(StandardCharsets.UTF_8));
             return exchange.getResponse().writeWith(Mono.just(dataBuffer));

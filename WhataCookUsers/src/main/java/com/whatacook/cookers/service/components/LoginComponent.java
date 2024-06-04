@@ -3,8 +3,8 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
-import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.service.contracts.UserDao;
+import com.whatacook.cookers.utilities.Util;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,12 +19,15 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.whatacook.cookers.model.constants.AccountStatus.*;
+
 @AllArgsConstructor
 @Component
 @Validated
 public class LoginComponent {
 
     private final UserDao DAO;
+    private final DeleteComponent deleteComponent;
 
     public Mono<UserDetails> validSpringUserToLogin(String userEmailOrId) {
         return Mono.just(userEmailOrId)
@@ -35,6 +38,7 @@ public class LoginComponent {
                         return findUserById(info);
                 });
     }
+
     private Mono<UserDetails> findUserByEmail(String email) {
         return DAO.findByEmail(email)
                 .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
@@ -43,17 +47,19 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
-        if (EnumSet.of(AccountStatus.OK, AccountStatus.OFF)
-                .contains(userDTO.getAccountStatus()))  {
+        final AccountStatus accountStatus = userDTO.getAccountStatus();
+        if (EnumSet.of(OK, OFF, REQUEST_DELETE).contains(accountStatus))
             return Mono.just(userDTO);
-        } else {
-            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
-        }
+        else if (MARKED_DELETE.equals(accountStatus))
+            return deleteComponent.proceedIfApplicable(userDTO.toJson())
+                    .flatMap(response -> UserServiceException.mono(response.getMessage()));
+        else
+            return UserServiceException.mono(accountStatus.getDetails());
     }
 
     private UserDetails newValidUserByEmail(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
-        return new User(userDTO.getEmail(), userDTO.getPassword(), authorities);
+        return new User(userDTO.getEmail() + userDTO.get_id(), userDTO.getPassword(), authorities);
     }
 
     private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {
@@ -67,16 +73,16 @@ public class LoginComponent {
         return DAO.findBy_id(id)
                 .switchIfEmpty(UserServiceException.mono("USER NOT FOUND!"))
                 .flatMap(this::verifyAccountStatusById)
-                .map(this::newValidUserById)
-                ;
+                .map(this::newValidUserById);
     }
 
     private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
-        if (EnumSet.of(AccountStatus.PENDING, AccountStatus.OUTDATED)
+        String errorMsg = "Account Status Incorrect for this request: " + userDTO.getAccountStatus().getDetails();
+        if (EnumSet.of(AccountStatus.OK, AccountStatus.PENDING, AccountStatus.OUTDATED)
                 .contains(userDTO.getAccountStatus())) {
             return Mono.just(userDTO);
         } else {
-            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
+            return UserServiceException.mono(errorMsg);
         }
     }
 

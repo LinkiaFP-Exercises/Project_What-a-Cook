@@ -21,13 +21,15 @@ public class EmailResetPasswordFlowHandlerImpl implements EmailResetPasswordFlow
     private final ResponseErrorHtml responseErrorHtml;
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
-    public Mono<Void> handle(String keyResetCode, ServerWebExchange exchange, WebFilterChain chain) {
-        String resetCode = exchange.getRequest().getQueryParams().getFirst(keyResetCode);
+    public Mono<Void> handle(String resetCode, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_RESET = Htmls.FailReset.get()
                                         .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                                         .replace("EMAIL_WAC", globalValues.getMailToWac());
         return resetService.findByCode(resetCode)
                 .flatMap(resetDto -> authenticationManager.setAuthenticated(resetDto.getId(), null, exchange, chain))
-                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange, FAIL_HTML_FOR_RESET)));
+                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", "Code Not Found"))))
+                .onErrorResume(throwable -> Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", throwable.getMessage()))));
     }
 }
