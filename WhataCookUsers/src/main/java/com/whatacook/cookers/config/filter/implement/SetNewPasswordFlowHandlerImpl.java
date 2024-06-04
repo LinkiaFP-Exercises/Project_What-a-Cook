@@ -28,6 +28,9 @@ public class SetNewPasswordFlowHandlerImpl implements SetNewPasswordFlowHandler 
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
         return resetService.findByCode(codeToSet)
                 .flatMap(resetDto -> authenticationManager.setAuthenticated(resetDto.getId(), null, exchange, chain))
-                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange, FAIL_HTML_FOR_RESET)));
+                .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", "Code Not Found"))))
+                .onErrorResume(throwable -> Mono.defer(() -> responseErrorHtml.send(exchange,
+                        FAIL_HTML_FOR_RESET.replace("errorDescriptionValue", throwable.getMessage()))));
     }
 }

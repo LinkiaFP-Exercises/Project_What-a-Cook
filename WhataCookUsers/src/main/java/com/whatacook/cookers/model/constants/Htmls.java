@@ -212,6 +212,7 @@ public enum Htmls {
                             <p style="font-size: 11px";>
                                 Si sigues teniendo problemas,s
                                 <a href="mailto:EMAIL_WAC" style="color: #FFA500;">contacta con soporte</a>.</p>
+                                <input type="hidden" id="errorDescription" value="errorDescriptionValue">
                         </div>
                     </body>
                     </html>
