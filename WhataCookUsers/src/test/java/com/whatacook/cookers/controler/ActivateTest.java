@@ -83,7 +83,7 @@ public class ActivateTest extends BaseTestClass {
         webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersActivateEndpoint)
                         .queryParam("activationCode", "invalidCode").build())
                 .exchange()
-                .expectStatus().isEqualTo(404)
+                .expectStatus().isBadRequest()
                 .expectBody(String.class)
                 .value(html -> assertEquals(failHtmlToTest, html));
 
