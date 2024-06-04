@@ -46,7 +46,7 @@ Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar 
 
 1. Primero, construye la imagen Docker usando el siguiente comando:
 ```bash
-docker build --pull . -t faunog/whatacook:cookers-app_9bf45ce
+docker --pull faunog/whatacook:cookers-app_9bf45ce
 ```
 2. Ejecutar la aplicación
 Una vez construida la imagen, puedes ejecutar la aplicación utilizando Docker con el siguiente comando. Este comando inicia el contenedor y expone el puerto 8080, lo que permite acceder a la aplicación desde tu navegador o cliente HTTP:
