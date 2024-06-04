@@ -69,7 +69,7 @@ public class ResetComponent {
                     // To not expose the ID, the ID provided is the same reset password code
                     if (Util.encryptMatches(userJson.get_id(), userDTO.getPassword())
                             && Util.isValidPassword(userJson.getNewPassword())) {
-                        userDTO.setPassword(userJson.getNewPassword());
+                        userDTO.setPassword(encryptPassword(userJson.getNewPassword()));
                         return DAO.save(userDTO);
                     } else
                         return UserServiceException.mono("Reset code is invalid");
@@ -78,6 +78,7 @@ public class ResetComponent {
     }
 
     private String buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
+        resetService.deleteById(userDTO.get_id());
         return Htmls.SuccessSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("USER_NAME", userDTO.getFirstName());
