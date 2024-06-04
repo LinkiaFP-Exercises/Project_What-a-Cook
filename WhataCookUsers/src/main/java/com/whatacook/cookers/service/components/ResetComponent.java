@@ -73,15 +73,15 @@ public class ResetComponent {
                         return DAO.save(userDTO);
                     } else
                         return UserServiceException.mono("Reset code is invalid");
-                }).map(this::buildHtmlSuccessSetNewPassword)
+                }).flatMap(this::buildHtmlSuccessSetNewPassword)
                 .onErrorResume(this::buildHtmlFailSetNewPassword);
     }
 
-    private String buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
-        resetService.deleteById(userDTO.get_id());
-        return Htmls.SuccessSetNewPassword.get()
-                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("USER_NAME", userDTO.getFirstName());
+    private Mono<String> buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
+        return resetService.deleteById(userDTO.get_id())
+                .then(Mono.fromCallable(() -> Htmls.SuccessSetNewPassword.get()
+                        .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                        .replace("USER_NAME", userDTO.getFirstName())));
     }
 
     private Mono<String> buildHtmlFailSetNewPassword(Throwable throwable) {
