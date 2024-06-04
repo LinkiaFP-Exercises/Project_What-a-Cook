@@ -84,11 +84,11 @@ public class ResetComponent {
     }
 
     private Mono<String> buildHtmlFailSetNewPassword(Throwable throwable) {
-        System.out.println(throwable);
         return Mono.just(Htmls.FailSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("EMAIL_WAC", globalValues.getMailToWac())
-                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword()));
+                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
+                .replace("errorDescriptionValue", throwable.getMessage()));
     }
 
 }
