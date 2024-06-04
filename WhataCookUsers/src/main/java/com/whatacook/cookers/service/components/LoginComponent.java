@@ -77,11 +77,12 @@ public class LoginComponent {
     }
 
     private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
-        if (EnumSet.of(AccountStatus.PENDING, AccountStatus.OUTDATED)
+        String errorMsg = "Account Status Incorrect for this request: " + userDTO.getAccountStatus().getDetails();
+        if (EnumSet.of(AccountStatus.OK, AccountStatus.PENDING, AccountStatus.OUTDATED)
                 .contains(userDTO.getAccountStatus())) {
             return Mono.just(userDTO);
         } else {
-            return UserServiceException.mono(userDTO.getAccountStatus().getDetails());
+            return UserServiceException.mono(errorMsg);
         }
     }
 

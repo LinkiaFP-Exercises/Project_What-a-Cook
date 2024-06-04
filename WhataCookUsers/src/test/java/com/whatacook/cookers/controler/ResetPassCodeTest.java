@@ -23,7 +23,8 @@ public class ResetPassCodeTest extends BaseTestClass {
         Mockito.when(resetDao.findByCode(Mockito.anyString())).thenReturn(Mono.empty());
         String htmlToTest = Htmls.FailReset.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                .replace("EMAIL_WAC", globalValues.getMailToWac());
+                .replace("EMAIL_WAC", globalValues.getMailToWac())
+                .replace("errorDescriptionValue", "Code Not Found");
         webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResetPasswordEndpoint)
                         .queryParam("resetCode", "invalidCode").build())
                 .exchange()
