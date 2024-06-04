@@ -11,7 +11,6 @@ import com.whatacook.cookers.service.contracts.ActivationDao;
 import com.whatacook.cookers.service.contracts.ResetDao;
 import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.GlobalValues;
-import io.netty.handler.codec.EncoderException;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
