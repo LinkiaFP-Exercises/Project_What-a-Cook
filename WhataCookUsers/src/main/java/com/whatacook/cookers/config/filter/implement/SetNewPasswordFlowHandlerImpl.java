@@ -25,6 +25,7 @@ public class SetNewPasswordFlowHandlerImpl implements SetNewPasswordFlowHandler 
     public Mono<Void> handle(String codeToSet, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_RESET = Htmls.FailSetNewPassword.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
         return resetService.findByCode(codeToSet)
                 .flatMap(resetDto -> authenticationManager.setAuthenticated(resetDto.getId(), null, exchange, chain))
