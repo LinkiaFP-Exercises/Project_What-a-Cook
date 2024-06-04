@@ -37,7 +37,7 @@ public class ResetComponent {
                         return UserServiceException.mono("This Code is Expired");
                     else
                         return Mono.just(resetDto);
-                }).flatMap(resetDto -> DAO.findById(resetDto.getId())
+                }).flatMap(resetDto -> DAO.findBy_id(resetDto.getId())
                         .flatMap(userDTO -> resetService.createNew(userDTO)
                                 .flatMap(newCode -> {
                                    userDTO.setPassword(encryptPassword(newCode.getCode()));
