@@ -10,6 +10,7 @@ services:
         JWT_SECRET: ${JWT_SECRET}
         MONGO_URI_WHATACOOK_USERS: ${MONGO_URI_WHATACOOK_USERS}
         SPRING_MAIL_VALIDATION: ${SPRING_MAIL_VALIDATION}
+    image: faunog/whatacook:cookers-app
     environment:
       - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -24,6 +25,7 @@ services:
       dockerfile: Dockerfile
       args:
         MONGO_URI_WHATACOOK_RECIPIES: ${MONGO_URI_WHATACOOK_RECIPIES}
+    image: faunog/whatacook:recipies-app
     environment:
       - MONGO_URI_WHATACOOK_RECIPIES=${MONGO_URI_WHATACOOK_RECIPIES}
     ports:
