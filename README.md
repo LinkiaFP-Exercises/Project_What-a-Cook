@@ -42,17 +42,52 @@ Dirigido a personas de todas las edades y niveles de habilidad en la cocina, enf
 
 Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar un contenedor siguiendo estos pasos:
 
-### Construir la imagen Docker
+### Construir la imagen con Docker Compose
+1. Primero, crea un archivo 'docker-compose.yml' en el directorio raíz con el siguiente contenido:
+    ```yaml
+    version: '3.8'
+    
+    services:
+      whatacook-users:
+        image: faunog/whatacook:cookers-app
+        ports:
+          - "8081:8080"
+        pull_policy: always
+    
+      whatacook-recipes:
+        image: faunog/whatacook:recipies-app
+        ports:
+          - "8082:8080"
+        pull_policy: always
+    
+    ```
+2. Desde la terminal, navega al directorio raíz de tu proyecto donde se encuentra el archivo docker-compose.yml y ejecuta:
+   ```bash
+    docker-compose up
+    ```
+
+    
+### Construir la imagen por separdo con Docker
 
 1. Primero, construye la imagen Docker usando el siguiente comando:
-```bash
-docker --pull faunog/whatacook:cookers-app_9bf45ce
-```
+    #### Descargar whatacook-users
+    ```bash
+    docker --pull faunog/whatacook:cookers-app
+    ```
+    #### Descargar whatacook-recipies
+    ```bash
+    docker --pull faunog/whatacook:recipies-app
+    ```
 2. Ejecutar la aplicación
 Una vez construida la imagen, puedes ejecutar la aplicación utilizando Docker con el siguiente comando. Este comando inicia el contenedor y expone el puerto 8080, lo que permite acceder a la aplicación desde tu navegador o cliente HTTP:
-```bash
-docker run -p 8080:8080 faunog/whatacook:cookers-app_9bf45ce
-```
+    #### Descargar whatacook-users
+    ```bash
+    docker run -p 8081:8080 faunog/whatacook:cookers-app
+    ```
+    #### Descargar whatacook-recipies
+    ```bash
+    docker run -p 8082:8080 faunog/whatacook:recipies-app
+    ```
 
 Para más detalles sobre cómo ejecutar el contenedor y acceder a la aplicación, te recomendamos consultar la documentación oficial de Docker.
 Puedes encontrar la imagen Docker de WhataCook en Docker Hub en el siguiente enlace:
