@@ -23,11 +23,27 @@
 hs_err_pid*
 replay_pid*
 
-# Ignorar la carpeta .run en WhataCookUsers
-WhataCookUsers/.run/
+# Optionally, ignore all .run directories throughout the project
+**/.run/
 
-# Ignorar la carpeta .run en WhataCookRecipies
-WhataCookRecipies/.run/
-
-# Variables de Entorno
+# Ignore .env files
 .env
+
+# Ignore build directories
+/build/
+**/build/
+
+# Ignore IntelliJ IDEA project files
+/.idea/
+/*.iml
+
+# Ignore logs
+/logs/
+**/*.log
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore other unnecessary files
+*.swp
