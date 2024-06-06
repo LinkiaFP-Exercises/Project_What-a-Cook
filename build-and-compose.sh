@@ -8,7 +8,8 @@ load_env() {
 }
 
 # Cargar las variables de entorno desde el archivo .env
-load_env
+# de momento no es necesario por cargar via gradle
+#load_env
 
 # Navegar a cada directorio y construir el archivo JAR
 echo "Building whatacook-users..."
