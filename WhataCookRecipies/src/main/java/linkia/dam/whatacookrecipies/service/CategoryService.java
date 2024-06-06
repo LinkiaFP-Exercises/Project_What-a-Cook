@@ -2,8 +2,6 @@ package linkia.dam.whatacookrecipies.service;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
-import linkia.dam.whatacookrecipies.utilities.PaginationUtil;
-import linkia.dam.whatacookrecipies.utilities.ServiceUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
