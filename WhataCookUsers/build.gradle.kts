@@ -35,7 +35,50 @@ dependencies {
     testImplementation("commons-io:commons-io:2.8.0")
 }
 
+// function that loads environment variables from the .env file
+fun loadEnv() {
+    val envFile = file("../.env")
+    if (envFile.exists()) {
+        println("Loading environment variables from ${envFile.absolutePath}")
+        envFile.forEachLine { line ->
+            val parts = line.split("=")
+            if (parts.size == 2) {
+                val key = parts[0].trim()
+                val value = parts[1].trim()
+                println("Setting $key=$value")
+                System.setProperty(key, value)
+            }
+        }
+    } else {
+        println("Env file not found: ${envFile.absolutePath}")
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
+    doFirst {
+        loadEnv()
+        environment("SPRING_PROFILES_ACTIVE", "test")
+        environment("GMAIL_APP_PASSWORD", System.getProperty("GMAIL_APP_PASSWORD"))
+        environment("JWT_SECRET", System.getProperty("JWT_SECRET"))
+        environment("MONGO_URI_WHATACOOK_USERS", System.getProperty("MONGO_URI_WHATACOOK_USERS"))
+        environment("SPRING_MAIL_VALIDATION", System.getProperty("SPRING_MAIL_VALIDATION"))
+
+        // Imprimir variables de entorno para verificar
+        /*
+        println("SPRING_PROFILES_ACTIVE: ${System.getenv("SPRING_PROFILES_ACTIVE")}")
+        println("GMAIL_APP_PASSWORD: ${System.getenv("GMAIL_APP_PASSWORD")}")
+        println("JWT_SECRET: ${System.getenv("JWT_SECRET")}")
+        println("MONGO_URI_WHATACOOK_USERS: ${System.getenv("MONGO_URI_WHATACOOK_USERS")}")
+        println("SPRING_MAIL_VALIDATION: ${System.getenv("SPRING_MAIL_VALIDATION")}")
+        */
+    }
     jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.instrument.traceUsage=false")
+}
+
+// force unit testing before generating JAR
+tasks.register<Jar>("customJar") {
+    dependsOn("test")
+    archiveClassifier.set("custom")
+    from(sourceSets["main"].output)
 }
