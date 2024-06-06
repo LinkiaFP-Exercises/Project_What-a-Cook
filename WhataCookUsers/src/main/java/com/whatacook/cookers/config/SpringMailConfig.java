@@ -40,7 +40,7 @@ public class SpringMailConfig {
 
             if (StringUtils.hasText(gMailAppPass))
                 System.setProperty(APP_PASS, gMailAppPass.trim());
-            log.warn("springMailUser : " + StringUtils.hasText(gMailAppPass));
+            log.warn("springMailPass : " + StringUtils.hasText(gMailAppPass));
 
         } catch (IOException e) {  throw new RuntimeException(e); }
 
