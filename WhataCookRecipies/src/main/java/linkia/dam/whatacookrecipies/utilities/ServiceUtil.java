@@ -7,8 +7,8 @@ import org.springframework.data.domain.Sort;
 public class ServiceUtil {
 
     public static Sort sortByName(String direction) {
-        final boolean isNullOrAsc = direction.isBlank() || direction.toLowerCase().startsWith("a");
-        Sort.Direction way = isNullOrAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        final boolean isNullOrAsc = direction != null && direction.toLowerCase().startsWith("d");
+        Sort.Direction way = isNullOrAsc ? Sort.Direction.DESC : Sort.Direction.ASC;
         return Sort.by(way, "name");
     }
 
