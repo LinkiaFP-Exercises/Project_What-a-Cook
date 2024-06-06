@@ -2,7 +2,6 @@ package linkia.dam.whatacookrecipies.controller;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.CategoryService;
-import linkia.dam.whatacookrecipies.utilities.PagedResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -19,35 +18,18 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public Mono<PagedResponse<CategoryDto>> getAllCategories(@RequestParam int page,
-                                                             @RequestParam int size) {
-        return categoryService.getAllCategories(page, size);
-    }
-
-    @GetMapping("/searchPaged")
-    public Mono<PagedResponse<CategoryDto>> getCategoriesByNameContaining(@RequestParam String name,
-                                                                          @RequestParam int page,
-                                                                          @RequestParam int size) {
-        return categoryService.getCategoriesByNameContaining(name, page, size);
-    }
-
-/*
-    @GetMapping
-    public Flux<CategoryDto> getAllCategories(@RequestParam int page,
-                                                    @RequestParam int size,
-                                                    @RequestParam String direction) {
+    public Mono<Page<CategoryDto>>
+        getAllCategories(@RequestParam(required = false, defaultValue = "asc") String direction,
+                                @RequestParam int page, @RequestParam int size) {
         return categoryService.getAllCategories(page, size, direction);
     }
 
     @GetMapping("/searchPaged")
-    public Flux<CategoryDto> getCategoriesByNameContaining(@RequestParam String name,
-                                                                 @RequestParam int page,
-                                                                 @RequestParam int size,
-                                                                 @RequestParam String direction) {
+    public Mono<Page<CategoryDto>>
+        getCategoriesByNameContaining(@RequestParam(required = false, defaultValue = "asc") String direction,
+                                         @RequestParam String name, @RequestParam int page, @RequestParam int size) {
         return categoryService.getCategoriesByNameContaining(name, page, size, direction);
     }
-
- */
 
     @GetMapping("/{id}")
     public Mono<CategoryDto> getCategoryById(@PathVariable String id) {

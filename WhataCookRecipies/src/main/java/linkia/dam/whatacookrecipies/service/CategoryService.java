@@ -2,16 +2,16 @@ package linkia.dam.whatacookrecipies.service;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
-import linkia.dam.whatacookrecipies.utilities.PagedResponse;
-import linkia.dam.whatacookrecipies.utilities.ServiceUtil;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
 
 import static linkia.dam.whatacookrecipies.utilities.ServiceUtil.sortByName;
 
@@ -20,34 +20,24 @@ import static linkia.dam.whatacookrecipies.utilities.ServiceUtil.sortByName;
 public class CategoryService {
 
     private final CategoryDao categoryDao;
-    private final ReactiveMongoTemplate reactiveMongoTemplate;
 
-    public Flux<CategoryDto> getAllCategories() {
-        return categoryDao.findAll();
-    }
-
-    public Mono<PagedResponse<CategoryDto>> getAllCategories(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName("asc"));
-        return ServiceUtil.aggregateCategories(reactiveMongoTemplate, pageable, null);
-    }
-
-    public Mono<PagedResponse<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName("asc"));
-        Criteria criteria = Criteria.where("name").regex(name, "i");
-        return ServiceUtil.aggregateCategories(reactiveMongoTemplate, pageable, criteria);
-    }
-/*
-    public Flux<CategoryDto> getAllCategories(int page, int size, String direction) {
+    public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
         Pageable pageable = PageRequest.of(page, size, sortByName(direction));
-        return categoryDao.findAllBy(pageable);
+        return this.categoryDao.count()
+                .flatMap(categoryCount -> this.categoryDao.findAll(pageable.getSort())
+                        .buffer(pageable.getPageSize(), pageable.getPageNumber() + 1)
+                        .elementAt(pageable.getPageNumber(), new ArrayList<>())
+                        .map(categories -> new PageImpl<>(categories, pageable, categoryCount)));
     }
 
-    public Flux<CategoryDto> getCategoriesByNameContaining(String name, int page, int size, String direction) {
+    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
         Pageable pageable = PageRequest.of(page, size, sortByName(direction));
-        return categoryDao.findByNameContainingIgnoreCase(name, pageable);
+        return this.categoryDao.count()
+                .flatMap(categoryCount -> this.categoryDao.findByNameContainingIgnoreCase(name, (Pageable) pageable.getSort())
+                        .buffer(pageable.getPageSize(), pageable.getPageNumber() + 1)
+                        .elementAt(pageable.getPageNumber(), new ArrayList<>())
+                        .map(categories -> new PageImpl<>(categories, pageable, categoryCount)));
     }
-
- */
 
     public Mono<CategoryDto> getCategoryById(String id) {
         return categoryDao.findById(id);
