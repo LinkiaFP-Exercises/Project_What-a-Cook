@@ -31,6 +31,16 @@ public class PaginationUtil {
         );
     }
 
+    public static <T> Mono<Page<T>> createPagedResult(Flux<T> items, int page, int size, String direction, Class<T> tClass) {
+        return items.count().flatMap(total -> items
+                .sort(getComparator(tClass, direction))
+                .skip((long) page * size)
+                .take(size)
+                .collectList()
+                .map(list -> new PageImpl<>(list, getPageableSortByName(page, size, direction), total))
+        );
+    }
+
     public static <T> Mono<Page<T>> createPagedResult(Flux<T> items, Mono<Long> count, int page, int size, String direction, Class<T> tClass) {
         Pageable pageable = getPageableSortByName(page, size, direction);
         return count.flatMap(totalCount -> items
@@ -68,7 +78,7 @@ public class PaginationUtil {
         return comparator;
     }
 
-    public static <T> Comparator<T> getComparator(String direction, Class<T> tClass) {
+    public static <T> Comparator<T> getComparator(Class<T> tClass, String direction) {
         Comparator<T> comparator = null;
         try {
             Method method = tClass.getMethod("getName");
