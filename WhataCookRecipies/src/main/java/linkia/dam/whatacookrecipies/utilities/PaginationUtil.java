@@ -31,6 +31,17 @@ public class PaginationUtil {
         );
     }
 
+    public static <T> Mono<Page<T>> createPagedResult(Flux<T> items, Mono<Long> count, int page, int size, String direction, Class<T> tClass) {
+        Pageable pageable = getPageableSortByName(page, size, direction);
+        return count.flatMap(totalCount -> items
+                .sort(getComparator(tClass, pageable))
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .take(pageable.getPageSize())
+                .collectList()
+                .map(list -> new PageImpl<>(list, pageable, totalCount))
+        );
+    }
+
     public static Pageable getPageableSortByName(int page, int size, String direction) {
         return PageRequest.of(page, size, ServiceUtil.sortByName(direction));
     }

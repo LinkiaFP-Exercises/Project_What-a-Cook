@@ -20,20 +20,13 @@ public class CategoryService {
 
     public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
         Flux<CategoryDto> items = categoryDao.findAll();
-        return getPagedCategories(items, page, size, direction);
+        return PaginationUtil.createPagedResult(items, items.count(), page, size, direction, CategoryDto.class);
     }
 
     public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
         Flux<CategoryDto> items = categoryDao.findByNameContainingIgnoreCase(name);
-        return getPagedCategories(items, page, size, direction);
+        return PaginationUtil.createPagedResult(items, items.count(), page, size, direction, CategoryDto.class);
     }
-
-    private Mono<Page<CategoryDto>> getPagedCategories(Flux<CategoryDto> items, int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
-        Mono<Long> count = categoryDao.count();
-        return PaginationUtil.createPagedResult(items, count, pageable, CategoryDto.class);
-    }
-
 
     public Mono<CategoryDto> getCategoryById(String id) {
         return categoryDao.findById(id);
