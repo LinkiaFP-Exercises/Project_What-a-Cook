@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Comparator;
-
 @AllArgsConstructor
 @Service
 public class CategoryService {
@@ -21,25 +19,13 @@ public class CategoryService {
     private final CategoryDao categoryDao;
 
     public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
-        Mono<Long> count = categoryDao.count();
         Flux<CategoryDto> items = categoryDao.findAll();
-        Comparator<CategoryDto> comparator = Comparator.comparing(CategoryDto::getName);
-        if (ServiceUtil.isNotNullAndStartWithD(direction)) {
-            comparator = comparator.reversed();
-        }
-        return PaginationUtil.createPagedResult(items, count, pageable, comparator);
+        return getPagedCategories(items, page, size, direction);
     }
 
     public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
-        Mono<Long> count = categoryDao.count();
         Flux<CategoryDto> items = categoryDao.findByNameContainingIgnoreCase(name);
-        Comparator<CategoryDto> comparator = Comparator.comparing(CategoryDto::getName);
-        if (ServiceUtil.isNotNullAndStartWithD(direction)) {
-            comparator = comparator.reversed();
-        }
-        return PaginationUtil.createPagedResult(items, count, pageable, comparator);
+        return getPagedCategories(items, page, size, direction);
     }
 
     private Mono<Page<CategoryDto>> getPagedCategories(Flux<CategoryDto> items, int page, int size, String direction) {

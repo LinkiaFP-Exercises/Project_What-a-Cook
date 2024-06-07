@@ -1,10 +1,7 @@
 package linkia.dam.whatacookrecipies.utilities;
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +20,7 @@ public class PaginationUtil {
                 .map(list -> new PageImpl<>(list, pageable, totalCount))
         );
     }
+
     public static <T> Mono<Page<T>> createPagedResult(Flux<T> items, Mono<Long> count, Pageable pageable, Class<T> tClass) {
         return count.flatMap(totalCount -> items
                 .sort(getComparator(tClass, pageable))
@@ -32,6 +30,11 @@ public class PaginationUtil {
                 .map(list -> new PageImpl<>(list, pageable, totalCount))
         );
     }
+
+    public static Pageable getPageableSortByName(int page, int size, String direction) {
+        return PageRequest.of(page, size, ServiceUtil.sortByName(direction));
+    }
+
     public static <T> Comparator<T> getComparator(Class<T> tClass, Pageable pageable) {
         Sort.Order order = pageable.getSort().getOrderFor("name");
         Comparator<T> comparator = null;

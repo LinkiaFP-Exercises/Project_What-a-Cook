@@ -46,6 +46,12 @@ public class CategoryController {
         return categoryService.deleteCategory(id);
     }
 
+
+    @DeleteMapping("/all")
+    public Mono<Void> deleteAllCategorys() {
+        return categoryService.deleteCategorysAll();
+    }
+
     @PostMapping("/bulk")
     public Flux<CategoryDto> createCategories(@RequestBody Flux<CategoryDto> categories) {
         return categoryService.createCategories(categories);
