@@ -4,6 +4,7 @@ import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -18,17 +19,16 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public Mono<Page<CategoryDto>>
-        getAllCategories(@RequestParam(required = false, defaultValue = "asc") String direction,
-                                @RequestParam int page, @RequestParam int size) {
-        return categoryService.getAllCategories(page, size, direction);
+    public Mono<Page<CategoryDto>> getAllCategories(@RequestParam(required = false) String mode,
+                                                    @RequestParam int page, @RequestParam int size) {
+        return categoryService.getAllCategories(page, size, mode);
     }
 
     @GetMapping("/searchPaged")
-    public Mono<Page<CategoryDto>>
-        getCategoriesByNameContaining(@RequestParam(required = false, defaultValue = "asc") String direction,
-                                         @RequestParam String name, @RequestParam int page, @RequestParam int size) {
-        return categoryService.getCategoriesByNameContaining(name, page, size, direction);
+    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(@RequestParam String name,
+                                                                 @RequestParam(required = false) String mode,
+                                                                 @RequestParam int page, @RequestParam int size) {
+        return categoryService.getCategoriesByNameContaining(name, page, size, mode);
     }
 
     @GetMapping("/{id}")
@@ -41,20 +41,24 @@ public class CategoryController {
         return categoryService.createCategory(categoryDto);
     }
 
+    @PostMapping("/bulk")
+    public Flux<CategoryDto> createCategories(@RequestBody Flux<CategoryDto> categories) {
+        return categoryService.createCategories(categories);
+    }
+
     @DeleteMapping("/{id}")
     public Mono<Void> deleteCategory(@PathVariable String id) {
         return categoryService.deleteCategory(id);
     }
 
-
-    @DeleteMapping("/all")
-    public Mono<Void> deleteAllCategorys() {
-        return categoryService.deleteCategorysAll();
+    @DeleteMapping
+    public Mono<ResponseEntity<String>> deleteCategory(@RequestBody CategoryDto categoryDto) {
+        return categoryService.deleteCategory(categoryDto);
     }
 
-    @PostMapping("/bulk")
-    public Flux<CategoryDto> createCategories(@RequestBody Flux<CategoryDto> categories) {
-        return categoryService.createCategories(categories);
+    @DeleteMapping("/all")
+    public Mono<Void> deleteAllCategories() {
+        return categoryService.deleteAllCategories();
     }
 
 }

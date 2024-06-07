@@ -5,6 +5,7 @@ import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
 import linkia.dam.whatacookrecipies.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,14 +16,14 @@ public class CategoryService {
 
     private final CategoryDao categoryDao;
 
-    public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
-        Flux<CategoryDto> items = categoryDao.findAll();
-        return PaginationUtil.createPagedResult(items, page, size, direction, CategoryDto.class);
+    public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String mode) {
+        return categoryDao.findAll().collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, CategoryDto.class));
     }
 
-    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
-        Flux<CategoryDto> items = categoryDao.findByNameContainingIgnoreCase(name);
-        return PaginationUtil.createPagedResult(items, page, size, direction, CategoryDto.class);
+    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
+        return categoryDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, CategoryDto.class));
     }
 
     public Mono<CategoryDto> getCategoryById(String id) {
@@ -30,19 +31,27 @@ public class CategoryService {
     }
 
     public Mono<CategoryDto> createCategory(CategoryDto categoryDto) {
-        return categoryDao.save(categoryDto);
+        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+                .switchIfEmpty(categoryDao.save(categoryDto));
+    }
+
+    public Flux<CategoryDto> createCategories(Flux<CategoryDto> categories) {
+        return categories.flatMap(this::createCategory);
     }
 
     public Mono<Void> deleteCategory(String id) {
         return categoryDao.deleteById(id);
     }
 
-    public Mono<Void> deleteCategorysAll() {
-        return categoryDao.deleteAll();
+    public Mono<ResponseEntity<String>> deleteCategory(CategoryDto categoryDto) {
+        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+                .flatMap(existingCategory -> categoryDao.delete(existingCategory)
+                        .then(Mono.just(ResponseEntity.ok("Category " + existingCategory.getName() + " has been deleted."))))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    public Flux<CategoryDto> createCategories(Flux<CategoryDto> categories) {
-        return categoryDao.saveAll(categories);
+    public Mono<Void> deleteAllCategories() {
+        return categoryDao.deleteAll();
     }
 
 }
