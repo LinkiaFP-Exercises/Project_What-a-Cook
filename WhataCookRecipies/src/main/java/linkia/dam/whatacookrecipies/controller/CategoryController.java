@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("${app.endpoint.categories}")
 @Validated
 public class CategoryController {
 

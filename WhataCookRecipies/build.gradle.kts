@@ -34,9 +34,9 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.13.1")
     testImplementation("io.projectreactor:reactor-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.13.1")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

@@ -9,9 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootConfiguration
 @ComponentScan
-@EnableAutoConfiguration(exclude = {
-        MongoAutoConfiguration.class,
-        MongoDataAutoConfiguration.class})
+//@EnableAutoConfiguration(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 class WhataCookRecipiesApplicationTests {
 
     @Test
