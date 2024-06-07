@@ -2,6 +2,8 @@ package linkia.dam.whatacookrecipies.service;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
+import linkia.dam.whatacookrecipies.utilities.PaginationUtil;
+import linkia.dam.whatacookrecipies.utilities.ServiceUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,8 +12,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static linkia.dam.whatacookrecipies.utilities.PaginationUtil.createPagedResult;
-import static linkia.dam.whatacookrecipies.utilities.ServiceUtil.sortByName;
+import java.util.Comparator;
 
 @AllArgsConstructor
 @Service
@@ -20,37 +21,33 @@ public class CategoryService {
     private final CategoryDao categoryDao;
 
     public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, sortByName(direction));
+        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
         Mono<Long> count = categoryDao.count();
-        Flux<CategoryDto> items = categoryDao.findAllBy(pageable);
-        return createPagedResult(items, count, pageable);
+        Flux<CategoryDto> items = categoryDao.findAll();
+        Comparator<CategoryDto> comparator = Comparator.comparing(CategoryDto::getName);
+        if (ServiceUtil.isNotNullAndStartWithD(direction)) {
+            comparator = comparator.reversed();
+        }
+        return PaginationUtil.createPagedResult(items, count, pageable, comparator);
     }
 
     public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, sortByName(direction));
+        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
         Mono<Long> count = categoryDao.count();
-        Flux<CategoryDto> items = categoryDao.findByNameContainingIgnoreCase(name, pageable);
-        return createPagedResult(items, count, pageable);
-    }
-/*
-    public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, sortByName(direction));
-        return categoryDao.count()
-                .flatMap(categoryCount -> categoryDao.findAllBy(pageable)
-                        .buffer(pageable.getPageSize(), pageable.getPageNumber() + 1)
-                        .elementAt(pageable.getPageNumber(), new ArrayList<>())
-                        .map(categories -> new PageImpl<>(categories, pageable, categoryCount)));
+        Flux<CategoryDto> items = categoryDao.findByNameContainingIgnoreCase(name);
+        Comparator<CategoryDto> comparator = Comparator.comparing(CategoryDto::getName);
+        if (ServiceUtil.isNotNullAndStartWithD(direction)) {
+            comparator = comparator.reversed();
+        }
+        return PaginationUtil.createPagedResult(items, count, pageable, comparator);
     }
 
-    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, sortByName(direction));
-        return categoryDao.count()
-                .flatMap(categoryCount -> categoryDao.findByNameContainingIgnoreCase(name, pageable)
-                        .buffer(pageable.getPageSize(), pageable.getPageNumber() + 1)
-                        .elementAt(pageable.getPageNumber(), new ArrayList<>())
-                        .map(categories -> new PageImpl<>(categories, pageable, categoryCount)));
+    private Mono<Page<CategoryDto>> getPagedCategories(Flux<CategoryDto> items, int page, int size, String direction) {
+        Pageable pageable = PageRequest.of(page, size, ServiceUtil.sortByName(direction));
+        Mono<Long> count = categoryDao.count();
+        return PaginationUtil.createPagedResult(items, count, pageable, CategoryDto.class);
     }
- */
+
 
     public Mono<CategoryDto> getCategoryById(String id) {
         return categoryDao.findById(id);
@@ -62,6 +59,10 @@ public class CategoryService {
 
     public Mono<Void> deleteCategory(String id) {
         return categoryDao.deleteById(id);
+    }
+
+    public Mono<Void> deleteCategorysAll() {
+        return categoryDao.deleteAll();
     }
 
     public Flux<CategoryDto> createCategories(Flux<CategoryDto> categories) {
