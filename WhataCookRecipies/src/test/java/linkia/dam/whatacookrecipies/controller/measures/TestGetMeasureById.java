@@ -1,4 +1,4 @@
-package linkia.dam.whatacookrecipies.controller.measure;
+package linkia.dam.whatacookrecipies.controller.measures;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,26 +8,25 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class TestGetMeasureByName extends BaseMeasureTest {
+public class TestGetMeasureById extends BaseMeasureTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         measureDto = generateMeasureDto();
-        pathVariable = "/name/{name}";
-        valuePathVariable = measureDto.getName();
+        pathVariable = "/id/{id}";
+        valuePathVariable = measureDto.getId();
     }
 
     @Test
-    void getMeasureByNameFound() {
-        when(measureDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.just(measureDto));
+    void getMeasureByIdFound() {
+        when(measureDao.findById(anyString())).thenReturn(Mono.just(measureDto));
         TestGetMeasureByPathVariableFound(pathVariable, valuePathVariable);
     }
 
     @Test
-    void getMeasureByNameNotFound() {
-        when(measureDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.empty());
+    void getMeasureByIdNotFound() {
+        when(measureDao.findById(anyString())).thenReturn(Mono.empty());
         TestGetMeasureByPathVariableNotFound(pathVariable, valuePathVariable);
     }
-
 }

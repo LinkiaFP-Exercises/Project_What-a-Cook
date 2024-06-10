@@ -1,4 +1,4 @@
-package linkia.dam.whatacookrecipies.controller.measure;
+package linkia.dam.whatacookrecipies.controller.measures;
 
 import linkia.dam.whatacookrecipies.model.MeasureDto;
 import org.junit.jupiter.api.BeforeEach;

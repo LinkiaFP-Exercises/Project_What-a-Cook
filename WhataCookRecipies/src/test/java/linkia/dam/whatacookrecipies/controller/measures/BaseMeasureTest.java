@@ -1,4 +1,4 @@
-package linkia.dam.whatacookrecipies.controller.measure;
+package linkia.dam.whatacookrecipies.controller.measures;
 
 import linkia.dam.whatacookrecipies.controller.BaseTestingConfiguration;
 import linkia.dam.whatacookrecipies.controller.MeasureController;
@@ -32,7 +32,7 @@ public class BaseMeasureTest extends BaseTestingConfiguration {
 
     protected MeasureDto measureDto;
 
-    protected final List<MeasureDto> measureDtoList = Arrays.asList(
+    public final List<MeasureDto> measureDtoList = Arrays.asList(
             new MeasureDto("measure-1", "Cucharadita"),
             new MeasureDto("measure-2", "Cucharada"),
             new MeasureDto("measure-3", "Taza"),
