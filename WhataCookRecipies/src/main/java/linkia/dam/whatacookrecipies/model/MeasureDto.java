@@ -10,9 +10,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Document(collection = "measure")
-public class MeasureDto {
+public class MeasureDto extends NamedEntity {
 
     @Id
     private String id;

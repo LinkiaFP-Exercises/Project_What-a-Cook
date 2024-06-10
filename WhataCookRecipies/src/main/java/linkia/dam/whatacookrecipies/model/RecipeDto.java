@@ -13,9 +13,9 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Document(collection = "recipe")
-public class RecipeDto {
+public class RecipeDto extends NamedEntity {
 
     @Id
     private String id;

@@ -11,9 +11,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Document(collection = "category")
-public class CategoryDto {
+public class CategoryDto extends NamedEntity {
 
     @Id
     private String id;
