@@ -14,20 +14,20 @@ public class TestGetCategoryById extends BaseCategoriesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         categoryDto = generateCategoryDto();
-        pathVariable = "/id/{id}";
+        pathVariable = categoriesUri + PATH_ID;
         valuePathVariable = categoryDto.getId();
     }
 
     @Test
     void getCategoryByIdFound() {
         when(categoryDao.findById(anyString())).thenReturn(Mono.just(categoryDto));
-        TestGetCategoryByPathVariableFound(pathVariable, valuePathVariable);
+        TestGetByPathVariableFounded(webTestClient, pathVariable, valuePathVariable, categoryDto);
     }
 
     @Test
     void getCategoryByIdNotFound() {
         when(categoryDao.findById(anyString())).thenReturn(Mono.empty());
-        TestGetCategoryByPathVariableNotFound(pathVariable, valuePathVariable);
+        TestGetByPathVariableNotFound(webTestClient, pathVariable, valuePathVariable);
     }
 
 }

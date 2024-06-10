@@ -56,7 +56,7 @@ public class TestGetCategoriesByNameContaining extends BaseCategoriesTest {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(false, categoryDtoListFiltered);
 
-        validateResponse("", name, expectedFirstCategory, getNumberLastElements());
+        validateResponse("", name, expectedFirstCategory, categoryDtoListFiltered.size());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class TestGetCategoriesByNameContaining extends BaseCategoriesTest {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(true, categoryDtoListFiltered);
 
-        validateResponse("D", name, expectedFirstCategory, getNumberLastElements());
+        validateResponse("D", name, expectedFirstCategory, categoryDtoListFiltered.size());
     }
 }

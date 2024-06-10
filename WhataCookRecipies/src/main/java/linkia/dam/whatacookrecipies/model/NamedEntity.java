@@ -9,5 +9,6 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 public class NamedEntity {
+    protected String id;
     protected String name;
 }

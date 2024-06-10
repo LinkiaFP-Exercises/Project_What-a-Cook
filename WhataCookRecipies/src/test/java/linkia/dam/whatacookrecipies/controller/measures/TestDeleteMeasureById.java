@@ -35,7 +35,7 @@ public class TestDeleteMeasureById extends BaseMeasureTest {
                 .expectBody(String.class)
                 .value(response -> {
                     assert response.contains(measureDto.getName());
-                    assert response.contains(deleted);
+                    assert response.contains(DELETED);
                 });
     }
 

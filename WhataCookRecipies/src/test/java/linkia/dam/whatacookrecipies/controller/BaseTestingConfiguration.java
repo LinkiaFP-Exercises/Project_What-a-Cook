@@ -3,18 +3,20 @@ package linkia.dam.whatacookrecipies.controller;
 import linkia.dam.whatacookrecipies.model.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
-import static linkia.dam.whatacookrecipies.utilities.ServiceUtil.isNotNullAndStartWithD;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @ExtendWith(SpringExtension.class)
 public class BaseTestingConfiguration {
 
-    protected String pathVariable, valuePathVariable;
-    protected final String deleted = "deleted";
+    protected final String DELETED = "deleted";
+    protected final String PATH_ID = "/id/{id}";
+    protected final String PATH_NAME = "/name/{name}";
+    protected String pathVariable, valuePathVariable, name;
     protected int page, size, amount = 36;
 
     protected int getNumberLastElements() {
@@ -34,4 +36,24 @@ public class BaseTestingConfiguration {
         return sortedList.get(startIndex);
     }
 
+    protected void TestGetByPathVariableFounded(WebTestClient webTestClient, String pathVariable, String valuePathVariable, NamedEntity namedEntity) {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(pathVariable)
+                        .build(valuePathVariable))
+                .accept(APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(namedEntity.getId())
+                .jsonPath("$.name").isEqualTo(namedEntity.getName());
+    }
+
+    protected void TestGetByPathVariableNotFound(WebTestClient webTestClient, String pathVariable, String valuePathVariable) {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(pathVariable)
+                        .build(valuePathVariable))
+                .accept(APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
 }

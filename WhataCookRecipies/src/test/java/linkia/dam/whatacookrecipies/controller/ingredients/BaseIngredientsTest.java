@@ -3,7 +3,6 @@ package linkia.dam.whatacookrecipies.controller.ingredients;
 import linkia.dam.whatacookrecipies.controller.BaseTestingConfiguration;
 import linkia.dam.whatacookrecipies.controller.IngredientController;
 import linkia.dam.whatacookrecipies.model.IngredientDto;
-import linkia.dam.whatacookrecipies.model.IngredientDto;
 import linkia.dam.whatacookrecipies.model.MeasureDto;
 import linkia.dam.whatacookrecipies.service.IngredientService;
 import linkia.dam.whatacookrecipies.service.contracts.IngredientDao;
@@ -14,9 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 @WebFluxTest(IngredientController.class)
@@ -32,9 +29,6 @@ public class BaseIngredientsTest extends BaseTestingConfiguration {
     @Value("${app.endpoint.ingredients}")
     protected String ingredientsUri;
 
-    protected int page;
-    protected int size;
-    protected String name;
     public final List<IngredientDto> ingredientDtoList = generateIngredientDtoList();
     protected IngredientDto ingredientDto;
 

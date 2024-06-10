@@ -13,10 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @WebFluxTest(CategoryController.class)
 @Import(CategoryService.class)
@@ -31,7 +28,6 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
     @Value("${app.endpoint.categories}")
     protected String categoriesUri;
 
-    protected String name;
     public final List<CategoryDto> categoryDtoList = generateCategoryDtoList();
     protected CategoryDto categoryDto;
 
@@ -71,24 +67,4 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
         return categoryDto;
     }
 
-    void TestGetCategoryByPathVariableFound(String pathVariable, String valuePathVariable) {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
-                        .build(valuePathVariable))
-                .accept(APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.id").isEqualTo(categoryDto.getId())
-                .jsonPath("$.name").isEqualTo(categoryDto.getName());
-    }
-
-    void TestGetCategoryByPathVariableNotFound(String pathVariable, String valuePathVariable) {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
-                        .build(valuePathVariable))
-                .accept(APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isNotFound();
-    }
 }

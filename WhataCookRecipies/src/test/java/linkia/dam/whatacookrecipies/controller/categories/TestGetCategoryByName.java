@@ -14,20 +14,20 @@ public class TestGetCategoryByName extends BaseCategoriesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         categoryDto = generateCategoryDto();
-        pathVariable = "/name/{name}";
+        pathVariable = categoriesUri + PATH_NAME;
         valuePathVariable = categoryDto.getName();
     }
 
     @Test
     void getCategoryByNameFound() {
         when(categoryDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.just(categoryDto));
-        TestGetCategoryByPathVariableFound(pathVariable, valuePathVariable);
+        TestGetByPathVariableFounded(webTestClient, pathVariable, valuePathVariable, categoryDto);
     }
 
     @Test
     void getCategoryByNameNotFound() {
         when(categoryDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.empty());
-        TestGetCategoryByPathVariableNotFound(pathVariable, valuePathVariable);
+        TestGetByPathVariableNotFound(webTestClient, pathVariable, valuePathVariable);
     }
 
 }
