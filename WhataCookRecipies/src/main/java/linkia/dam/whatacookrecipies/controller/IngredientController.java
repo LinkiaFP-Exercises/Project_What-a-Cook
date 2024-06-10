@@ -3,6 +3,7 @@ package linkia.dam.whatacookrecipies.controller;
 import linkia.dam.whatacookrecipies.model.IngredientDto;
 import linkia.dam.whatacookrecipies.service.IngredientService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -10,20 +11,33 @@ import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/ingredients")
+@RequestMapping("${app.endpoint.ingredients}")
 @Validated
 public class IngredientController {
 
     private final IngredientService ingredientService;
 
     @GetMapping
-    public Flux<IngredientDto> getAllIngredients(@RequestParam int page, @RequestParam int size, @RequestParam String direction) {
-        return ingredientService.getAllIngredients(page, size, direction);
+    public Mono<Page<IngredientDto>> getAllCategories(@RequestParam(required = false) String mode,
+                                                    @RequestParam int page, @RequestParam int size) {
+        return ingredientService.getAllCategories(page, size, mode);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/searchPaged")
+    public Mono<Page<IngredientDto>> getCategoriesByNameContaining(@RequestParam String name,
+                                                                 @RequestParam(required = false) String mode,
+                                                                 @RequestParam int page, @RequestParam int size) {
+        return ingredientService.getCategoriesByNameContaining(name, page, size, mode);
+    }
+
+    @GetMapping("id/{id}")
     public Mono<IngredientDto> getIngredientById(@PathVariable String id) {
         return ingredientService.getIngredientById(id);
+    }
+
+    @GetMapping("name/{name}")
+    public Mono<IngredientDto> getIngredientByName(@PathVariable String name) {
+        return ingredientService.getIngredientByName(name);
     }
 
     @PostMapping
@@ -31,14 +45,19 @@ public class IngredientController {
         return ingredientService.createIngredient(ingredientDto);
     }
 
-    @PutMapping("/{id}")
-    public Mono<IngredientDto> updateIngredient(@PathVariable String id, @RequestBody IngredientDto ingredientDto) {
-        return ingredientService.updateIngredient(id, ingredientDto);
+    @PostMapping("/bulk")
+    public Flux<IngredientDto> createCategories(@RequestBody Flux<IngredientDto> ingredients) {
+        return ingredientService.createCategories(ingredients);
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteIngredient(@PathVariable String id) {
+    public Mono<String> deleteIngredientById(@PathVariable String id) {
         return ingredientService.deleteIngredient(id);
+    }
+
+    @DeleteMapping("/all")
+    public Mono<Void> deleteAllCategories() {
+        return ingredientService.deleteAllCategories();
     }
 
 }

@@ -1,16 +1,14 @@
 package linkia.dam.whatacookrecipies.service;
 
 import linkia.dam.whatacookrecipies.model.IngredientDto;
+import linkia.dam.whatacookrecipies.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipies.service.contracts.IngredientDao;
+import linkia.dam.whatacookrecipies.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import static linkia.dam.whatacookrecipies.utilities.ServiceUtil.sortByName;
 
 @AllArgsConstructor
 @Service
@@ -18,36 +16,42 @@ public class IngredientService {
 
     private final IngredientDao ingredientDao;
 
-    public Flux<IngredientDto> getAllIngredients() {
-        return ingredientDao.findAll();
+    public Mono<Page<IngredientDto>> getAllCategories(int page, int size, String mode) {
+        return ingredientDao.findAll().collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, IngredientDto.class));
     }
 
-    public Flux<IngredientDto> getAllIngredients(int page, int size, String direction) {
-        Pageable pageable = PageRequest.of(page, size, sortByName(direction));
-        return ingredientDao.findAllBy(pageable);
+    public Mono<Page<IngredientDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
+        return ingredientDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, IngredientDto.class));
     }
 
     public Mono<IngredientDto> getIngredientById(String id) {
-        return ingredientDao.findById(id);
+        return ingredientDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
+    }
+    public Mono<IngredientDto> getIngredientByName(String name) {
+        return ingredientDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with name=" + name)));
     }
 
     public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
-        return ingredientDao.save(ingredientDto);
+        return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
+                .switchIfEmpty(Mono.defer(() -> ingredientDao.save(ingredientDto)));
     }
 
-    public Mono<IngredientDto> updateIngredient(String id, IngredientDto ingredientDto) {
+    public Flux<IngredientDto> createCategories(Flux<IngredientDto> ingredients) {
+        return ingredients.flatMap(this::createIngredient);
+    }
+
+    public Mono<String> deleteIngredient(String id) {
         return ingredientDao.findById(id)
-                .flatMap(existingIngredient -> {
-                    existingIngredient.setName(ingredientDto.getName());
-                    existingIngredient.setQuantity(ingredientDto.getQuantity());
-                    existingIngredient.setMeasure(ingredientDto.getMeasure());
-                    return ingredientDao.save(existingIngredient);
-                });
+                .flatMap(existingIngredient -> ingredientDao.delete(existingIngredient)
+                        .then(Mono.just("Ingredient " + existingIngredient.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
     }
 
-    public Mono<Void> deleteIngredient(String id) {
-        return ingredientDao.deleteById(id);
+    public Mono<Void> deleteAllCategories() {
+        return ingredientDao.deleteAll();
     }
-
-
 }
