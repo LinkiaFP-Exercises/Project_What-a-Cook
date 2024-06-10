@@ -1,28 +1,32 @@
 package linkia.dam.whatacookrecipies.controller.categories;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class TestGetAllCategories extends BaseCategoriesTest {
 
-    private int page;
-    private int size;
-    private int start;
-    private int end;
-    private List<CategoryDto> sublist;
+    protected int page;
+    protected int size;
+
+    protected CategoryDto getExpectedCategoryDto(int page, boolean desc) {
+        List<CategoryDto> sortedList = new ArrayList<>(categoryDtoList);
+        if (desc) {
+            sortedList.sort((a, b) -> b.getName().compareTo(a.getName()));
+        } else {
+            sortedList.sort(Comparator.comparing(CategoryDto::getName));
+        }
+        int startIndex = page * size;
+        return sortedList.get(startIndex);
+    }
 
     @BeforeEach
     void setUp() {
@@ -30,12 +34,14 @@ public class TestGetAllCategories extends BaseCategoriesTest {
         size = 10;
         amount = 36;
         categoryDtoList = generateCategoryDtoList(amount);
+
+        when(categoryDao.findAll()).thenReturn(Flux.fromIterable(categoryDtoList));
     }
 
     @Test
-    void getAllCategoriesPage0Asc() throws Exception {
+    void getAllCategoriesPage0Asc() {
         page = 0;
-        defineSublist();
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(page, false);
 
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(categoriesUri)
@@ -48,8 +54,8 @@ public class TestGetAllCategories extends BaseCategoriesTest {
                 .expectBody()
                 .jsonPath("$.content").isArray()
                 .jsonPath("$.content.length()").isEqualTo(size)
-                .jsonPath("$.content[0].id").isEqualTo("id-1")
-                .jsonPath("$.content[0].name").isEqualTo("Category 1")
+                .jsonPath("$.content[0].id").isEqualTo(expectedFirstCategory.getId())
+                .jsonPath("$.content[0].name").isEqualTo(expectedFirstCategory.getName())
                 .jsonPath("$.pageable.pageNumber").isEqualTo(page)
                 .jsonPath("$.pageable.pageSize").isEqualTo(size)
                 .jsonPath("$.totalElements").isEqualTo(amount)
@@ -59,10 +65,35 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     }
 
     @Test
-    void getAllCategoriesPage3Asc() throws Exception {
-        page = 3;
+    void getAllCategoriesPage0Desc() {
+        page = 0;
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(page, true);
 
-        defineSublist();
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri)
+                        .queryParam("page", page)
+                        .queryParam("size", size)
+                        .queryParam("mode", "D")
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.content.length()").isEqualTo(size)
+                .jsonPath("$.content[0].id").isEqualTo(expectedFirstCategory.getId())
+                .jsonPath("$.content[0].name").isEqualTo(expectedFirstCategory.getName())
+                .jsonPath("$.pageable.pageNumber").isEqualTo(page)
+                .jsonPath("$.pageable.pageSize").isEqualTo(size)
+                .jsonPath("$.totalElements").isEqualTo(amount)
+                .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) amount / size))
+                .jsonPath("$.first").isEqualTo(true)
+                .jsonPath("$.last").isEqualTo(false);
+    }
+
+    @Test
+    void getAllCategoriesPage3Asc() {
+        page = 3;
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(page, false);
 
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(categoriesUri)
@@ -74,25 +105,46 @@ public class TestGetAllCategories extends BaseCategoriesTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.content").isArray()
-                .jsonPath("$.content.length()").isEqualTo(end - start)
-                .jsonPath("$.content[0].id").isEqualTo("id-31")
-                .jsonPath("$.content[0].name").isEqualTo("Category 31")
+                .jsonPath("$.content.length()").isEqualTo(6)
+                .jsonPath("$.content[0].id").isEqualTo(expectedFirstCategory.getId())
+                .jsonPath("$.content[0].name").isEqualTo(expectedFirstCategory.getName())
                 .jsonPath("$.pageable.pageNumber").isEqualTo(page)
                 .jsonPath("$.pageable.pageSize").isEqualTo(size)
                 .jsonPath("$.totalElements").isEqualTo(amount)
                 .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) amount / size))
                 .jsonPath("$.first").isEqualTo(false)
                 .jsonPath("$.last").isEqualTo(page == (amount / size))
-                .jsonPath("$.numberOfElements").isEqualTo(end - start);
+                .jsonPath("$.numberOfElements").isEqualTo(6);
     }
 
-    private void defineSublist() {
-        start = Math.min(page * size, categoryDtoList.size());
-        end = Math.min((page + 1) * size, categoryDtoList.size());
-        sublist = categoryDtoList.subList(start, end);
+    @Test
+    void getAllCategoriesPage3Desc() {
+        page = 3;
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(page, true);
+        System.out.println();
+        System.out.println(categoryDtoList);
+        System.out.println();
 
-        when(categoryService.getAllCategories(any(Integer.class), any(Integer.class), any(String.class)))
-                .thenReturn(Mono.just(new PageImpl<>(sublist, PageRequest.of(page, size), categoryDtoList.size())));
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri)
+                        .queryParam("page", page)
+                        .queryParam("size", size)
+                        .queryParam("mode", "D")
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.content.length()").isEqualTo(6)
+                .jsonPath("$.content[0].id").isEqualTo(expectedFirstCategory.getId())
+                .jsonPath("$.content[0].name").isEqualTo(expectedFirstCategory.getName())
+                .jsonPath("$.pageable.pageNumber").isEqualTo(page)
+                .jsonPath("$.pageable.pageSize").isEqualTo(size)
+                .jsonPath("$.totalElements").isEqualTo(amount)
+                .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) amount / size))
+                .jsonPath("$.first").isEqualTo(false)
+                .jsonPath("$.last").isEqualTo(page == (amount / size))
+                .jsonPath("$.numberOfElements").isEqualTo(6);
     }
 
 }
