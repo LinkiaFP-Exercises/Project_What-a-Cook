@@ -18,12 +18,12 @@ public class IngredientService {
 
     public Mono<Page<IngredientDto>> getAllCategories(int page, int size, String mode) {
         return ingredientDao.findAll().collectList()
-                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, IngredientDto.class));
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
     }
 
     public Mono<Page<IngredientDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
         return ingredientDao.findByNameContainingIgnoreCase(name).collectList()
-                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, IngredientDto.class));
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
     }
 
     public Mono<IngredientDto> getIngredientById(String id) {

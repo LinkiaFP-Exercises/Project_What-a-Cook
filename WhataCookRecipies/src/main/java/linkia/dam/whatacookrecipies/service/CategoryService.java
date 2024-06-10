@@ -18,12 +18,12 @@ public class CategoryService {
 
     public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String mode) {
         return categoryDao.findAll().collectList()
-                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, CategoryDto.class));
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
     }
 
     public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
         return categoryDao.findByNameContainingIgnoreCase(name).collectList()
-                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode, CategoryDto.class));
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
     }
 
     public Mono<CategoryDto> getCategoryById(String id) {
