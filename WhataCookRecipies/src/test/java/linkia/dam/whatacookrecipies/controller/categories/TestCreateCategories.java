@@ -21,8 +21,6 @@ public class TestCreateCategories extends BaseCategoriesTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        amount = 36;
-        categoryDtoList = generateCategoryDtoList(amount);
         categoryDtoFlux = Flux.fromIterable(categoryDtoList);
     }
 

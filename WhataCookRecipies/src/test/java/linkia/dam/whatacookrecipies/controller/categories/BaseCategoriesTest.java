@@ -31,13 +31,11 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
     @Value("${app.endpoint.categories}")
     protected String categoriesUri;
 
-    protected int page;
-    protected int size;
     protected String name;
-    protected List<CategoryDto> categoryDtoList;
+    public final List<CategoryDto> categoryDtoList = generateCategoryDtoList();
     protected CategoryDto categoryDto;
 
-    protected List<CategoryDto> generateCategoryDtoList(int amount) {
+    protected List<CategoryDto> generateCategoryDtoList() {
         List<CategoryDto> categoryDtoList = new ArrayList<>();
         for (int i = 1; i <= amount; i++) {
             CategoryDto categoryDto = new CategoryDto();
@@ -61,19 +59,9 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
         }
     }
 
-    protected CategoryDto getExpectedCategoryDto(boolean desc) {
-        List<CategoryDto> sortedList = new ArrayList<>(categoryDtoList);
-        if (desc) {
-            sortedList.sort((a, b) -> b.getName().compareTo(a.getName()));
-        } else {
-            sortedList.sort(Comparator.comparing(CategoryDto::getName));
-        }
-        int startIndex = page * size;
-        return sortedList.get(startIndex);
-    }
-
-    protected int getNumberLastElements() {
-        return amount % size == 0 ? size : amount % size;
+    protected CategoryDto getExpectedCategoryDto(boolean desc, List<CategoryDto> otherCategoryDtoList) {
+        List<CategoryDto> listToSort = (otherCategoryDtoList == null) ? categoryDtoList : otherCategoryDtoList;
+        return getExpectedDto(desc, listToSort);
     }
 
     protected CategoryDto generateCategoryDto() {

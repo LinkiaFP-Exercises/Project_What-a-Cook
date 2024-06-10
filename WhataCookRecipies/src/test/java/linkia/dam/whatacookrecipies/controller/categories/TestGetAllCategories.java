@@ -16,8 +16,6 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         size = 10;
-        amount = 36;
-        categoryDtoList = generateCategoryDtoList(amount);
         when(categoryDao.findAll()).thenReturn(Flux.fromIterable(categoryDtoList));
     }
 
@@ -46,7 +44,7 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     @Test
     void getAllCategoriesPage0Asc() {
         page = 0;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(false);
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(false, null);
 
         validateResponse("", expectedFirstCategory, true, false, size);
     }
@@ -54,7 +52,7 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     @Test
     void getAllCategoriesPage0Desc() {
         page = 0;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(true);
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(true, null);
 
         validateResponse("D", expectedFirstCategory, true, false, size);
     }
@@ -62,7 +60,7 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     @Test
     void getAllCategoriesPage3Asc() {
         page = 3;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(false);
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(false, null);
 
         validateResponse("", expectedFirstCategory, false, true, getNumberLastElements());
     }
@@ -70,7 +68,7 @@ public class TestGetAllCategories extends BaseCategoriesTest {
     @Test
     void getAllCategoriesPage3Desc() {
         page = 3;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(true);
+        CategoryDto expectedFirstCategory = getExpectedCategoryDto(true, null);
 
         validateResponse("D", expectedFirstCategory, false, true, getNumberLastElements());
     }
