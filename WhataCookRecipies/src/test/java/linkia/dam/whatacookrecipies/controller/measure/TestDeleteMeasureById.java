@@ -1,6 +1,6 @@
-package linkia.dam.whatacookrecipies.controller.categories;
+package linkia.dam.whatacookrecipies.controller.measure;
 
-import linkia.dam.whatacookrecipies.model.CategoryDto;
+import linkia.dam.whatacookrecipies.model.MeasureDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -11,45 +11,45 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-public class TestDeleteCategoryById extends BaseCategoriesTest {
+public class TestDeleteMeasureById extends BaseMeasureTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        categoryDto = generateCategoryDto();
-        pathVariable = "/{id}";
-        valuePathVariable = categoryDto.getId();
+        measureDto = generateMeasureDto();
+        pathVariable = measuresUri + "/{id}";
+        valuePathVariable = measureDto.getId();
     }
 
     @Test
-    void testDeleteCategoryByIdFounded() {
-        when(categoryDao.findById(anyString())).thenReturn(Mono.just(categoryDto));
-        when(categoryDao.delete(categoryDto)).thenReturn(Mono.empty());
+    void testDeleteMeasureByIdFounded() {
+        when(measureDao.findById(anyString())).thenReturn(Mono.just(measureDto));
+        when(measureDao.delete(measureDto)).thenReturn(Mono.empty());
 
         webTestClient.delete()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
+                .uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .build(valuePathVariable))
                 .accept(APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class)
                 .value(response -> {
-                    assert response.contains(categoryDto.getName());
+                    assert response.contains(measureDto.getName());
                     assert response.contains(deleted);
                 });
     }
 
     @Test
-    void testDeleteCategoryByIdNotFound() {
-        when(categoryDao.findById(anyString())).thenReturn(Mono.empty());
+    void testDeleteMeasureByIdNotFound() {
+        when(measureDao.findById(anyString())).thenReturn(Mono.empty());
 
         webTestClient.delete()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
+                .uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .build(valuePathVariable))
                 .accept(APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound();
 
-        verify(categoryDao, times(0)).delete(any(CategoryDto.class));
+        verify(measureDao, times(0)).delete(any(MeasureDto.class));
     }
 }

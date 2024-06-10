@@ -25,15 +25,7 @@ public class TestCreateCategory extends BaseCategoriesTest {
         when(categoryDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.empty());
         when(categoryDao.save(any(CategoryDto.class))).thenAnswer(i -> Mono.just(i.getArgument(0)));
 
-        webTestClient.post()
-                .uri(categoriesUri)
-                .contentType(APPLICATION_JSON)
-                .body(fromValue(categoryDto))
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.id").isEqualTo(categoryDto.getId())
-                .jsonPath("$.name").isEqualTo(categoryDto.getName());
+        verifyCreationCategory();
 
         verify(categoryDao, times(1)).save(any(CategoryDto.class));
     }
@@ -42,6 +34,12 @@ public class TestCreateCategory extends BaseCategoriesTest {
     void createCategoryAlreadyExists() {
         when(categoryDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.just(categoryDto));
 
+        verifyCreationCategory();
+
+        verify(categoryDao, times(0)).save(any(CategoryDto.class));
+    }
+
+    private void verifyCreationCategory() {
         webTestClient.post()
                 .uri(categoriesUri)
                 .contentType(APPLICATION_JSON)
@@ -51,7 +49,5 @@ public class TestCreateCategory extends BaseCategoriesTest {
                 .expectBody()
                 .jsonPath("$.id").isEqualTo(categoryDto.getId())
                 .jsonPath("$.name").isEqualTo(categoryDto.getName());
-
-        verify(categoryDao, times(0)).save(any(CategoryDto.class));
     }
 }

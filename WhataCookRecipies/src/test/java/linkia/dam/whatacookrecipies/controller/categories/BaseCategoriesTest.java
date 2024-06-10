@@ -1,13 +1,16 @@
 package linkia.dam.whatacookrecipies.controller.categories;
 
 import linkia.dam.whatacookrecipies.controller.BaseTestingConfiguration;
+import linkia.dam.whatacookrecipies.controller.CategoryController;
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.CategoryService;
 import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,9 +18,12 @@ import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+@WebFluxTest(CategoryController.class)
 @Import(CategoryService.class)
 public class BaseCategoriesTest extends BaseTestingConfiguration {
 
+    @Autowired
+    protected WebTestClient webTestClient;
     @Autowired
     protected CategoryService categoryService;
     @MockBean
@@ -27,11 +33,9 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
 
     protected int page;
     protected int size;
-    protected int amount;
     protected String name;
     protected List<CategoryDto> categoryDtoList;
     protected CategoryDto categoryDto;
-    protected String pathVariable, valuePathVariable;
 
     protected List<CategoryDto> generateCategoryDtoList(int amount) {
         List<CategoryDto> categoryDtoList = new ArrayList<>();
