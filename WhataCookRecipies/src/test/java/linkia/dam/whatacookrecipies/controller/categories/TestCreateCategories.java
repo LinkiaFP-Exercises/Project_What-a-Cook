@@ -17,7 +17,8 @@ public class TestCreateCategories extends BaseCategoriesTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        categoryDtoList = generateCategoryDtoList(36);
+        amount = 36;
+        categoryDtoList = generateCategoryDtoList(amount);
     }
 
     @Test
@@ -32,7 +33,7 @@ public class TestCreateCategories extends BaseCategoriesTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(CategoryDto.class)
-                .hasSize(36)
+                .hasSize(amount)
                 .contains(categoryDtoList.toArray(new CategoryDto[0]));
     }
 }
