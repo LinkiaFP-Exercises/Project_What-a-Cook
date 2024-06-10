@@ -1,11 +1,9 @@
 package linkia.dam.whatacookrecipies.controller;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
-import linkia.dam.whatacookrecipies.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipies.service.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -34,14 +32,12 @@ public class CategoryController {
 
     @GetMapping("id/{id}")
     public Mono<CategoryDto> getCategoryById(@PathVariable String id) {
-        return categoryService.getCategoryById(id)
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
+        return categoryService.getCategoryById(id);
     }
 
     @GetMapping("name/{name}")
     public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
-        return categoryService.getCategoryByName(name)
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
+        return categoryService.getCategoryByName(name);
     }
 
     @PostMapping
@@ -55,13 +51,8 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteCategory(@PathVariable String id) {
+    public Mono<String> deleteCategoryById(@PathVariable String id) {
         return categoryService.deleteCategory(id);
-    }
-
-    @DeleteMapping
-    public Mono<ResponseEntity<String>> deleteCategory(@RequestBody CategoryDto categoryDto) {
-        return categoryService.deleteCategory(categoryDto);
     }
 
     @DeleteMapping("/all")

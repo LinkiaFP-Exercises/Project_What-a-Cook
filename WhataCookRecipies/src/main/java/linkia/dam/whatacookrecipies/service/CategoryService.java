@@ -1,11 +1,11 @@
 package linkia.dam.whatacookrecipies.service;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
+import linkia.dam.whatacookrecipies.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipies.service.contracts.CategoryDao;
 import linkia.dam.whatacookrecipies.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,10 +27,12 @@ public class CategoryService {
     }
 
     public Mono<CategoryDto> getCategoryById(String id) {
-        return categoryDao.findById(id);
+        return categoryDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
     }
     public Mono<CategoryDto> getCategoryByName(String name) {
-        return categoryDao.findByNameIgnoreCase(name);
+        return categoryDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
     }
 
     public Mono<CategoryDto> createCategory(CategoryDto categoryDto) {
@@ -42,15 +44,11 @@ public class CategoryService {
         return categories.flatMap(this::createCategory);
     }
 
-    public Mono<Void> deleteCategory(String id) {
-        return categoryDao.deleteById(id);
-    }
-
-    public Mono<ResponseEntity<String>> deleteCategory(CategoryDto categoryDto) {
-        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+    public Mono<String> deleteCategory(String id) {
+        return categoryDao.findById(id)
                 .flatMap(existingCategory -> categoryDao.delete(existingCategory)
-                        .then(Mono.just(ResponseEntity.ok("Category " + existingCategory.getName() + " has been deleted."))))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                        .then(Mono.just("Category " + existingCategory.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
     }
 
     public Mono<Void> deleteAllCategories() {

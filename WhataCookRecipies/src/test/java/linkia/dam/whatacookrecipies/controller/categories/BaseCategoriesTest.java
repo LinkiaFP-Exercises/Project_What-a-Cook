@@ -99,5 +99,4 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
                 .exchange()
                 .expectStatus().isNotFound();
     }
-
 }
