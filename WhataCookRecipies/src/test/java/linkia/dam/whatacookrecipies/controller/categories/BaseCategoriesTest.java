@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Import(CategoryService.class)
@@ -19,11 +20,13 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
     protected CategoryService categoryService;
     @MockBean
     protected CategoryDao categoryDao;
-
     @Value("${app.endpoint.categories}")
     protected String categoriesUri;
 
+    protected int page;
+    protected int size;
     protected int amount;
+    protected String name;
     protected List<CategoryDto> categoryDtoList;
 
     protected List<CategoryDto> generateCategoryDtoList(int amount) {
@@ -50,5 +53,19 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
         }
     }
 
+    protected CategoryDto getExpectedCategoryDto(boolean desc) {
+        List<CategoryDto> sortedList = new ArrayList<>(categoryDtoList);
+        if (desc) {
+            sortedList.sort((a, b) -> b.getName().compareTo(a.getName()));
+        } else {
+            sortedList.sort(Comparator.comparing(CategoryDto::getName));
+        }
+        int startIndex = page * size;
+        return sortedList.get(startIndex);
+    }
+
+    protected int getNumberLastElements() {
+        return amount % size == 0 ? size : amount % size;
+    }
 
 }

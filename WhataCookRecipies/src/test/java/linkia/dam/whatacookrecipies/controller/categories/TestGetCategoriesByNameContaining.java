@@ -6,31 +6,35 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
 
-public class TestGetAllCategories extends BaseCategoriesTest {
-
-
+public class TestGetCategoriesByNameContaining extends BaseCategoriesTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        name = "D";
         size = 10;
         amount = 36;
         categoryDtoList = generateCategoryDtoList(amount);
-        when(categoryDao.findAll()).thenReturn(Flux.fromIterable(categoryDtoList));
+
+        categoryDtoList = categoryDtoList.stream()
+                .filter(category -> category.getName().contains(name))
+                .collect(Collectors.toList());
+
+        when(categoryDao.findByNameContainingIgnoreCase(name)).thenReturn(Flux.fromIterable(categoryDtoList));
     }
 
-    private void validateResponse(String mode, CategoryDto expectedFirstCategory, boolean isFirst, boolean isLast, int numberOfElements) {
+    private void validateResponse(String mode, String name, CategoryDto expectedFirstCategory, int numberOfElements) {
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri)
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri + "/searchPaged")
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .queryParam("mode", mode)
+                        .queryParam("name", name)
                         .build())
                 .exchange()
                 .expectStatus().isOk()
@@ -41,41 +45,25 @@ public class TestGetAllCategories extends BaseCategoriesTest {
                 .jsonPath("$.content[0].name").isEqualTo(expectedFirstCategory.getName())
                 .jsonPath("$.pageable.pageNumber").isEqualTo(page)
                 .jsonPath("$.pageable.pageSize").isEqualTo(size)
-                .jsonPath("$.totalElements").isEqualTo(amount)
-                .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) amount / size))
-                .jsonPath("$.first").isEqualTo(isFirst)
-                .jsonPath("$.last").isEqualTo(isLast);
+                .jsonPath("$.totalElements").isEqualTo(categoryDtoList.size())
+                .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) categoryDtoList.size() / size))
+                .jsonPath("$.first").isEqualTo(true)
+                .jsonPath("$.last").isEqualTo(true);
     }
 
     @Test
-    void getAllCategoriesPage0Asc() {
+    void getCategoriesByNameContainingAsc() {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(false);
 
-        validateResponse("", expectedFirstCategory, true, false, size);
+        validateResponse("", name, expectedFirstCategory, getNumberLastElements());
     }
 
     @Test
-    void getAllCategoriesPage0Desc() {
+    void getCategoriesByNameContainingDesc() {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(true);
 
-        validateResponse("D", expectedFirstCategory, true, false, size);
-    }
-
-    @Test
-    void getAllCategoriesPage3Asc() {
-        page = 3;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(false);
-
-        validateResponse("", expectedFirstCategory, false, true, getNumberLastElements());
-    }
-
-    @Test
-    void getAllCategoriesPage3Desc() {
-        page = 3;
-        CategoryDto expectedFirstCategory = getExpectedCategoryDto(true);
-
-        validateResponse("D", expectedFirstCategory, false, true, getNumberLastElements());
+        validateResponse("D", name, expectedFirstCategory, getNumberLastElements());
     }
 }

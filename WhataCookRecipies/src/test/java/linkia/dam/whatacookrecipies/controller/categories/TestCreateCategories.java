@@ -29,12 +29,6 @@ import static org.mockito.Mockito.when;
 
 public class TestCreateCategories extends BaseCategoriesTest {
 
-    @Value("${app.endpoint.categories}")
-    private String categoriesUri;
-
-    private int amount;
-    private List<CategoryDto> categoryDtoList;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
