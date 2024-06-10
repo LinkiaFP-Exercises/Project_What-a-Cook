@@ -1,6 +1,7 @@
 package linkia.dam.whatacookrecipies.controller;
 
 import linkia.dam.whatacookrecipies.model.CategoryDto;
+import linkia.dam.whatacookrecipies.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipies.service.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,14 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public Mono<CategoryDto> getCategoryById(@PathVariable String id) {
-        return categoryService.getCategoryById(id);
+        return categoryService.getCategoryById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
+    }
+
+    @GetMapping("/{name}")
+    public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
+        return categoryService.getCategoryByName(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
     }
 
     @PostMapping

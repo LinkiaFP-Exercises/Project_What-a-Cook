@@ -29,6 +29,9 @@ public class CategoryService {
     public Mono<CategoryDto> getCategoryById(String id) {
         return categoryDao.findById(id);
     }
+    public Mono<CategoryDto> getCategoryByName(String name) {
+        return categoryDao.findByNameIgnoreCase(name);
+    }
 
     public Mono<CategoryDto> createCategory(CategoryDto categoryDto) {
         return categoryDao.findByNameIgnoreCase(categoryDto.getName())
@@ -44,7 +47,7 @@ public class CategoryService {
     }
 
     public Mono<ResponseEntity<String>> deleteCategory(CategoryDto categoryDto) {
-        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+        return getCategoryByName(categoryDto.getName())
                 .flatMap(existingCategory -> categoryDao.delete(existingCategory)
                         .then(Mono.just(ResponseEntity.ok("Category " + existingCategory.getName() + " has been deleted."))))
                 .defaultIfEmpty(ResponseEntity.notFound().build());

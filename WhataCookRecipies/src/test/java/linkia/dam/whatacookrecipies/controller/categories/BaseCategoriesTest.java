@@ -68,4 +68,11 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
         return amount % size == 0 ? size : amount % size;
     }
 
+    protected CategoryDto generateCategoryDto() {
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setId("id-A1");
+        categoryDto.setName("Category-A1");
+        return categoryDto;
+    }
+
 }
