@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+
 @Import(CategoryService.class)
 public class BaseCategoriesTest extends BaseTestingConfiguration {
 
@@ -28,6 +30,8 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
     protected int amount;
     protected String name;
     protected List<CategoryDto> categoryDtoList;
+    protected CategoryDto categoryDto;
+    protected String pathVariable, valuePathVariable;
 
     protected List<CategoryDto> generateCategoryDtoList(int amount) {
         List<CategoryDto> categoryDtoList = new ArrayList<>();
@@ -73,6 +77,27 @@ public class BaseCategoriesTest extends BaseTestingConfiguration {
         categoryDto.setId("id-A1");
         categoryDto.setName("Category-A1");
         return categoryDto;
+    }
+
+    void TestGetCategoryByPathVariableFound(String pathVariable, String valuePathVariable) {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
+                        .build(valuePathVariable))
+                .accept(APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(categoryDto.getId())
+                .jsonPath("$.name").isEqualTo(categoryDto.getName());
+    }
+
+    void TestGetCategoryByPathVariableNotFound(String pathVariable, String valuePathVariable) {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri + pathVariable)
+                        .build(valuePathVariable))
+                .accept(APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound();
     }
 
 }

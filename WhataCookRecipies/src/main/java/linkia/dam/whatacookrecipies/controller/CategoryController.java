@@ -32,13 +32,13 @@ public class CategoryController {
         return categoryService.getCategoriesByNameContaining(name, page, size, mode);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("id/{id}")
     public Mono<CategoryDto> getCategoryById(@PathVariable String id) {
         return categoryService.getCategoryById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
     }
 
-    @GetMapping("/{name}")
+    @GetMapping("name/{name}")
     public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
         return categoryService.getCategoryByName(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
