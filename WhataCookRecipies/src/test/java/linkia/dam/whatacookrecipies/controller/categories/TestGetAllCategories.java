@@ -6,10 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import static org.mockito.Mockito.when;
 
 public class TestGetAllCategories extends BaseCategoriesTest {

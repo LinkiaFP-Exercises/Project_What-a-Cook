@@ -7,9 +7,9 @@ import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 public class TestGetCategoryById extends BaseCategoriesTest {
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);

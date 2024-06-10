@@ -35,7 +35,7 @@ public class CategoryService {
 
     public Mono<CategoryDto> createCategory(CategoryDto categoryDto) {
         return categoryDao.findByNameIgnoreCase(categoryDto.getName())
-                .switchIfEmpty(categoryDao.save(categoryDto));
+                .switchIfEmpty(Mono.defer(() -> categoryDao.save(categoryDto)));
     }
 
     public Flux<CategoryDto> createCategories(Flux<CategoryDto> categories) {
@@ -47,7 +47,7 @@ public class CategoryService {
     }
 
     public Mono<ResponseEntity<String>> deleteCategory(CategoryDto categoryDto) {
-        return getCategoryByName(categoryDto.getName())
+        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
                 .flatMap(existingCategory -> categoryDao.delete(existingCategory)
                         .then(Mono.just(ResponseEntity.ok("Category " + existingCategory.getName() + " has been deleted."))))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
