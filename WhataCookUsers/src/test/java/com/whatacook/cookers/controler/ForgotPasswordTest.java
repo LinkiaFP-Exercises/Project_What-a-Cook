@@ -2,7 +2,6 @@ package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
 import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
@@ -12,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import reactor.core.publisher.Mono;
@@ -26,10 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ForgotPasswordTest extends BaseTestClass {
 
-    private static final Logger log = LoggerFactory.getLogger(ForgotPasswordTest.class);
     @Value("${security.jwt.forgot-pass}")
     private String forgotPasswordEndpoint;
-    private UserDTO userDTO;
 
     private static final String requestBody = "{" +
             "\"email\": \"" + EMAIL + "\"," +
@@ -38,8 +33,7 @@ public class ForgotPasswordTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
-        userDTO = userDtoBasicOk();
-        Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(Mono.just(userDTO));
+        Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(Mono.just(userDtoBasicOk()));
     }
 
     @Test
