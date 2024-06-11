@@ -20,8 +20,8 @@ cd WhataCookUsers || exit
 ./gradlew clean build --scan -Dspring.data.mongodb.uri=$MONGO_URI_WHATACOOK_USERS -Dspring.mail.password=$GMAIL_APP_PASSWORD -Djwt.secret=$JWT_SECRET -Dspring.mail.username=$SPRING_MAIL_VALIDATION
 
 echo "Building whatacook-recipes..."
-cd ../WhataCookRecipies || exit
-./gradlew clean build --scan -Dspring.data.mongodb.uri=$MONGO_URI_WHATACOOK_RECIPIES
+cd ../WhataCookRecipes || exit
+./gradlew clean build --scan -Dspring.data.mongodb.uri=$MONGO_URI_WHATACOOK_RECIPES
 
 # Volver al directorio raíz
 cd ..
