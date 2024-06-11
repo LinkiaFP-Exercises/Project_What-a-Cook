@@ -12,7 +12,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
-public class TestCreateCategory extends BaseCategoriesTest {
+public class CreateCategoryTest extends BaseCategoriesTest {
 
     @BeforeEach
     void setUp() {

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
 
-public class TestGetIngredientsByNameContaining extends BaseIngredientsTest {
+public class GetIngredientsByNameContainingTest extends BaseIngredientsTest {
 
     public List<IngredientDto> ingredientDtoListFiltered;
 

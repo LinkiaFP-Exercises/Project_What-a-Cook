@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 
 import static org.mockito.Mockito.when;
 
-public class TestGetAllIngredients extends BaseIngredientsTest {
+public class GetAllIngredientsTest extends BaseIngredientsTest {
 
     @BeforeEach
     void setUp() {

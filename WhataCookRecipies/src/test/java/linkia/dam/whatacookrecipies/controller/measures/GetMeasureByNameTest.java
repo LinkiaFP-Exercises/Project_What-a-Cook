@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class TestGetMeasureByName extends BaseMeasureTest {
+public class GetMeasureByNameTest extends BaseMeasureTest {
 
     @BeforeEach
     void setUp() {

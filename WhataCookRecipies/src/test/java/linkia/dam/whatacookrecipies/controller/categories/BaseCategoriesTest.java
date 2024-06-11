@@ -1,6 +1,6 @@
 package linkia.dam.whatacookrecipies.controller.categories;
 
-import linkia.dam.whatacookrecipies.controller.BaseTestingConfiguration;
+import linkia.dam.whatacookrecipies.controller.BaseConfigurationTest;
 import linkia.dam.whatacookrecipies.controller.CategoryController;
 import linkia.dam.whatacookrecipies.model.CategoryDto;
 import linkia.dam.whatacookrecipies.service.CategoryService;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @WebFluxTest(CategoryController.class)
 @Import(CategoryService.class)
-public class BaseCategoriesTest extends BaseTestingConfiguration {
+public class BaseCategoriesTest extends BaseConfigurationTest {
 
     @Autowired
     protected WebTestClient webTestClient;

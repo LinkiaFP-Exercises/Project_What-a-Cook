@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-public class TestDeleteIngredientById extends BaseIngredientsTest {
+public class DeleteIngredientByIdTest extends BaseIngredientsTest {
 
     @BeforeEach
     void setUp() {

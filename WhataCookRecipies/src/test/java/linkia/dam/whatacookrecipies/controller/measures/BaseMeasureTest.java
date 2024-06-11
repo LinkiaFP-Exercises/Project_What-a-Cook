@@ -1,6 +1,6 @@
 package linkia.dam.whatacookrecipies.controller.measures;
 
-import linkia.dam.whatacookrecipies.controller.BaseTestingConfiguration;
+import linkia.dam.whatacookrecipies.controller.BaseConfigurationTest;
 import linkia.dam.whatacookrecipies.controller.MeasureController;
 import linkia.dam.whatacookrecipies.model.MeasureDto;
 import linkia.dam.whatacookrecipies.service.MeasureService;
@@ -19,7 +19,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @WebFluxTest(MeasureController.class)
 @Import(MeasureService.class)
-public class BaseMeasureTest extends BaseTestingConfiguration {
+public class BaseMeasureTest extends BaseConfigurationTest {
 
     @Autowired
     protected WebTestClient webTestClient;
@@ -57,8 +57,8 @@ public class BaseMeasureTest extends BaseTestingConfiguration {
 
     protected MeasureDto generateMeasureDto() {
         MeasureDto measureDto = new MeasureDto();
-        measureDto.setId(measureDtoList.get(0).getId().replace("1", "X"));
-        measureDto.setName(measureDtoList.get(0).getName());
+        measureDto.setId(measureDtoList.getFirst().getId().replace("1", "X"));
+        measureDto.setName(measureDtoList.getFirst().getName());
         return measureDto;
     }
 

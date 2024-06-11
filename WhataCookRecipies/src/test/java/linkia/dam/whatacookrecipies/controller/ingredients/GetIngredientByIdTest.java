@@ -8,25 +8,25 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class TestGetIngredientByName extends BaseIngredientsTest {
+public class GetIngredientByIdTest extends BaseIngredientsTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         ingredientDto = generateIngredientDto();
-        pathVariable = ingredientsUri + PATH_NAME;
-        valuePathVariable = ingredientDto.getName();
+        pathVariable = ingredientsUri + PATH_SLASH_ID;
+        valuePathVariable = ingredientDto.getId();
     }
 
     @Test
-    void getIngredientByNameFound() {
-        when(ingredientDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.just(ingredientDto));
+    void getIngredientByIdFounded() {
+        when(ingredientDao.findById(anyString())).thenReturn(Mono.just(ingredientDto));
         TestGetByPathVariableFounded(webTestClient, pathVariable, valuePathVariable, ingredientDto);
     }
 
     @Test
-    void getIngredientByNameNotFound() {
-        when(ingredientDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.empty());
+    void getIngredientByIdNotFound() {
+        when(ingredientDao.findById(anyString())).thenReturn(Mono.empty());
         TestGetByPathVariableNotFound(webTestClient, pathVariable, valuePathVariable);
     }
 

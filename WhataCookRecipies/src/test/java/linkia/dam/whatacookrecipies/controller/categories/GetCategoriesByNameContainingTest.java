@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
 
-public class TestGetCategoriesByNameContaining extends BaseCategoriesTest {
+public class GetCategoriesByNameContainingTest extends BaseCategoriesTest {
 
     public List<CategoryDto> categoryDtoListFiltered;
 

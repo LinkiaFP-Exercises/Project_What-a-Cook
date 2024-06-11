@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
-public class TestCreateIngredient extends BaseIngredientsTest {
+public class CreateIngredientTest extends BaseIngredientsTest {
 
     @BeforeEach
     void setUp() {

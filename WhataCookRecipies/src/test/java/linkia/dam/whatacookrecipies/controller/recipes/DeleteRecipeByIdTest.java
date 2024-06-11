@@ -1,6 +1,6 @@
-package linkia.dam.whatacookrecipies.controller.measures;
+package linkia.dam.whatacookrecipies.controller.recipes;
 
-import linkia.dam.whatacookrecipies.model.MeasureDto;
+import linkia.dam.whatacookrecipies.model.RecipeDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -11,20 +11,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-public class TestDeleteMeasureById extends BaseMeasureTest {
+public class DeleteRecipeByIdTest extends BaseRecipesTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        measureDto = generateMeasureDto();
-        pathVariable = measuresUri + "/{id}";
-        valuePathVariable = measureDto.getId();
+        recipeDto = generateRecipeDto();
+        pathVariable = recipesUri + PATH_ID;
+        valuePathVariable = recipeDto.getId();
     }
 
     @Test
-    void testDeleteMeasureByIdFounded() {
-        when(measureDao.findById(anyString())).thenReturn(Mono.just(measureDto));
-        when(measureDao.delete(measureDto)).thenReturn(Mono.empty());
+    void testDeleteRecipeByIdFounded() {
+        when(recipeDao.findById(anyString())).thenReturn(Mono.just(recipeDto));
+        when(recipeDao.delete(recipeDto)).thenReturn(Mono.empty());
 
         webTestClient.delete()
                 .uri(uriBuilder -> uriBuilder.path(pathVariable)
@@ -34,14 +34,14 @@ public class TestDeleteMeasureById extends BaseMeasureTest {
                 .expectStatus().isOk()
                 .expectBody(String.class)
                 .value(response -> {
-                    assert response.contains(measureDto.getName());
+                    assert response.contains(recipeDto.getName());
                     assert response.contains(DELETED);
                 });
     }
 
     @Test
-    void testDeleteMeasureByIdNotFound() {
-        when(measureDao.findById(anyString())).thenReturn(Mono.empty());
+    void testDeleteRecipeByIdNotFound() {
+        when(recipeDao.findById(anyString())).thenReturn(Mono.empty());
 
         webTestClient.delete()
                 .uri(uriBuilder -> uriBuilder.path(pathVariable)
@@ -50,6 +50,6 @@ public class TestDeleteMeasureById extends BaseMeasureTest {
                 .exchange()
                 .expectStatus().isNotFound();
 
-        verify(measureDao, times(0)).delete(any(MeasureDto.class));
+        verify(recipeDao, times(0)).delete(any(RecipeDto.class));
     }
 }

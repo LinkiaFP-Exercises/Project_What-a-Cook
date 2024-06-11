@@ -8,13 +8,13 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class TestGetCategoryById extends BaseCategoriesTest {
+public class GetCategoryByIdTest extends BaseCategoriesTest {
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         categoryDto = generateCategoryDto();
-        pathVariable = categoriesUri + PATH_ID;
+        pathVariable = categoriesUri + PATH_SLASH_ID;
         valuePathVariable = categoryDto.getId();
     }
 

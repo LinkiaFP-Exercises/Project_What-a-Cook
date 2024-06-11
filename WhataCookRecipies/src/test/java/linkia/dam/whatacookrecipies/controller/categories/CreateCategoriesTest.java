@@ -8,13 +8,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class TestCreateCategories extends BaseCategoriesTest {
+public class CreateCategoriesTest extends BaseCategoriesTest {
 
     private Flux<CategoryDto> categoryDtoFlux;
 
@@ -57,8 +56,8 @@ public class TestCreateCategories extends BaseCategoriesTest {
                 .expectBodyList(CategoryDto.class)
                 .hasSize(amount)
                 .value(categories -> {
-                    List<String> responseNames = categories.stream().map(CategoryDto::getName).collect(Collectors.toList());
-                    assert responseNames.contains(categoryDtoList.get(0).getName());
+                    List<String> responseNames = categories.stream().map(CategoryDto::getName).toList();
+                    assert responseNames.contains(categoryDtoList.getFirst().getName());
                     assert responseNames.contains(categoryDtoList.get(amount - 1).getName());
                 });
     }

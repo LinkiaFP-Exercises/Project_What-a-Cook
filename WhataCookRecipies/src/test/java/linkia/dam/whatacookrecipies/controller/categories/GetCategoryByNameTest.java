@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class TestGetCategoryByName extends BaseCategoriesTest {
+public class GetCategoryByNameTest extends BaseCategoriesTest {
 
     @BeforeEach
     void setUp() {
