@@ -18,6 +18,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security:3.3.0")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
 
+    // Añadir findbugs para resolver problemas de anotaciones
+    // warning: unknown enum constant When.MAYBE
+    //      reason: class file for javax.annotation.meta.When not found
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
+
     // Declarar las dependencias transitivas directamente
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.4")
     implementation("com.fasterxml.jackson.core:jackson-core:2.15.4")
