@@ -100,15 +100,15 @@ public class BaseTestClass {
                 "}";
     }
 
-    protected static String requestBodyFullWhitIdAndNewPassword(String _id, String email, String password, String newPassword, String firstName, String surNames, String birthdate) {
+    protected static String requestBodyFullWhitIdAndNewPassword(String newPassword) {
         return "{\n" +
-                "    \"_id\": \"" + _id + "\",\n" +
-                "    \"email\": \"" + email + "\",\n" +
-                "    \"password\": \"" + password + "\",\n" +
+                "    \"_id\": \"" + BaseTestClass.ID + "\",\n" +
+                "    \"email\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"password\": \"" + BaseTestClass.PASSWORD + "\",\n" +
                 "    \"newPassword\": \"" + newPassword + "\",\n" +
-                "    \"firstName\": \"" + firstName + "\",\n" +
-                "    \"surNames\": \"" + surNames + "\",\n" +
-                "    \"birthdate\": \"" + birthdate + "\"\n" +
+                "    \"firstName\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"surNames\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"birthdate\": \"" + BaseTestClass.empty + "\"\n" +
                 "}";
     }
 
@@ -168,8 +168,8 @@ public class BaseTestClass {
         return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), email);
     }
 
-    protected String tokenExpired(String email) {
-        return jwtUtil.getPrefix() + jwtUtil.generateExpiredTokenForTest(tokenRole(Role.BASIC), email);
+    protected String tokenExpired() {
+        return jwtUtil.getPrefix() + jwtUtil.generateExpiredTokenForTest(tokenRole(Role.BASIC), BaseTestClass.EMAIL);
     }
 
     protected HashMap<String, Object> tokenRole(Role role) {
@@ -229,7 +229,7 @@ public class BaseTestClass {
         ActivationDto capturedActivation = activationCaptor.getValue();
         assertAll(
                 () -> assertNotNull(capturedActivation.getCode()),
-                () -> assertFalse(capturedActivation.getCode().equals(oldActivationCode)),
+                () -> assertNotEquals(capturedActivation.getCode(), oldActivationCode),
                 () -> assertTrue(ChronoUnit.HOURS.between(capturedActivation.getExpiration(), LocalDateTime.now()) <= 24),
                 () -> assertEquals(capturedActivation.getId(), ID)
         );
