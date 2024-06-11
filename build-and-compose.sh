@@ -2,14 +2,17 @@
 
 # Función para cargar variables de entorno desde un archivo .env
 load_env() {
-  set -a
-  source .env
-  set +a
+  if [ -f .env ]; then
+    echo "Loading environment variables from .env"
+    export $(grep -v '^#' .env | awk -F= '{print $1}' | xargs -I {} bash -c 'echo "{}=\"$(grep -m 1 -oP "(?<=^{}=).*" .env)\""')
+  else
+    echo "Env file not found"
+  fi
 }
 
 # Cargar las variables de entorno desde el archivo .env
-# de momento no es necesario por cargar via gradle
 #load_env
+
 
 # Navegar a cada directorio y construir el archivo JAR
 echo "Building whatacook-users..."

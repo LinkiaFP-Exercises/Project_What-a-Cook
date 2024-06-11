@@ -41,11 +41,12 @@ fun loadEnv() {
     if (envFile.exists()) {
         println("Loading environment variables from ${envFile.absolutePath}")
         envFile.forEachLine { line ->
-            val parts = line.split("=")
+            val parts = line.split("=", limit = 2)
             if (parts.size == 2) {
                 val key = parts[0].trim()
                 val value = parts[1].trim()
-                println("Setting $key=$value")
+//                println("Setting $key=$value")
+                println("Setting $key")
                 System.setProperty(key, value)
             }
         }
@@ -53,6 +54,7 @@ fun loadEnv() {
         println("Env file not found: ${envFile.absolutePath}")
     }
 }
+
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -63,15 +65,6 @@ tasks.withType<Test> {
         environment("JWT_SECRET", System.getProperty("JWT_SECRET"))
         environment("MONGO_URI_WHATACOOK_USERS", System.getProperty("MONGO_URI_WHATACOOK_USERS"))
         environment("SPRING_MAIL_VALIDATION", System.getProperty("SPRING_MAIL_VALIDATION"))
-
-        // Imprimir variables de entorno para verificar
-        /*
-        println("SPRING_PROFILES_ACTIVE: ${System.getenv("SPRING_PROFILES_ACTIVE")}")
-        println("GMAIL_APP_PASSWORD: ${System.getenv("GMAIL_APP_PASSWORD")}")
-        println("JWT_SECRET: ${System.getenv("JWT_SECRET")}")
-        println("MONGO_URI_WHATACOOK_USERS: ${System.getenv("MONGO_URI_WHATACOOK_USERS")}")
-        println("SPRING_MAIL_VALIDATION: ${System.getenv("SPRING_MAIL_VALIDATION")}")
-        */
     }
     jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.instrument.traceUsage=false")
 }
