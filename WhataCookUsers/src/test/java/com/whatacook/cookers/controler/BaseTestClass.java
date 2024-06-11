@@ -1,5 +1,7 @@
 package com.whatacook.cookers.controler;
 
+import com.whatacook.cookers.TestMongoConfig;
+import com.whatacook.cookers.WhataCookUsersApplication;
 import com.whatacook.cookers.config.SpringMailConfig;
 import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.model.auth.ActivationDto;
@@ -27,6 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.*;
@@ -42,6 +46,8 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ContextConfiguration(classes = {WhataCookUsersApplication.class, TestMongoConfig.class})
+@ActiveProfiles("test")
 public class BaseTestClass {
 
     private static final Logger log = LoggerFactory.getLogger(BaseTestClass.class);
@@ -94,15 +100,15 @@ public class BaseTestClass {
                 "}";
     }
 
-    protected static String requestBodyFullWhitIdAndNewPassword(String _id, String email, String password, String newPassword, String firstName, String surNames, String birthdate) {
+    protected static String requestBodyFullWhitIdAndNewPassword(String newPassword) {
         return "{\n" +
-                "    \"_id\": \"" + _id + "\",\n" +
-                "    \"email\": \"" + email + "\",\n" +
-                "    \"password\": \"" + password + "\",\n" +
+                "    \"_id\": \"" + BaseTestClass.ID + "\",\n" +
+                "    \"email\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"password\": \"" + BaseTestClass.PASSWORD + "\",\n" +
                 "    \"newPassword\": \"" + newPassword + "\",\n" +
-                "    \"firstName\": \"" + firstName + "\",\n" +
-                "    \"surNames\": \"" + surNames + "\",\n" +
-                "    \"birthdate\": \"" + birthdate + "\"\n" +
+                "    \"firstName\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"surNames\": \"" + BaseTestClass.empty + "\",\n" +
+                "    \"birthdate\": \"" + BaseTestClass.empty + "\"\n" +
                 "}";
     }
 
@@ -162,8 +168,8 @@ public class BaseTestClass {
         return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), email);
     }
 
-    protected String tokenExpired(String email) {
-        return jwtUtil.getPrefix() + jwtUtil.generateExpiredTokenForTest(tokenRole(Role.BASIC), email);
+    protected String tokenExpired() {
+        return jwtUtil.getPrefix() + jwtUtil.generateExpiredTokenForTest(tokenRole(Role.BASIC), BaseTestClass.EMAIL);
     }
 
     protected HashMap<String, Object> tokenRole(Role role) {
@@ -223,7 +229,7 @@ public class BaseTestClass {
         ActivationDto capturedActivation = activationCaptor.getValue();
         assertAll(
                 () -> assertNotNull(capturedActivation.getCode()),
-                () -> assertFalse(capturedActivation.getCode().equals(oldActivationCode)),
+                () -> assertNotEquals(capturedActivation.getCode(), oldActivationCode),
                 () -> assertTrue(ChronoUnit.HOURS.between(capturedActivation.getExpiration(), LocalDateTime.now()) <= 24),
                 () -> assertEquals(capturedActivation.getId(), ID)
         );

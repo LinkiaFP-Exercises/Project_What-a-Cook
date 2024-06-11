@@ -19,8 +19,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class RegisterTest extends BaseTestClass {
 
     @Value("${security.jwt.sign-in-url}")

@@ -1,0 +1,31 @@
+
+services:
+  whatacook-users:
+    build:
+      context: ./WhataCookUsers
+      dockerfile: Dockerfile
+      args:
+        GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+        JWT_SECRET: ${JWT_SECRET}
+        MONGO_URI_WHATACOOK_USERS: ${MONGO_URI_WHATACOOK_USERS}
+        SPRING_MAIL_VALIDATION: ${SPRING_MAIL_VALIDATION}
+    image: faunog/whatacook:cookers-app
+    environment:
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI_WHATACOOK_USERS=${MONGO_URI_WHATACOOK_USERS}
+      - SPRING_MAIL_VALIDATION=${SPRING_MAIL_VALIDATION}
+    ports:
+      - "8081:8080"
+
+  whatacook-recipes:
+    build:
+      context: ./WhataCookRecipes
+      dockerfile: Dockerfile
+      args:
+        MONGO_URI_WHATACOOK_RECIPES: ${MONGO_URI_WHATACOOK_RECIPES}
+    image: faunog/whatacook:recipes-app
+    environment:
+      - MONGO_URI_WHATACOOK_RECIPES=${MONGO_URI_WHATACOOK_RECIPES}
+    ports:
+      - "8082:8080"

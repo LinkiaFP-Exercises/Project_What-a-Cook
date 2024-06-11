@@ -22,5 +22,35 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-/WhataCookUsers/.run
-/WhataCookUsers/secrets.env
+
+# Optionally, ignore all .run directories throughout the project
+**/.run/
+
+# Ignore .env files
+.env
+
+# Ignore build directories
+/build/
+**/build/
+
+# Ignore IntelliJ IDEA project files
+/.idea/
+/*.iml
+
+# Ignore logs
+/logs/
+**/*.log
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore other unnecessary files
+*.swp
+
+# Ignore RUN file
+**/.run/
+
+# Ignore .env
+.env
+**/.env

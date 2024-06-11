@@ -147,7 +147,7 @@ public class UpdateUserTest extends BaseTestClass {
     }
 
     private static String updateReqBodyNewPass(String newPassword) {
-        return requestBodyFullWhitIdAndNewPassword(ID, empty, PASSWORD, newPassword, empty, empty, empty);
+        return requestBodyFullWhitIdAndNewPassword(newPassword);
     }
 
 }

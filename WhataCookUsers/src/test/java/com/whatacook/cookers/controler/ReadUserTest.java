@@ -63,7 +63,7 @@ public class ReadUserTest extends BaseTestClass {
     @Test
     void testReadUserByUserExpiredToken() {
         final String unAuthMessage = "Token expired. Please login again";
-        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenExpired(EMAIL), requestBodyOnlyMail(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenExpired(), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
     @Test
