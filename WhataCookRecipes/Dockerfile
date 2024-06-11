@@ -1,4 +1,4 @@
-# Etapa 1: Construcción
+# Etapa 1: Construcción -> builder-tools
 #FROM gradle:8.8-jdk21-alpine AS builder
 #WORKDIR /app
 #COPY . /app
@@ -14,14 +14,13 @@ LABEL maintainer="https://about.me/prof.guazina"
 ARG PORT=8080
 EXPOSE ${PORT}
 
+# Copia el archivo JAR de la etapa de construcción -> builder-tools
+#COPY --from=builder /app/build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar /app.jar
+
 # --build-arg
 ARG MONGO_URI_WHATACOOK_RECIPIES
-
 # Argumento para el nombre del archivo JAR
 ARG JAR_FILE=build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar
-
-# Copia el archivo JAR de la etapa de construcción
-#COPY --from=builder /app/build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar /app.jar
 COPY ${JAR_FILE} app.jar
 
 # Definir variables de entorno en Tiempo de Ejecución
