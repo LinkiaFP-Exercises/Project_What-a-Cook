@@ -1,5 +1,7 @@
 package com.whatacook.cookers.controler;
 
+import com.whatacook.cookers.TestMongoConfig;
+import com.whatacook.cookers.WhataCookUsersApplication;
 import com.whatacook.cookers.config.SpringMailConfig;
 import com.whatacook.cookers.config.jwt.JwtUtil;
 import com.whatacook.cookers.model.auth.ActivationDto;
@@ -27,6 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.*;
@@ -42,6 +46,8 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ContextConfiguration(classes = {WhataCookUsersApplication.class, TestMongoConfig.class})
+@ActiveProfiles("test")
 public class BaseTestClass {
 
     private static final Logger log = LoggerFactory.getLogger(BaseTestClass.class);
