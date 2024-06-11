@@ -72,6 +72,16 @@ plugins {
     id("com.autonomousapps.dependency-analysis") version "1.32.0"
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "io.netty") {
+            useVersion("4.1.108.Final") // Fix CVE-2024-29025 Vulnerability
+        }
+    }
+}
+
+
+
 // function that loads environment variables from the .env file
 fun loadEnv() {
     val envFile = file("../.env")
