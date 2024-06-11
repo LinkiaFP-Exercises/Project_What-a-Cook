@@ -1,26 +1,31 @@
 # Etapa 1: Construcción
-FROM openjdk:21-ea-17-jdk-slim AS builder
-WORKDIR /app
-COPY . /app
-RUN apt-get update && \
-    apt-get install -y unzip && \
-    apt-get clean
-RUN ./gradlew clean build -x test
+#FROM gradle:8.8-jdk21-alpine AS builder
+#WORKDIR /app
+#COPY . /app
+#RUN gradle clean build -x test
 
 # Etapa 2: Imagen de Ejecución
-FROM openjdk@sha256:e7f111d283eb8afcd74fbad6d9105b8e5d49022d8e0b21d199b939a71addf531
+FROM openjdk@sha256:4522ad40a423352cee560bef06ef63cad7b7ccb861a015723b3f37c0bd40590d
 
 LABEL authors="Fauno Guazina"
 LABEL maintainer="https://about.me/prof.guazina"
 
 # Puerto en el que corre la aplicación
 ARG PORT=8080
-
-# Expone el puerto para permitir el acceso a la aplicación
 EXPOSE ${PORT}
 
+# --build-arg
+ARG GMAIL_APP_PASSWORD
+ARG JWT_SECRET
+ARG MONGO_URI_WHATACOOK_USERS
+ARG SPRING_MAIL_VALIDATION
+
+# Argumento para el nombre del archivo JAR
+ARG JAR_FILE=build/libs/cookers-0.0.1-SNAPSHOT.jar
+
 # Copia el archivo JAR de la etapa de construcción
-COPY --from=builder /app/build/libs/cookers-0.0.1-SNAPSHOT.jar app.jar
+#COPY --from=builder /app/build/libs/cookers-0.0.1-SNAPSHOT.jar /app.jar
+COPY ${JAR_FILE} app.jar
 
 # Definir variables de entorno en Tiempo de Ejecución
 ENV GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
