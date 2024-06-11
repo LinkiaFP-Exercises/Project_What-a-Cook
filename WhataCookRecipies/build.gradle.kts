@@ -34,13 +34,41 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-//    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.13.1")
     testImplementation("io.projectreactor:reactor-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }
 
+fun loadEnv() {
+    val envFile = file("../.env")
+    if (envFile.exists()) {
+        println("Loading environment variables from ${envFile.absolutePath}")
+        envFile.forEachLine { line ->
+            val parts = line.split("=")
+            if (parts.size == 2) {
+                val key = parts[0].trim()
+                val value = parts[1].trim()
+                println("Setting $key=$value")
+                System.setProperty(key, value)
+            }
+        }
+    } else {
+        println("Env file not found: ${envFile.absolutePath}")
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
+    doFirst {
+        loadEnv()
+    }
+    jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.instrument.traceUsage=false")
+}
+
+// force unit testing before generating JAR
+tasks.register<Jar>("customJar") {
+    dependsOn("test")
+    archiveClassifier.set("custom")
+    from(sourceSets["main"].output)
 }
