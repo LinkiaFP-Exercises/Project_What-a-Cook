@@ -3,7 +3,7 @@ package com.whatacook.cookers.model.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import org.springframework.lang.Nullable;
+import jakarta.annotation.Nullable;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -30,9 +30,7 @@ public class Response {
     }
 
     public static Response error(String message, @Nullable Object content) {
-        Response response = new Response();
-        response.put(SUCCESS, false);
-        response.put(MESSAGE, setMessage(message));
+        Response response = error(message);
         if (content != null)
             response.put(CONTENT, content);
         return response;

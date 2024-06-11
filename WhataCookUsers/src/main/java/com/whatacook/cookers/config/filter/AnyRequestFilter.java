@@ -1,7 +1,7 @@
 package com.whatacook.cookers.config.filter;
 
 import com.whatacook.cookers.config.jwt.JwtUtil;
-import org.springframework.lang.NonNull;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -37,8 +37,9 @@ public class AnyRequestFilter implements WebFilter {
         };
     }
 
-    @SuppressWarnings("NullableProblems") @Override
-    public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
         return handlers.entrySet().stream()
                 .filter(entry -> requestContainsKey(exchange, entry.getKey()))
                 .findFirst()
