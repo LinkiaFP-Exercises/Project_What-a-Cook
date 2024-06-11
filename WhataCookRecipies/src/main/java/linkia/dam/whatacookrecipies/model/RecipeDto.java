@@ -12,16 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "recipe")
 public class RecipeDto extends NamedEntity {
-
-    @Id
-    private String id;
-
-    @NotBlank(message = "name is mandatory")
-    private String name;
 
     @DBRef
     private List<IngredientDto> ingredients;
@@ -31,5 +25,14 @@ public class RecipeDto extends NamedEntity {
 
     private String preparation;
     private int portion;
+
+    public RecipeDto(String id, @NotBlank(message = "name is mandatory") String name, List<IngredientDto> ingredients,
+                     List<CategoryDto> categories, String preparation, int portion) {
+        super(id, name);
+        this.ingredients = ingredients;
+        this.categories = categories;
+        this.preparation = preparation;
+        this.portion = portion;
+    }
 
 }

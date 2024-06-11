@@ -6,18 +6,15 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "measure")
 public class MeasureDto extends NamedEntity {
 
-    @Id
-    private String id;
-
-    @NotBlank(message = "name is mandatory")
-    private String name;
+    public MeasureDto(String id, @NotBlank(message = "name is mandatory") String name) {
+        super(id, name);
+    }
 
 }
