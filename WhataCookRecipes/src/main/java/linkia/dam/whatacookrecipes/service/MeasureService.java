@@ -18,7 +18,8 @@ public class MeasureService {
         return measureDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with id=" + id)));
     }
-    public Mono<MeasureDto> getMeasureByName(String name) {
+
+    public Mono<MeasureDto> getMeasureByNameIgnoreCase(String name) {
         return measureDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with name=" + name)));
     }

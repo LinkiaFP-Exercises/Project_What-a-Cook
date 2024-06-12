@@ -23,7 +23,7 @@ public class MeasureController {
 
     @GetMapping("name/{name}")
     public Mono<MeasureDto> getMeasureByName(@PathVariable String name) {
-        return measureService.getMeasureByName(name);
+        return measureService.getMeasureByNameIgnoreCase(name);
     }
 
     @PostMapping

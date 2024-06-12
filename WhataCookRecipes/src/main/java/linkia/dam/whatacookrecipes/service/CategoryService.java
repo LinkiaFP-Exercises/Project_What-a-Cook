@@ -30,7 +30,8 @@ public class CategoryService {
         return categoryDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
     }
-    public Mono<CategoryDto> getCategoryByName(String name) {
+
+    public Mono<CategoryDto> getCategoryByNameIgnoreCase(String name) {
         return categoryDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
     }

@@ -1,10 +1,19 @@
 package linkia.dam.whatacookrecipes.service;
 
+import com.mongodb.DuplicateKeyException;
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.model.RecipeDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
+import linkia.dam.whatacookrecipes.service.components.CreateRecipesComponent;
+import linkia.dam.whatacookrecipes.service.contracts.CategoryDao;
+import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
+import linkia.dam.whatacookrecipes.service.contracts.MeasureDao;
 import linkia.dam.whatacookrecipes.service.contracts.RecipeDao;
 import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -12,11 +21,12 @@ import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class RecipeService {
 
     private final RecipeDao recipeDao;
-    private final IngredientService ingredientService;
-    private final CategoryService categoryService;
+    private final CreateRecipesComponent createRecipesComponent;
+
 
     public Mono<Page<RecipeDto>> getAllRecipes(int page, int size, String mode) {
         return recipeDao.findAll().collectList()
@@ -38,27 +48,12 @@ public class RecipeService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with name=" + name)));
     }
 
-    public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
-        return recipeDao.findByNameIgnoreCase(recipeDto.getName())
-                .switchIfEmpty(
-                        Flux.fromIterable(recipeDto.getIngredients())
-                                .flatMap(ingredientService::createIngredient)
-                                .collectList()
-                                .flatMap(savedIngredients -> {
-                                    recipeDto.setIngredients(savedIngredients);
-                                    return Flux.fromIterable(recipeDto.getCategories())
-                                            .flatMap(categoryService::createCategory)
-                                            .collectList();
-                                })
-                                .flatMap(savedCategories -> {
-                                    recipeDto.setCategories(savedCategories);
-                                    return recipeDao.save(recipeDto);
-                                })
-                );
+    public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
+        return createRecipesComponent.createRecipes(recipes);
     }
 
-    public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
-        return recipes.flatMap(this::createRecipe);
+    public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
+        return createRecipesComponent.createRecipe(recipeDto);
     }
 
     public Mono<String> deleteRecipe(String id) {

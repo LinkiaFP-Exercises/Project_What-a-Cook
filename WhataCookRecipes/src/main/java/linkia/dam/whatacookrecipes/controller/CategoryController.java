@@ -37,7 +37,7 @@ public class CategoryController {
 
     @GetMapping("name/{name}")
     public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
-        return categoryService.getCategoryByName(name);
+        return categoryService.getCategoryByNameIgnoreCase(name);
     }
 
     @PostMapping
