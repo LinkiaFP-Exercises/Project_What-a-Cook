@@ -1,5 +1,7 @@
 package linkia.dam.whatacookrecipes.controller.recipes;
 
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.model.RecipeDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +11,6 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
@@ -19,6 +20,8 @@ public class CreateRecipeTest extends BaseRecipesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         recipeDto = generateRecipeDto();
+        when(ingredientService.createIngredient(any(IngredientDto.class))).thenAnswer(i -> Mono.just(i.getArgument(0)));
+        when(categoryService.createCategory(any(CategoryDto.class))).thenAnswer(i -> Mono.just(i.getArgument(0)));
     }
 
     @Test
@@ -29,6 +32,8 @@ public class CreateRecipeTest extends BaseRecipesTest {
         verifyCreationRecipe();
 
         verify(recipeDao, times(1)).save(any(RecipeDto.class));
+        verify(ingredientService, times(recipeDto.getIngredients().size())).createIngredient(any(IngredientDto.class));
+        verify(categoryService, times(recipeDto.getCategories().size())).createCategory(any(CategoryDto.class));
     }
 
     @Test

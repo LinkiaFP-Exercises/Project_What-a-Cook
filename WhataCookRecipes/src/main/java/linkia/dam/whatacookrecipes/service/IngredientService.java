@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 public class IngredientService {
 
     private final IngredientDao ingredientDao;
+    private final MeasureService measureService;
 
     public Mono<Page<IngredientDto>> getAllCategories(int page, int size, String mode) {
         return ingredientDao.findAll().collectList()
@@ -30,14 +31,19 @@ public class IngredientService {
         return ingredientDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
     }
+
     public Mono<IngredientDto> getIngredientByName(String name) {
         return ingredientDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with name=" + name)));
     }
 
     public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
-        return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
-                .switchIfEmpty(Mono.defer(() -> ingredientDao.save(ingredientDto)));
+        return measureService.createMeasure(ingredientDto.getMeasure())
+                .flatMap(measureSaved -> {
+                    ingredientDto.setMeasure(measureSaved);
+                    return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
+                            .switchIfEmpty(Mono.defer(() -> ingredientDao.save(ingredientDto)));
+                });
     }
 
     public Flux<IngredientDto> createCategories(Flux<IngredientDto> ingredients) {

@@ -5,7 +5,9 @@ import linkia.dam.whatacookrecipes.controller.IngredientController;
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.service.IngredientService;
+import linkia.dam.whatacookrecipes.service.MeasureService;
 import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -25,6 +27,8 @@ public class BaseIngredientsTest extends BaseConfigurationTest {
     protected IngredientService ingredientService;
     @MockBean
     protected IngredientDao ingredientDao;
+    @MockBean
+    protected MeasureService measureService;
     @Value("${app.endpoint.ingredients}")
     protected String ingredientsUri;
 

@@ -1,6 +1,7 @@
 package linkia.dam.whatacookrecipes.controller.ingredients;
 
 import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.model.MeasureDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -21,6 +22,7 @@ public class CreateIngredientsTest extends BaseIngredientsTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         ingredientDtoFlux = Flux.fromIterable(ingredientDtoList);
+        when(measureService.createMeasure(any(MeasureDto.class))).thenAnswer(i -> Mono.just(i.getArgument(0)));
     }
 
     @Test

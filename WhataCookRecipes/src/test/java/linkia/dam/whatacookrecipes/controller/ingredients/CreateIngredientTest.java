@@ -1,6 +1,7 @@
 package linkia.dam.whatacookrecipes.controller.ingredients;
 
 import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.model.MeasureDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -19,6 +20,7 @@ public class CreateIngredientTest extends BaseIngredientsTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         ingredientDto = generateIngredientDto();
+        when(measureService.createMeasure(any(MeasureDto.class))).thenReturn(Mono.just(ingredientDto.getMeasure()));
     }
 
     @Test
@@ -26,9 +28,11 @@ public class CreateIngredientTest extends BaseIngredientsTest {
         when(ingredientDao.findByNameIgnoreCase(anyString())).thenReturn(Mono.empty());
         when(ingredientDao.save(any(IngredientDto.class))).thenAnswer(i -> Mono.just(i.getArgument(0)));
 
+
         verifyCreationIngredient();
 
         verify(ingredientDao, times(1)).save(any(IngredientDto.class));
+
     }
 
     @Test
@@ -38,6 +42,7 @@ public class CreateIngredientTest extends BaseIngredientsTest {
         verifyCreationIngredient();
 
         verify(ingredientDao, times(0)).save(any(IngredientDto.class));
+        verify(measureService, times(1)).createMeasure(any(MeasureDto.class));
     }
 
     private void verifyCreationIngredient() {

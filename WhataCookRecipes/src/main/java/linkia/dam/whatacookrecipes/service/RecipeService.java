@@ -15,6 +15,8 @@ import reactor.core.publisher.Mono;
 public class RecipeService {
 
     private final RecipeDao recipeDao;
+    private final IngredientService ingredientService;
+    private final CategoryService categoryService;
 
     public Mono<Page<RecipeDto>> getAllRecipes(int page, int size, String mode) {
         return recipeDao.findAll().collectList()
@@ -30,14 +32,27 @@ public class RecipeService {
         return recipeDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with id=" + id)));
     }
+
     public Mono<RecipeDto> getRecipeByName(String name) {
         return recipeDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with name=" + name)));
     }
 
     public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
-        return recipeDao.findByNameIgnoreCase(recipeDto.getName())
-                .switchIfEmpty(Mono.defer(() -> recipeDao.save(recipeDto)));
+        return Flux.fromIterable(recipeDto.getIngredients())
+                .flatMap(ingredientService::createIngredient)
+                .collectList()
+                .flatMap(savedIngredients -> {
+                    recipeDto.setIngredients(savedIngredients);
+                    return Flux.fromIterable(recipeDto.getCategories())
+                            .flatMap(categoryService::createCategory)
+                            .collectList();
+                })
+                .flatMap(savedCategories -> {
+                    recipeDto.setCategories(savedCategories);
+                    return recipeDao.findByNameIgnoreCase(recipeDto.getName())
+                            .switchIfEmpty(Mono.defer(() -> recipeDao.save(recipeDto)));
+                });
     }
 
     public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {

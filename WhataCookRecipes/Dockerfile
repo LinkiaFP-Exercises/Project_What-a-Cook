@@ -18,7 +18,7 @@ EXPOSE ${PORT}
 #COPY --from=builder /app/build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar /app.jar
 
 # --build-arg
-ARG MONGO_URI_WHATACOOK_RECIPIES
+ARG MONGO_URI_WHATACOOK_RECIPES
 # Argumento para el nombre del archivo JAR
 ARG JAR_FILE=build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar
 COPY ${JAR_FILE} app.jar
