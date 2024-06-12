@@ -1,4 +1,4 @@
-package linkia.dam.whatacookrecipes.service.contracts;
+package linkia.dam.whatacookrecipes.service.repository;
 
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;

@@ -2,7 +2,7 @@ package linkia.dam.whatacookrecipes.service;
 
 import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
-import linkia.dam.whatacookrecipes.service.contracts.MeasureDao;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

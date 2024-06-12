@@ -7,7 +7,7 @@ import linkia.dam.whatacookrecipes.model.RecipeDto;
 import linkia.dam.whatacookrecipes.service.CategoryService;
 import linkia.dam.whatacookrecipes.service.IngredientService;
 import linkia.dam.whatacookrecipes.service.RecipeService;
-import linkia.dam.whatacookrecipes.service.contracts.RecipeDao;
+import linkia.dam.whatacookrecipes.service.repository.RecipeDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;

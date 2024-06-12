@@ -3,7 +3,7 @@ package linkia.dam.whatacookrecipes.service;
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipes.service.components.CreateIngredientsComponent;
-import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
 import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,16 +1,9 @@
 package linkia.dam.whatacookrecipes.service;
 
-import com.mongodb.DuplicateKeyException;
-import linkia.dam.whatacookrecipes.model.CategoryDto;
-import linkia.dam.whatacookrecipes.model.IngredientDto;
-import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.model.RecipeDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
 import linkia.dam.whatacookrecipes.service.components.CreateRecipesComponent;
-import linkia.dam.whatacookrecipes.service.contracts.CategoryDao;
-import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
-import linkia.dam.whatacookrecipes.service.contracts.MeasureDao;
-import linkia.dam.whatacookrecipes.service.contracts.RecipeDao;
+import linkia.dam.whatacookrecipes.service.repository.RecipeDao;
 import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

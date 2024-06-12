@@ -2,7 +2,7 @@ package linkia.dam.whatacookrecipes.service.components;
 
 import com.mongodb.MongoWriteException;
 import linkia.dam.whatacookrecipes.model.IngredientDto;
-import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
 import linkia.dam.whatacookrecipes.service.MeasureService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
