@@ -1,6 +1,6 @@
 package linkia.dam.whatacookrecipes.service.components;
 
-import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoWriteException;
 import linkia.dam.whatacookrecipes.model.CategoryDto;
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.model.MeasureDto;
@@ -23,14 +23,21 @@ import java.time.Duration;
 @Slf4j
 public class CreateRecipesComponent {
 
-    public static final String RETRYING_DUE_TO_DUPLICATE_KEY_ERROR = "Retrying due to duplicate key error: {}";
+    public static final String RETRYING_DUE_TO_DUPLICATE_KEY_ERROR = "Retrying due to duplicate key error for '{}': {}";
     private final RecipeDao recipeDao;
     private final IngredientDao ingredientDao;
     private final CategoryDao categoryDao;
     private final MeasureDao measureDao;
 
     public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
-        return recipes.flatMap(this::createRecipe)
+        return recipes
+                .concatMap(recipe -> Mono.just(recipe)
+                        .delayElement(Duration.ofMillis(500)) // Introduce un retraso de 500 ms entre cada receta
+                        .flatMap(this::createRecipe)
+                        .onErrorResume(e -> {
+                            log.error("Error occurred while processing recipe '{}': {}", recipe.getName(), e.getMessage(), e);
+                            return Mono.empty();
+                        }))
                 .onErrorResume(e -> {
                     log.error("Error occurred: {}", e.getMessage(), e);
                     return Flux.empty();
@@ -43,28 +50,24 @@ public class CreateRecipesComponent {
                         createIngredientsAndCategories(recipeDto)
                                 .flatMap(saved -> recipeDao.save(recipeDto))
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> throwable instanceof DuplicateKeyException)
-                                        .doBeforeRetry(CreateRecipesComponent::getWarnBy))
+                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .doBeforeRetry(retrySignal -> getWarned(recipeDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
-                .onErrorResume(DuplicateKeyException.class, e -> {
-                    log.error("Duplicate key error: {}", e.getMessage(), e);
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for recipe '{}': {}", recipeDto.getName(), e.getMessage(), e);
                     return recipeDao.findByNameIgnoreCase(recipeDto.getName());
                 });
     }
 
-    private static void getWarnBy(Retry.RetrySignal retrySignal) {
-        log.warn(RETRYING_DUE_TO_DUPLICATE_KEY_ERROR, retrySignal.failure().getMessage());
-    }
-
     private Mono<RecipeDto> createIngredientsAndCategories(RecipeDto recipeDto) {
         return Flux.fromIterable(recipeDto.getIngredients())
-                .flatMap(this::createOrFindIngredient)
+                .concatMap(this::createOrFindIngredient)
                 .collectList()
                 .flatMap(savedIngredients -> {
                     recipeDto.setIngredients(savedIngredients);
                     return Flux.fromIterable(recipeDto.getCategories())
-                            .flatMap(this::createOrFindCategory)
+                            .concatMap(this::createOrFindCategory)
                             .collectList();
                 })
                 .flatMap(savedCategories -> {
@@ -81,13 +84,13 @@ public class CreateRecipesComponent {
                                     ingredientDto.setMeasure(measureSaved);
                                     return ingredientDao.save(ingredientDto)
                                             .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                                    .filter(throwable -> throwable instanceof DuplicateKeyException)
-                                                    .doBeforeRetry(CreateRecipesComponent::getWarnBy));
+                                                    .filter(throwable -> isDuplicateKeyException(throwable))
+                                                    .doBeforeRetry(retrySignal -> getWarned(ingredientDto.getName(), retrySignal)));
                                 })
                 )
                 .flatMap(Mono::just)
-                .onErrorResume(DuplicateKeyException.class, e -> {
-                    log.error("Duplicate key error: {}", e.getMessage(), e);
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for ingredient '{}': {}", ingredientDto.getName(), e.getMessage(), e);
                     return ingredientDao.findByNameIgnoreCase(ingredientDto.getName());
                 });
     }
@@ -97,12 +100,12 @@ public class CreateRecipesComponent {
                 .switchIfEmpty(
                         measureDao.save(measureDto)
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> throwable instanceof DuplicateKeyException)
-                                        .doBeforeRetry(CreateRecipesComponent::getWarnBy))
+                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .doBeforeRetry(retrySignal -> getWarned(measureDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
-                .onErrorResume(DuplicateKeyException.class, e -> {
-                    log.error("Duplicate key error: {}", e.getMessage(), e);
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for measure '{}': {}", measureDto.getName(), e.getMessage(), e);
                     return measureDao.findByNameIgnoreCase(measureDto.getName());
                 });
     }
@@ -112,13 +115,23 @@ public class CreateRecipesComponent {
                 .switchIfEmpty(
                         categoryDao.save(categoryDto)
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> throwable instanceof DuplicateKeyException)
-                                        .doBeforeRetry(CreateRecipesComponent::getWarnBy))
+                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .doBeforeRetry(retrySignal -> getWarned(categoryDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
-                .onErrorResume(DuplicateKeyException.class, e -> {
-                    log.error("Duplicate key error: {}", e.getMessage(), e);
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for category '{}': {}", categoryDto.getName(), e.getMessage(), e);
                     return categoryDao.findByNameIgnoreCase(categoryDto.getName());
                 });
     }
+
+    private boolean isDuplicateKeyException(Throwable throwable) {
+        return throwable instanceof MongoWriteException &&
+                ((MongoWriteException) throwable).getCode() == 11000;
+    }
+
+    private static void getWarned(String recipeDto, Retry.RetrySignal retrySignal) {
+        log.warn(RETRYING_DUE_TO_DUPLICATE_KEY_ERROR, recipeDto, retrySignal.failure().getMessage());
+    }
+
 }
