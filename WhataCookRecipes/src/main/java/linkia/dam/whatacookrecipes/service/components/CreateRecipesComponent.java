@@ -32,7 +32,7 @@ public class CreateRecipesComponent {
     public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
         return recipes
                 .concatMap(recipe -> Mono.just(recipe)
-                        .delayElement(Duration.ofMillis(500)) // Introduce un retraso de 500 ms entre cada receta
+//                        .delayElement(Duration.ofMillis(50)) // Introduce un retraso de 50 ms entre cada receta evitar CONDICIÓN DE CARRERA
                         .flatMap(this::createRecipe)
                         .onErrorResume(e -> {
                             log.error("Error occurred while processing recipe '{}': {}", recipe.getName(), e.getMessage(), e);
@@ -50,7 +50,7 @@ public class CreateRecipesComponent {
                         createIngredientsAndCategories(recipeDto)
                                 .flatMap(saved -> recipeDao.save(recipeDto))
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .filter(this::isDuplicateKeyException)
                                         .doBeforeRetry(retrySignal -> getWarned(recipeDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
@@ -84,7 +84,7 @@ public class CreateRecipesComponent {
                                     ingredientDto.setMeasure(measureSaved);
                                     return ingredientDao.save(ingredientDto)
                                             .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                                    .filter(throwable -> isDuplicateKeyException(throwable))
+                                                    .filter(this::isDuplicateKeyException)
                                                     .doBeforeRetry(retrySignal -> getWarned(ingredientDto.getName(), retrySignal)));
                                 })
                 )
@@ -100,7 +100,7 @@ public class CreateRecipesComponent {
                 .switchIfEmpty(
                         measureDao.save(measureDto)
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .filter(this::isDuplicateKeyException)
                                         .doBeforeRetry(retrySignal -> getWarned(measureDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
@@ -115,7 +115,7 @@ public class CreateRecipesComponent {
                 .switchIfEmpty(
                         categoryDao.save(categoryDto)
                                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                                        .filter(throwable -> isDuplicateKeyException(throwable))
+                                        .filter(this::isDuplicateKeyException)
                                         .doBeforeRetry(retrySignal -> getWarned(categoryDto.getName(), retrySignal)))
                 )
                 .flatMap(Mono::just)
