@@ -4,9 +4,8 @@ import linkia.dam.whatacookrecipes.controller.BaseConfigurationTest;
 import linkia.dam.whatacookrecipes.controller.RecipeController;
 import linkia.dam.whatacookrecipes.model.CategoryDto;
 import linkia.dam.whatacookrecipes.model.RecipeDto;
-import linkia.dam.whatacookrecipes.service.CategoryService;
-import linkia.dam.whatacookrecipes.service.IngredientService;
 import linkia.dam.whatacookrecipes.service.RecipeService;
+import linkia.dam.whatacookrecipes.service.components.CreateRecipesComponent;
 import linkia.dam.whatacookrecipes.service.repository.RecipeDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,9 +28,8 @@ public class BaseRecipesTest extends BaseConfigurationTest {
     @MockBean
     protected RecipeDao recipeDao;
     @MockBean
-    protected IngredientService ingredientService;
-    @MockBean
-    protected CategoryService categoryService;
+    protected CreateRecipesComponent createRecipesComponent;
+
     @Value("${app.endpoint.recipes}")
     protected String recipesUri;
 
@@ -92,6 +90,14 @@ public class BaseRecipesTest extends BaseConfigurationTest {
     protected RecipeDto generateRecipeDto() {
         CategoryDto categoria1 = new CategoryDto("category-1", "Desayuno");
         return new RecipeDto("recipe-1", "Receta de Azúcar", List.of(ingredientDtoList.getFirst(), ingredientDtoList.get(10)), List.of(categoria1), "Preparación de receta de azúcar", 4);
+    }
+
+    public static List<RecipeDto> generateRecipeDtoListStatic() {
+        return new BaseRecipesTest().recipeDtoList;
+    }
+
+    protected static RecipeDto generateRecipeDtoStatic() {
+        return  new BaseRecipesTest().recipeDtoList.get(0);
     }
 
 }

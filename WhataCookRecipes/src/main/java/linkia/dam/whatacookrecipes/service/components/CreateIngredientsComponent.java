@@ -3,7 +3,7 @@ package linkia.dam.whatacookrecipes.service.components;
 import com.mongodb.MongoWriteException;
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
-import linkia.dam.whatacookrecipes.service.MeasureService;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class CreateIngredientsComponent {
 
     public static final String RETRYING_DUE_TO_DUPLICATE_KEY_ERROR = "Retrying due to duplicate key error for '{}': {}";
     private final IngredientDao ingredientDao;
-    private final MeasureService measureService;
+    private final MeasureDao measureDao;
 
     public Flux<IngredientDto> createIngredients(Flux<IngredientDto> ingredients) {
         return ingredients
@@ -38,7 +38,8 @@ public class CreateIngredientsComponent {
     }
 
     public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
-        return measureService.createMeasure(ingredientDto.getMeasure())
+        return measureDao.findByNameIgnoreCase(ingredientDto.getMeasure().getName())
+                .switchIfEmpty(Mono.defer(() -> measureDao.save(ingredientDto.getMeasure())))
                 .flatMap(measureSaved -> {
                     ingredientDto.setMeasure(measureSaved);
                     return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
@@ -53,6 +54,7 @@ public class CreateIngredientsComponent {
                     return ingredientDao.findByNameIgnoreCase(ingredientDto.getName());
                 });
     }
+
 
     private boolean isDuplicateKeyException(Throwable throwable) {
         return throwable instanceof MongoWriteException &&
