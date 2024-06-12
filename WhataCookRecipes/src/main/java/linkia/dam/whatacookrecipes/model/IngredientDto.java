@@ -2,7 +2,6 @@ package linkia.dam.whatacookrecipes.model;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @NoArgsConstructor
@@ -15,7 +14,6 @@ public class IngredientDto extends NamedEntity {
 
     private double quantity;
 
-    @DBRef
     private MeasureDto measure;
 
     public IngredientDto(String id, @NotBlank(message = "name is mandatory") String name, double quantity, MeasureDto measure) {

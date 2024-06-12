@@ -3,6 +3,7 @@ package linkia.dam.whatacookrecipes.model;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 @NoArgsConstructor
@@ -18,5 +19,6 @@ public class NamedEntity {
 
     @Field("name")
     @NotBlank(message = "name is mandatory")
+    @Indexed(unique = true)
     protected String name;
 }

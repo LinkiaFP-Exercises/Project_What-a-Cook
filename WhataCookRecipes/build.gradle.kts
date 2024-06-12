@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:3.3.0")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Declarar las dependencias transitivas directamente
@@ -54,7 +54,7 @@ dependencies {
     testImplementation("org.springframework:spring-beans:6.1.8")
     testImplementation("org.springframework:spring-test:6.1.8")
     testImplementation("org.springframework:spring-webflux:6.1.8")
-
+    testImplementation("io.projectreactor:reactor-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

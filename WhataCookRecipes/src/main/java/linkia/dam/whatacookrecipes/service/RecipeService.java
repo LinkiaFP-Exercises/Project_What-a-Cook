@@ -39,20 +39,22 @@ public class RecipeService {
     }
 
     public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
-        return Flux.fromIterable(recipeDto.getIngredients())
-                .flatMap(ingredientService::createIngredient)
-                .collectList()
-                .flatMap(savedIngredients -> {
-                    recipeDto.setIngredients(savedIngredients);
-                    return Flux.fromIterable(recipeDto.getCategories())
-                            .flatMap(categoryService::createCategory)
-                            .collectList();
-                })
-                .flatMap(savedCategories -> {
-                    recipeDto.setCategories(savedCategories);
-                    return recipeDao.findByNameIgnoreCase(recipeDto.getName())
-                            .switchIfEmpty(Mono.defer(() -> recipeDao.save(recipeDto)));
-                });
+        return recipeDao.findByNameIgnoreCase(recipeDto.getName())
+                .switchIfEmpty(
+                        Flux.fromIterable(recipeDto.getIngredients())
+                                .flatMap(ingredientService::createIngredient)
+                                .collectList()
+                                .flatMap(savedIngredients -> {
+                                    recipeDto.setIngredients(savedIngredients);
+                                    return Flux.fromIterable(recipeDto.getCategories())
+                                            .flatMap(categoryService::createCategory)
+                                            .collectList();
+                                })
+                                .flatMap(savedCategories -> {
+                                    recipeDto.setCategories(savedCategories);
+                                    return recipeDao.save(recipeDto);
+                                })
+                );
     }
 
     public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
