@@ -1,5 +1,6 @@
 package com.whatacook.cookers.controler;
 
+import com.whatacook.cookers.config.jwt.AuthorizationUtil;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
@@ -34,39 +35,19 @@ public class UserController {
     @PostMapping("${app.endpoint.find-by-email}")
     @PreAuthorize("hasRole('USER')")
     public Mono<Response> readOne(@Valid @RequestBody UserJson userJson) {
-        return executeIfAuthorized(userJson, (json, userDetails) -> service.readOne(json));
+        return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.readOne(json));
     }
 
     @PutMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
     public Mono<Response> update(@RequestBody UserJson userJson) {
-        return executeIfAuthorized(userJson, (json, userDetails) -> service.updateOne(json));
+        return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.updateOne(json));
     }
 
     @DeleteMapping("${app.endpoint.users}")
     @PreAuthorize("hasRole('USER')")
     public Mono<Response> deleteOne(@RequestParam("id") String id) {
-        return executeIfAuthorized(new UserJson(id), (json, userDetails) -> service.deleteOne(json));
-    }
-
-    private Mono<Response> executeIfAuthorized(UserJson userJson,
-                                                   BiFunction<UserJson, UserDetails, Mono<Response>> action) {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                    boolean isAdmin = authentication.getAuthorities().stream()
-                            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-
-                    String username = userDetails.getUsername();
-                    boolean isOwnUser = (userJson.get_id() == null)
-                                                    ? username.contains(userJson.getEmail())
-                                                    :username.contains(userJson.get_id());
-
-                    return (isAdmin || isOwnUser)
-                            ? action.apply(userJson, userDetails)
-                            : UserServiceException.mono("No tienes permiso para acceder a esta información.");
-                });
+        return AuthorizationUtil.executeIfAuthorized(new UserJson(id), (json, userDetails) -> service.deleteOne(json));
     }
 
     @GetMapping("${app.endpoint.users-activate}")
