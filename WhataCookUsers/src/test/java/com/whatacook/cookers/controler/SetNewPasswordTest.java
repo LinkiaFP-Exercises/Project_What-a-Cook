@@ -28,6 +28,7 @@ public class SetNewPasswordTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + usersSetNewPasswordEndpoint;
         userDTO = userDtoBasicOk();
         resetDto = ResetDto.to(userDTO);
         newPassword = "teste!2PASWORD";
@@ -47,7 +48,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", "invalidCode").build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
@@ -66,7 +67,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", resetDto.getCode()).build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
@@ -84,7 +85,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", resetDto.getCode()).build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
@@ -102,7 +103,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", resetDto.getCode()).build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body.replace(resetDto.getCode(), "invalidCode"))
@@ -120,7 +121,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("URL_FORGOT_PASS", globalValues.getUrlForgotPassword())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", resetDto.getCode()).build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body.replace("teste!2PASWORD", "invalidPass"))
@@ -143,7 +144,7 @@ public class SetNewPasswordTest extends BaseTestClass {
 
         Mockito.when(resetDao.deleteById(Mockito.anyString())).thenReturn(Mono.empty());
 
-        webTestClient.post().uri(uriBuilder -> uriBuilder.path(usersSetNewPasswordEndpoint)
+        webTestClient.post().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("codeToSet", resetDto.getCode()).build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)

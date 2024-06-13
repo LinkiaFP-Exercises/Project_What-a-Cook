@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -68,6 +69,12 @@ public class BaseTestClass {
     protected ResetDao resetDao;
     @MockBean
     protected JavaMailSender emailSender;
+
+    @Value("${app.endpoint.users}")
+    protected String usersEndpoint;
+    @Value("${security.jwt.auth-root}")
+    protected String authEndpoint;
+    protected String pathVariable;
 
     protected static final String empty = "";
     protected static final String blank = "    ";

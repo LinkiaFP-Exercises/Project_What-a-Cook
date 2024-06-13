@@ -16,6 +16,7 @@ public class ReadUserTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + readOneEndpoint;
         Mockito.when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDtoBasicOk()));
     }
 
@@ -32,7 +33,7 @@ public class ReadUserTest extends BaseTestClass {
     }
 
     void baseTestReadUserByEmail_Ok(String token) {
-        webTestClient.post().uri(readOneEndpoint)
+        webTestClient.post().uri(pathVariable)
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBodyOnlyMail(EMAIL))
@@ -57,19 +58,19 @@ public class ReadUserTest extends BaseTestClass {
         final String unAuthMessage = "No tienes permiso para acceder a esta información";
         String emailTest = "other@email.com";
         Mockito.when(userDao.findByEmail(emailTest)).thenReturn(Mono.just(userDtoOtherOk(emailTest)));
-        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenOtherUserOk(emailTest), requestBodyOnlyMail(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(pathVariable, tokenOtherUserOk(emailTest), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
     @Test
     void testReadUserByUserExpiredToken() {
         final String unAuthMessage = "Token expired. Please login again";
-        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, tokenExpired(), requestBodyOnlyMail(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(pathVariable, tokenExpired(), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
     @Test
     void testReadUserByUserInvalidToken() {
         final String unAuthMessage = "Invalid token";
-        testPost401EndpointWithTokenSuccessFalseMessageContains(readOneEndpoint, "a" + tokenUserOk(), requestBodyOnlyMail(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(pathVariable, "a" + tokenUserOk(), requestBodyOnlyMail(EMAIL), unAuthMessage);
     }
 
 }

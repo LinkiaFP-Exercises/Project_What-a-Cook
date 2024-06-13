@@ -22,6 +22,7 @@ import java.util.function.BiFunction;
 
 @AllArgsConstructor
 @RestController
+@RequestMapping("${app.endpoint.users}")
 @Validated
 public class UserController {
 
@@ -33,19 +34,19 @@ public class UserController {
     }
 
     @PostMapping("${app.endpoint.find-by-email}")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Mono<Response> readOne(@Valid @RequestBody UserJson userJson) {
         return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.readOne(json));
     }
 
-    @PutMapping("${app.endpoint.users}")
-    @PreAuthorize("hasRole('USER')")
+    @PutMapping()
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Mono<Response> update(@RequestBody UserJson userJson) {
         return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.updateOne(json));
     }
 
-    @DeleteMapping("${app.endpoint.users}")
-    @PreAuthorize("hasRole('USER')")
+    @DeleteMapping()
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Mono<Response> deleteOne(@RequestParam("id") String id) {
         return AuthorizationUtil.executeIfAuthorized(new UserJson(id), (json, userDetails) -> service.deleteOne(json));
     }

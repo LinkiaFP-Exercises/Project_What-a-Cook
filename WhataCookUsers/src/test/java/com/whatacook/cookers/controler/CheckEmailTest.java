@@ -19,6 +19,7 @@ public class CheckEmailTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + usersCheckEmailEndpoint;
         Mockito.when(userDao.existsByEmail(Mockito.anyString())).thenReturn(Mono.just(false));
     }
 
@@ -29,7 +30,7 @@ public class CheckEmailTest extends BaseTestClass {
     })
     void testExistsByEmail_OK(String email, boolean exists, String message, boolean content) {
         Mockito.when(userDao.existsByEmail(email)).thenReturn(Mono.just(exists));
-        webTestClient.post().uri(usersCheckEmailEndpoint)
+        webTestClient.post().uri(pathVariable)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBodyOnlyMail(email))
                 .exchange()
@@ -43,7 +44,7 @@ public class CheckEmailTest extends BaseTestClass {
     @ParameterizedTest
     @MethodSource("provideVariablesForFailRequests")
     void testExistsByEmail_Fail(String requestBody, boolean success, String message, String key) {
-        testFailRequest_400(usersCheckEmailEndpoint, requestBody, success, message, key);
+        testFailRequest_400(pathVariable, requestBody, success, message, key);
     }
 
     private static Stream<Arguments> provideVariablesForFailRequests() {
