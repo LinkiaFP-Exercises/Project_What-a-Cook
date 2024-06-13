@@ -19,52 +19,32 @@ public class GetRecipesByNameContainingTest extends BaseRecipesTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        name = "c";
+        pathVariable = recipesUri + PATH_ByName;
         size = 10;
+        page = 0;
+        queryParam = "name";
+        queryParamValue = "c";
 
         recipeDtoListFiltered = recipeDtoList.stream()
-                .filter(recipe -> recipe.getName().replace("Receta de ", "").contains(name))
+                .filter(recipe -> recipe.getName().replace("Receta de ", "").contains(queryParamValue))
                 .collect(Collectors.toList());
 
-        when(recipeDao.findByNameContainingIgnoreCase(name)).thenReturn(Flux.fromIterable(recipeDtoListFiltered));
+        when(recipeDao.findByNameContainingIgnoreCase(queryParamValue)).thenReturn(Flux.fromIterable(recipeDtoListFiltered));
     }
 
-    private void validateResponse(String mode, String name, RecipeDto expectedFirstRecipe, int numberOfElements) {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(recipesUri + PATH_ByName)
-                        .queryParam("page", page)
-                        .queryParam("size", size)
-                        .queryParam("mode", mode)
-                        .queryParam("name", name)
-                        .build())
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.content").isArray()
-                .jsonPath("$.content.length()").isEqualTo(numberOfElements)
-                .jsonPath("$.content[0].id").isEqualTo(expectedFirstRecipe.getId())
-                .jsonPath("$.content[0].name").isEqualTo(expectedFirstRecipe.getName())
-                .jsonPath("$.pageable.pageNumber").isEqualTo(page)
-                .jsonPath("$.pageable.pageSize").isEqualTo(size)
-                .jsonPath("$.totalElements").isEqualTo(recipeDtoListFiltered.size())
-                .jsonPath("$.totalPages").isEqualTo((int) Math.ceil((double) recipeDtoListFiltered.size() / size))
-                .jsonPath("$.first").isEqualTo(true)
-                .jsonPath("$.last").isEqualTo(true);
+    private RecipeDto getExpectedRecipeDto(boolean desc) {
+        return getExpectedRecipeDto(desc, recipeDtoListFiltered);
     }
 
     @Test
     void getRecipesByNameContainingAsc() {
-        page = 0;
-        RecipeDto expectedFirstRecipe = getExpectedRecipeDto(false, recipeDtoListFiltered);
-
-        validateResponse("", name, expectedFirstRecipe, recipeDtoListFiltered.size());
+        validateResponse(pathVariable,"", queryParam, queryParamValue,
+                getExpectedRecipeDto(false), recipeDtoListFiltered);
     }
 
     @Test
     void getRecipesByNameContainingDesc() {
-        page = 0;
-        RecipeDto expectedFirstRecipe = getExpectedRecipeDto(true, recipeDtoListFiltered);
-
-        validateResponse("D", name, expectedFirstRecipe, recipeDtoListFiltered.size());
+        validateResponse(pathVariable, "D", queryParam, queryParamValue,
+                getExpectedRecipeDto(true), recipeDtoListFiltered);
     }
 }

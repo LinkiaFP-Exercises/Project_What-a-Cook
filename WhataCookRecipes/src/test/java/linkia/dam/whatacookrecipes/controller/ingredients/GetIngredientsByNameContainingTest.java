@@ -18,14 +18,14 @@ public class GetIngredientsByNameContainingTest extends BaseIngredientsTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        name = "c";
+        queryParamValue = "c";
         size = 10;
 
         ingredientDtoListFiltered = ingredientDtoList.stream()
-                .filter(ingredient -> ingredient.getName().contains(name))
+                .filter(ingredient -> ingredient.getName().contains(queryParamValue))
                 .collect(Collectors.toList());
 
-        when(ingredientDao.findByNameContainingIgnoreCase(name)).thenReturn(Flux.fromIterable(ingredientDtoListFiltered));
+        when(ingredientDao.findByNameContainingIgnoreCase(queryParamValue)).thenReturn(Flux.fromIterable(ingredientDtoListFiltered));
     }
 
     private void validateResponse(String mode, String name, IngredientDto expectedFirstIngredient, int numberOfElements) {
@@ -56,7 +56,7 @@ public class GetIngredientsByNameContainingTest extends BaseIngredientsTest {
         page = 0;
         IngredientDto expectedFirstIngredient = getExpectedIngredientDto(false, ingredientDtoListFiltered);
 
-        validateResponse("", name, expectedFirstIngredient, ingredientDtoListFiltered.size());
+        validateResponse("", queryParamValue, expectedFirstIngredient, ingredientDtoListFiltered.size());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class GetIngredientsByNameContainingTest extends BaseIngredientsTest {
         page = 0;
         IngredientDto expectedFirstIngredient = getExpectedIngredientDto(true, ingredientDtoListFiltered);
 
-        validateResponse("D", name, expectedFirstIngredient, ingredientDtoListFiltered.size());
+        validateResponse("D", queryParamValue, expectedFirstIngredient, ingredientDtoListFiltered.size());
     }
 }

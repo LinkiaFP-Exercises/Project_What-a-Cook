@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
+public class SearchRecipesByAllIngredientsTest extends BaseRecipesTest {
 
     public List<RecipeDto> recipeDtoListFiltered;
     private List<IngredientDto> ingredientSelected;
@@ -19,21 +19,21 @@ public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        pathVariable = recipesUri + PATH_ByIngredients;
+        pathVariable = recipesUri + PATH_ByAllIngredients;
         size = 10;
         page = 0;
 
-        ingredientSelected = List.of(ingredientDtoList.getFirst(), ingredientDtoList.get(11)); // Azúcar, Zanahorias
+        ingredientSelected = List.of(ingredientDtoList.getFirst(), ingredientDtoList.get(14)); // Azúcar, Arroz
         List<String> ingredientNames = ingredientSelected.stream().map(IngredientDto::getName).toList();
         queryParam = "ingredients";
         queryParamValue = String.join(",", ingredientNames);
 
         recipeDtoListFiltered = recipeDtoList.stream()
                 .filter(recipe -> recipe.getIngredients().contains(ingredientSelected.getFirst())
-                        || recipe.getIngredients().contains(ingredientSelected.getLast()))
+                        && recipe.getIngredients().contains(ingredientSelected.getLast()))
                 .toList();
 
-        when(recipeDao.findByIngredientsNameIn(ingredientNames)).thenReturn(Flux.fromIterable(recipeDtoListFiltered));
+        when(recipeDao.findByAllIngredientsNameIn(ingredientNames)).thenReturn(Flux.fromIterable(recipeDtoListFiltered));
     }
 
     private RecipeDto getExpectedRecipeDto(boolean desc) {

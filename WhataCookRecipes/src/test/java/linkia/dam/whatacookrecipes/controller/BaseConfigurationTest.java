@@ -32,7 +32,7 @@ public class BaseConfigurationTest {
     @Value("${app.sub-endpoint.all}")
     protected String PATH_All;
 
-    protected static String pathVariable, valuePathVariable, name;
+    protected static String pathVariable, valuePathVariable, queryParam, queryParamValue;
     protected static int page, size, amount = 36;
     protected static final String DELETED = "deleted";
     public final List<IngredientDto> ingredientDtoList = generateIngredientDtoList();
