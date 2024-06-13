@@ -16,19 +16,19 @@ public class AuthorizationUtil {
     public static Mono<Response> executeIfAuthorized(UserJson userJson,
                                                      BiFunction<UserJson, UserDetails, Mono<Response>> action) {
         return getAuthentication()
-                .flatMap(authentication -> {
-                    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                    if (isAdmin(authentication) || isOwnUser(userJson, userDetails)) {
-                        return action.apply(userJson, userDetails);
-                    } else {
-                        return UserServiceException.mono("No tienes permiso para acceder a esta información.");
-                    }
-                });
+                .flatMap(authentication -> isAuthorized(userJson, authentication)
+                        .flatMap(isAuthorized -> isAuthorized
+                                ? action.apply(userJson, (UserDetails) authentication.getPrincipal())
+                                : UserServiceException.mono("No tienes permiso para acceder a esta información.")));
     }
 
     private static Mono<Authentication> getAuthentication() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication);
+    }
+
+    private static Mono<Boolean> isAuthorized(UserJson userJson, Authentication authentication) {
+        return Mono.just(isAdmin(authentication) || isOwnUser(userJson, getUserDetails(authentication)));
     }
 
     private static boolean isAdmin(Authentication authentication) {
@@ -42,4 +42,9 @@ public class AuthorizationUtil {
                 ? username.contains(userJson.getEmail())
                 : username.contains(userJson.get_id());
     }
+
+    private static UserDetails getUserDetails(Authentication authentication) {
+        return (UserDetails) authentication.getPrincipal();
+    }
+    
 }
