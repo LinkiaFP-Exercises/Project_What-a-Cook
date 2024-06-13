@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.TestMongoConfig;
 import com.whatacook.cookers.WhataCookUsersApplication;

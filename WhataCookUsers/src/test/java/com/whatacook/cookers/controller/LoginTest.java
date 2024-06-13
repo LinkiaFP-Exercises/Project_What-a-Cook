@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.users.UserDTO;
 import org.assertj.core.api.Assertions;
