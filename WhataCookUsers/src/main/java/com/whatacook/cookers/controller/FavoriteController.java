@@ -3,14 +3,11 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.config.jwt.AuthorizationUtil;
 import com.whatacook.cookers.model.favorites.FavoriteRequest;
 import com.whatacook.cookers.model.responses.Response;
-import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.FavoriteService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import java.util.function.BiFunction;
 
 @AllArgsConstructor
 @RestController
@@ -19,38 +16,39 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
-    @GetMapping()
+    @PostMapping()
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SELF')")
     public Mono<Response> getFavorites(@RequestBody FavoriteRequest favoriteRequest) {
-        return processFavoriteRequest(favoriteRequest, favoriteService::getFavorites);
+        return AuthorizationUtil.executeIfAuthorized(favoriteRequest,
+                (json, userDetails) -> favoriteService.getFavorites(favoriteRequest));
     }
 
-    @PostMapping("/add-recipe")
+    @PostMapping("${app.endpoint.add-recipe}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SELF')")
     public Mono<Response> addFavoriteRecipe(@RequestBody FavoriteRequest favoriteRequest) {
-        return processFavoriteRequest(favoriteRequest, favoriteService::addFavoriteRecipe);
+        return AuthorizationUtil.executeIfAuthorized(favoriteRequest,
+                (json, userDetails) -> favoriteService.addFavoriteRecipe(favoriteRequest));
     }
 
-    @PostMapping("/add-ingredient")
+    @PostMapping("${app.endpoint.add-ingredient}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SELF')")
     public Mono<Response> addFavoriteIngredient(@RequestBody FavoriteRequest favoriteRequest) {
-        return processFavoriteRequest(favoriteRequest, favoriteService::addFavoriteIngredient);
+        return AuthorizationUtil.executeIfAuthorized(favoriteRequest,
+                (json, userDetails) -> favoriteService.addFavoriteIngredient(favoriteRequest));
     }
 
-    @PostMapping("/remove-recipe")
+    @PostMapping("${app.endpoint.remove-recipe}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SELF')")
     public Mono<Response> removeFavoriteRecipe(@RequestBody FavoriteRequest favoriteRequest) {
-        return processFavoriteRequest(favoriteRequest, favoriteService::removeFavoriteRecipe);
+        return AuthorizationUtil.executeIfAuthorized(favoriteRequest,
+                (json, userDetails) -> favoriteService.removeFavoriteRecipe(favoriteRequest));
     }
 
-    @PostMapping("/remove-ingredient")
+    @PostMapping("${app.endpoint.remove-ingredient}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('SELF')")
     public Mono<Response> removeFavoriteIngredient(@RequestBody FavoriteRequest favoriteRequest) {
-        return processFavoriteRequest(favoriteRequest, favoriteService::removeFavoriteIngredient);
+        return AuthorizationUtil.executeIfAuthorized(favoriteRequest,
+                (json, userDetails) -> favoriteService.removeFavoriteIngredient(favoriteRequest));
     }
 
-    private Mono<Response> processFavoriteRequest(FavoriteRequest favoriteRequest, BiFunction<UserJson, FavoriteRequest, Mono<Response>> action) {
-        return AuthorizationUtil.executeIfAuthorized(new UserJson(favoriteRequest.getUserId()),
-                (json, userDetails) -> action.apply(json, favoriteRequest));
-    }
 }

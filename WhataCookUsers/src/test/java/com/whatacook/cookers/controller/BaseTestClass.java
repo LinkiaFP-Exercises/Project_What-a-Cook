@@ -167,6 +167,10 @@ public class BaseTestClass {
         return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), EMAIL);
     }
 
+    protected String tokenUserOk(String username) {
+        return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), username);
+    }
+
     protected String tokenAdminOk(String email) {
         return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.CHIEF), email);
     }

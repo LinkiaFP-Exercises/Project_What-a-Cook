@@ -16,14 +16,20 @@ import static com.whatacook.cookers.model.responses.Response.success;
 @Service
 public class FavoriteService {
 
-    public static final String USER_FAVORITES_NOT_FOUND = "User favorites not found!";
     private final FavoriteDao favoriteDao;
+
+    public static final String USER_FAVORITES_NOT_FOUND = "User favorites not found!";
+    public static final String USER_FAVORITES_RETRIEVED = "User favorites retrieved";
+    public static final String INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES = "Ingredient successfully removed from favorites";
+    public static final String RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES = "Recipe successfully removed from favorites";
+    public static final String INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES = "Ingredient successfully added to favorites";
+    public static final String RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES = "Recipe successfully added to favorites";
 
     public Mono<Response> addFavoriteRecipe(FavoriteRequest favoriteRequest) {
         return favoriteDao.findById(favoriteRequest.getUserId())
                 .flatMap(favorites -> favorites.addRecipe(favoriteRequest.getRecipeId()))
                 .flatMap(favoriteDao::save)
-                .map(saved -> success("Recipe successfully added to favorites", saved))
+                .map(saved -> success(RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES, saved))
                 .switchIfEmpty(UserServiceException.mono(USER_FAVORITES_NOT_FOUND))
                 .onErrorResume(Exception.class, Response::monoError);
     }
@@ -32,7 +38,7 @@ public class FavoriteService {
         return favoriteDao.findById(favoriteRequest.getUserId())
                 .flatMap(favorites -> favorites.addIngredient(favoriteRequest.getIngredientId()))
                 .flatMap(favoriteDao::save)
-                .map(saved -> success("Ingredient successfully added to favorites", saved))
+                .map(saved -> success(INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES, saved))
                 .switchIfEmpty(UserServiceException.mono(USER_FAVORITES_NOT_FOUND))
                 .onErrorResume(Exception.class, Response::monoError);
     }
@@ -41,7 +47,7 @@ public class FavoriteService {
         return favoriteDao.findById(favoriteRequest.getUserId())
                 .flatMap(favorites -> favorites.removeRecipe(favoriteRequest.getRecipeId()))
                 .flatMap(favoriteDao::save)
-                .map(saved -> success("Recipe successfully removed from favorites", saved))
+                .map(saved -> success(RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES, saved))
                 .switchIfEmpty(UserServiceException.mono(USER_FAVORITES_NOT_FOUND))
                 .onErrorResume(Exception.class, Response::monoError);
     }
@@ -50,14 +56,14 @@ public class FavoriteService {
         return favoriteDao.findById(favoriteRequest.getUserId())
                 .flatMap(favorites -> favorites.removeIngredient(favoriteRequest.getIngredientId()))
                 .flatMap(favoriteDao::save)
-                .map(saved -> success("Ingredient successfully removed from favorites", saved))
+                .map(saved -> success(INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES, saved))
                 .switchIfEmpty(UserServiceException.mono(USER_FAVORITES_NOT_FOUND))
                 .onErrorResume(Exception.class, Response::monoError);
     }
 
     public Mono<Response> getFavorites(FavoriteRequest favoriteRequest) {
         return favoriteDao.findById(favoriteRequest.getUserId())
-                .map(favorites -> success("User favorites retrieved", favorites))
+                .map(favorites -> success(USER_FAVORITES_RETRIEVED, favorites))
                 .switchIfEmpty(UserServiceException.mono(USER_FAVORITES_NOT_FOUND))
                 .onErrorResume(Exception.class, Response::monoError);
     }

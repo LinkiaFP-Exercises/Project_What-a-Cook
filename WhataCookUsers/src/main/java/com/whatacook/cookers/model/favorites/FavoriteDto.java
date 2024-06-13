@@ -18,25 +18,25 @@ public class FavoriteDto {
 
     @Id
     private String id;
-    private List<String> favoriteRecipes;
-    private List<String> favoriteIngredients;
+    private List<String> recipes;
+    private List<String> ingredients;
 
     // Métodos para favoriteRecipes
     public Mono<FavoriteDto> addRecipe(String recipeId) {
         return Mono.just(recipeId)
                 .filterWhen(this::notContainsRecipe)
-                .doOnNext(favoriteRecipes::add)
+                .doOnNext(recipes::add)
                 .thenReturn(this);
     }
 
     public Mono<FavoriteDto> removeRecipe(String recipeId) {
         return Mono.just(recipeId)
-                .doOnNext(favoriteRecipes::remove)
+                .doOnNext(recipes::remove)
                 .thenReturn(this);
     }
 
     public Mono<Boolean> containsRecipe(String recipeId) {
-        return Mono.just(favoriteRecipes.contains(recipeId));
+        return Mono.just(recipes.contains(recipeId));
     }
 
     public Mono<Boolean> notContainsRecipe(String recipeId) {
@@ -47,18 +47,18 @@ public class FavoriteDto {
     public Mono<FavoriteDto> addIngredient(String ingredientId) {
         return Mono.just(ingredientId)
                 .filterWhen(this::notContainsFavoriteIngredient)
-                .doOnNext(favoriteIngredients::add)
+                .doOnNext(ingredients::add)
                 .thenReturn(this);
     }
 
     public Mono<FavoriteDto> removeIngredient(String ingredientId) {
         return Mono.just(ingredientId)
-                .doOnNext(favoriteIngredients::remove)
+                .doOnNext(ingredients::remove)
                 .thenReturn(this);
     }
 
     public Mono<Boolean> containsFavoriteIngredient(String ingredientId) {
-        return Mono.just(favoriteIngredients.contains(ingredientId));
+        return Mono.just(ingredients.contains(ingredientId));
     }
 
     public Mono<Boolean> notContainsFavoriteIngredient(String ingredientId) {
