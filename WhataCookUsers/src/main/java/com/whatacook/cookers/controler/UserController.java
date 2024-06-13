@@ -1,7 +1,6 @@
 package com.whatacook.cookers.controler;
 
 import com.whatacook.cookers.config.jwt.AuthorizationUtil;
-import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.UserService;
@@ -11,14 +10,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import java.util.function.BiFunction;
 
 @AllArgsConstructor
 @RestController
@@ -34,13 +28,13 @@ public class UserController {
     }
 
     @PostMapping("${app.endpoint.find-by-email}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELF') or hasRole('ADMIN')")
     public Mono<Response> readOne(@Valid @RequestBody UserJson userJson) {
         return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.readOne(json));
     }
 
     @PutMapping()
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SELF') or hasRole('ADMIN')")
     public Mono<Response> update(@RequestBody UserJson userJson) {
         return AuthorizationUtil.executeIfAuthorized(userJson, (json, userDetails) -> service.updateOne(json));
     }
