@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @AllArgsConstructor
 @Service
 public class IngredientService {
@@ -31,6 +35,25 @@ public class IngredientService {
     public Mono<IngredientDto> getIngredientById(String id) {
         return ingredientDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
+    }
+
+    public Mono<Map<String, Object>> getIngredientsByIds(List<String> ids) {
+        return ingredientDao.findAllById(ids)
+                .collectList()
+                .flatMap(ingredients -> {
+                    List<String> foundIds = ingredients.stream()
+                            .map(IngredientDto::getId)
+                            .toList();
+                    List<String> notFoundIds = ids.stream()
+                            .filter(id -> !foundIds.contains(id))
+                            .toList();
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("found", ingredients);
+                    result.put("notFound", notFoundIds);
+
+                    return Mono.just(result);
+                });
     }
 
     public Mono<IngredientDto> getIngredientByName(String name) {
