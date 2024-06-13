@@ -2,7 +2,8 @@ package linkia.dam.whatacookrecipes.service;
 
 import linkia.dam.whatacookrecipes.model.IngredientDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
-import linkia.dam.whatacookrecipes.service.contracts.IngredientDao;
+import linkia.dam.whatacookrecipes.service.components.CreateIngredientsComponent;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
 import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 public class IngredientService {
 
     private final IngredientDao ingredientDao;
+    private final CreateIngredientsComponent createIngredientsComponent;
 
     public Mono<Page<IngredientDto>> getAllCategories(int page, int size, String mode) {
         return ingredientDao.findAll().collectList()
@@ -30,18 +32,18 @@ public class IngredientService {
         return ingredientDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
     }
+
     public Mono<IngredientDto> getIngredientByName(String name) {
         return ingredientDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with name=" + name)));
     }
 
     public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
-        return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
-                .switchIfEmpty(Mono.defer(() -> ingredientDao.save(ingredientDto)));
+        return createIngredientsComponent.createIngredient(ingredientDto);
     }
 
     public Flux<IngredientDto> createCategories(Flux<IngredientDto> ingredients) {
-        return ingredients.flatMap(this::createIngredient);
+        return createIngredientsComponent.createIngredients(ingredients);
     }
 
     public Mono<String> deleteIngredient(String id) {

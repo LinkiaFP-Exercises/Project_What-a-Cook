@@ -1,27 +1,29 @@
-package linkia.dam.whatacookrecipes;
+package linkia.dam.whatacookrecipes.config;
 
 import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory;
-import com.mongodb.reactivestreams.client.MongoClients;
-import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.NoOpDbRefResolver;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
+import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 
-@TestConfiguration
-public class TestMongoConfig {
+@Configuration
+@EnableReactiveMongoRepositories(basePackages = "linkia.dam.whatacookrecipes")
+public class MongoConfig {
 
     @Value("${MONGO_URI_WHATACOOK_RECIPES}")
     private String mongoUri;
 
     public static final String DB_NAME = "cooking";
 
-    @Bean(name = "testMongoClient")
+    @Bean
     public MongoClient mongoClient() {
         return MongoClients.create(mongoUri);
     }

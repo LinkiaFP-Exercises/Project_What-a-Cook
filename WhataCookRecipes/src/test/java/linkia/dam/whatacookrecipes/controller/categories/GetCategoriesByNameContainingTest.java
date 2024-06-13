@@ -18,19 +18,19 @@ public class GetCategoriesByNameContainingTest extends BaseCategoriesTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        name = "D";
+        queryParamValue = "D";
         size = 10;
 
         categoryDtoListFiltered = categoryDtoList.stream()
-                .filter(category -> category.getName().contains(name))
+                .filter(category -> category.getName().contains(queryParamValue))
                 .collect(Collectors.toList());
 
-        when(categoryDao.findByNameContainingIgnoreCase(name)).thenReturn(Flux.fromIterable(categoryDtoListFiltered));
+        when(categoryDao.findByNameContainingIgnoreCase(queryParamValue)).thenReturn(Flux.fromIterable(categoryDtoListFiltered));
     }
 
     private void validateResponse(String mode, String name, CategoryDto expectedFirstCategory, int numberOfElements) {
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + "/searchPaged")
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri + PATH_ByName)
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .queryParam("mode", mode)
@@ -56,7 +56,7 @@ public class GetCategoriesByNameContainingTest extends BaseCategoriesTest {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(false, categoryDtoListFiltered);
 
-        validateResponse("", name, expectedFirstCategory, categoryDtoListFiltered.size());
+        validateResponse("", queryParamValue, expectedFirstCategory, categoryDtoListFiltered.size());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class GetCategoriesByNameContainingTest extends BaseCategoriesTest {
         page = 0;
         CategoryDto expectedFirstCategory = getExpectedCategoryDto(true, categoryDtoListFiltered);
 
-        validateResponse("D", name, expectedFirstCategory, categoryDtoListFiltered.size());
+        validateResponse("D", queryParamValue, expectedFirstCategory, categoryDtoListFiltered.size());
     }
 }

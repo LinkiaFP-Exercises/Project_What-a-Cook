@@ -2,7 +2,7 @@ package linkia.dam.whatacookrecipes.service;
 
 import linkia.dam.whatacookrecipes.model.CategoryDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
-import linkia.dam.whatacookrecipes.service.contracts.CategoryDao;
+import linkia.dam.whatacookrecipes.service.repository.CategoryDao;
 import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +30,8 @@ public class CategoryService {
         return categoryDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
     }
-    public Mono<CategoryDto> getCategoryByName(String name) {
+
+    public Mono<CategoryDto> getCategoryByNameIgnoreCase(String name) {
         return categoryDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
     }

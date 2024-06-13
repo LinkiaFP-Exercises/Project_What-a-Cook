@@ -4,7 +4,7 @@ import linkia.dam.whatacookrecipes.controller.BaseConfigurationTest;
 import linkia.dam.whatacookrecipes.controller.CategoryController;
 import linkia.dam.whatacookrecipes.model.CategoryDto;
 import linkia.dam.whatacookrecipes.service.CategoryService;
-import linkia.dam.whatacookrecipes.service.contracts.CategoryDao;
+import linkia.dam.whatacookrecipes.service.repository.CategoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;

@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
@@ -25,6 +25,7 @@ public class ActivateTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + usersActivateEndpoint;
         userCaptor = ArgumentCaptor.forClass(UserDTO.class);
         activationDto = ActivationDto.to(userDtoBasicPending());
         Mockito.when(activationDao.findByCode(Mockito.eq(activationDto.getCode())))
@@ -45,7 +46,7 @@ public class ActivateTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("USER_NAME", FIRST_NAME);
 
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersActivateEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                     .queryParam("activationCode", activationDto.getCode()).build())
                 .exchange()
                 .expectStatus().isOk()
@@ -64,7 +65,7 @@ public class ActivateTest extends BaseTestClass {
     @Test
     void testActivationCodeExpired() {
         activationDto.setExpiration(LocalDateTime.now().minusDays(2));
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersActivateEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("activationCode", activationDto.getCode()).build())
                 .exchange()
                 .expectStatus().isOk()
@@ -80,7 +81,7 @@ public class ActivateTest extends BaseTestClass {
         // Configuración para que findByCode devuelva un Mono vacío, simulando un código no encontrado
         Mockito.when(activationDao.findByCode("invalidCode")).thenReturn(Mono.empty());
         // Ejecución del test endpoint con un código de activación no válido
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersActivateEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("activationCode", "invalidCode").build())
                 .exchange()
                 .expectStatus().isBadRequest()

@@ -50,7 +50,7 @@ public class CreateMeasuresTest extends BaseMeasureTest {
 
     private void testCreateCategories() {
         webTestClient.post()
-                .uri(measuresUri + "/bulk")
+                .uri(measuresUri + PATH_Bulk)
                 .body(measureDtoFlux, MeasureDto.class)
                 .exchange()
                 .expectStatus().isOk()

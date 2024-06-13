@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
@@ -25,6 +25,7 @@ public class ResetPassCodeTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + usersResetPasswordEndpoint;
         userDTO = userDtoBasicOk();
         resetDto = ResetDto.to(userDTO);
         Mockito.when(resetDao.findByCode(Mockito.anyString())).thenReturn(Mono.just(resetDto));
@@ -38,7 +39,7 @@ public class ResetPassCodeTest extends BaseTestClass {
                 .replace("errorDescriptionValue", "Code Not Found")
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResetPasswordEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("resetCode", "invalidCode").build())
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -54,7 +55,7 @@ public class ResetPassCodeTest extends BaseTestClass {
                 .replace("errorDescriptionValue", errorMsg)
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("EMAIL_WAC", globalValues.getMailToWac());
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResetPasswordEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("resetCode", resetDto.getCode()).build())
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -65,7 +66,7 @@ public class ResetPassCodeTest extends BaseTestClass {
     @Test
     void testResetPassCodeExpired() {
         resetDto.setExpiration(resetDto.getExpiration().minusDays(1));
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResetPasswordEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("resetCode", resetDto.getCode()).build())
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -84,7 +85,7 @@ public class ResetPassCodeTest extends BaseTestClass {
 
         AtomicReference<String> htmlResponse = new AtomicReference<>();
 
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResetPasswordEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("resetCode", resetDto.getCode()).build())
                 .exchange()
                 .expectStatus().isOk()

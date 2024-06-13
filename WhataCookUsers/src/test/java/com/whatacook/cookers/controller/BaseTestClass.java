@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.TestMongoConfig;
 import com.whatacook.cookers.WhataCookUsersApplication;
@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -50,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class BaseTestClass {
 
+    public static final String UN_AUTH_MESSAGE = "No tienes permiso para acceder a esta información.";
     private static final Logger log = LoggerFactory.getLogger(BaseTestClass.class);
     @Autowired
     protected WebTestClient webTestClient;
@@ -68,6 +70,12 @@ public class BaseTestClass {
     protected ResetDao resetDao;
     @MockBean
     protected JavaMailSender emailSender;
+
+    @Value("${app.endpoint.users}")
+    protected String usersEndpoint;
+    @Value("${security.jwt.auth-root}")
+    protected String authEndpoint;
+    protected String pathVariable;
 
     protected static final String empty = "";
     protected static final String blank = "    ";
@@ -158,6 +166,10 @@ public class BaseTestClass {
 
     protected String tokenUserOk() {
         return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), EMAIL);
+    }
+
+    protected String tokenUserOk(String username) {
+        return jwtUtil.getPrefix() + jwtUtil.doGenerateToken(tokenRole(Role.BASIC), username);
     }
 
     protected String tokenAdminOk(String email) {

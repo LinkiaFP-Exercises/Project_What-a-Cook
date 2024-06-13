@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {WhataCookRecipesApplication.class, linkia.dam.whatacookrecipes.TestMongoConfig.class})
+@SpringBootTest(classes = {WhataCookRecipesApplication.class, TestMongoConfig.class})
 public class WhataCookRecipesApplicationTest {
 
     @Autowired
@@ -15,5 +15,6 @@ public class WhataCookRecipesApplicationTest {
     @Test
     void contextLoads() {
         assertThat(context).isNotNull();
+        assertThat(context.getBean("testMongoClient")).isNotNull();
     }
 }

@@ -49,7 +49,7 @@ public class CreateCategoriesTest extends BaseCategoriesTest {
 
     private void testCreateCategories() {
         webTestClient.post()
-                .uri(categoriesUri + "/bulk")
+                .uri(categoriesUri + PATH_Bulk)
                 .body(categoryDtoFlux, CategoryDto.class)
                 .exchange()
                 .expectStatus().isOk()

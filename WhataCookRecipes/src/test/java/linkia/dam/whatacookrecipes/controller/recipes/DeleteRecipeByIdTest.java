@@ -17,7 +17,7 @@ public class DeleteRecipeByIdTest extends BaseRecipesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         recipeDto = generateRecipeDto();
-        pathVariable = recipesUri + PATH_ID;
+        pathVariable = recipesUri + PATH_VARIABLE_ID;
         valuePathVariable = recipeDto.getId();
     }
 

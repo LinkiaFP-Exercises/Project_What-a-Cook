@@ -14,7 +14,7 @@ public class GetRecipeByIdTest extends BaseRecipesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         recipeDto = generateRecipeDto();
-        pathVariable = recipesUri + PATH_SLASH_ID;
+        pathVariable = recipesUri + PATH_ID;
         valuePathVariable = recipeDto.getId();
     }
 

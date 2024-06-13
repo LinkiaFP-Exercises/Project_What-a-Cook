@@ -23,21 +23,21 @@ public class CategoryController {
         return categoryService.getAllCategories(page, size, mode);
     }
 
-    @GetMapping("/searchPaged")
+    @GetMapping("${app.sub-endpoint.by-name}")
     public Mono<Page<CategoryDto>> getCategoriesByNameContaining(@RequestParam String name,
                                                                  @RequestParam(required = false) String mode,
                                                                  @RequestParam int page, @RequestParam int size) {
         return categoryService.getCategoriesByNameContaining(name, page, size, mode);
     }
 
-    @GetMapping("id/{id}")
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
     public Mono<CategoryDto> getCategoryById(@PathVariable String id) {
         return categoryService.getCategoryById(id);
     }
 
-    @GetMapping("name/{name}")
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
     public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
-        return categoryService.getCategoryByName(name);
+        return categoryService.getCategoryByNameIgnoreCase(name);
     }
 
     @PostMapping
@@ -45,17 +45,17 @@ public class CategoryController {
         return categoryService.createCategory(categoryDto);
     }
 
-    @PostMapping("/bulk")
+    @PostMapping("${app.sub-endpoint.bulk}")
     public Flux<CategoryDto> createCategories(@RequestBody Flux<CategoryDto> categories) {
         return categoryService.createCategories(categories);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
     public Mono<String> deleteCategoryById(@PathVariable String id) {
         return categoryService.deleteCategory(id);
     }
 
-    @DeleteMapping("/all")
+    @DeleteMapping("${app.sub-endpoint.all}")
     public Mono<Void> deleteAllCategories() {
         return categoryService.deleteAllCategories();
     }

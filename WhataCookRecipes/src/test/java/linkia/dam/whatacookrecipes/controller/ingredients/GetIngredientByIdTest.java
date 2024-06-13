@@ -14,7 +14,7 @@ public class GetIngredientByIdTest extends BaseIngredientsTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         ingredientDto = generateIngredientDto();
-        pathVariable = ingredientsUri + PATH_SLASH_ID;
+        pathVariable = ingredientsUri + PATH_ID;
         valuePathVariable = ingredientDto.getId();
     }
 

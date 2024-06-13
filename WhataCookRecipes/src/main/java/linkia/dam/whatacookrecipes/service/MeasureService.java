@@ -2,7 +2,7 @@ package linkia.dam.whatacookrecipes.service;
 
 import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
-import linkia.dam.whatacookrecipes.service.contracts.MeasureDao;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -18,7 +18,8 @@ public class MeasureService {
         return measureDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with id=" + id)));
     }
-    public Mono<MeasureDto> getMeasureByName(String name) {
+
+    public Mono<MeasureDto> getMeasureByNameIgnoreCase(String name) {
         return measureDao.findByNameIgnoreCase(name)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with name=" + name)));
     }

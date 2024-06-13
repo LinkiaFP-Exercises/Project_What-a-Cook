@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
@@ -21,11 +21,12 @@ import java.util.stream.Stream;
 
 public class RegisterTest extends BaseTestClass {
 
-    @Value("${security.jwt.sign-in-url}")
+    @Value("${app.endpoint.sign-in-url}")
     private String usersRegisterEndpoint;
 
     @BeforeEach
     void setUp() {
+        pathVariable = authEndpoint + usersRegisterEndpoint;
         activationCaptor = ArgumentCaptor.forClass(ActivationDto.class);
         mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         Mockito.when(userDao.existsByEmail(Mockito.anyString())).thenReturn(Mono.just(false));
@@ -37,7 +38,7 @@ public class RegisterTest extends BaseTestClass {
 
     @Test
     void testRegisterIsCreated() {
-        webTestClient.post().uri(usersRegisterEndpoint)
+        webTestClient.post().uri(pathVariable)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBodyFullyFill())
                 .exchange()
@@ -61,7 +62,7 @@ public class RegisterTest extends BaseTestClass {
     @ParameterizedTest
     @MethodSource("provideVariablesForFailRequests")
     void testRegisterIsBadRequest(String requestBody, boolean success, String message, String key) {
-        testFailRequest_400(usersRegisterEndpoint, requestBody, success, message, key);
+        testFailRequest_400(pathVariable, requestBody, success, message, key);
     }
 
     private static Stream<Arguments> provideVariablesForFailRequests() {

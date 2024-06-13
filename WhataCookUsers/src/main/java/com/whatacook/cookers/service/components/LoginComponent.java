@@ -1,5 +1,6 @@
 package com.whatacook.cookers.service.components;
 
+import com.whatacook.cookers.config.jwt.CustomUserDetails;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDTO;
@@ -8,7 +9,6 @@ import com.whatacook.cookers.utilities.Util;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -59,7 +59,8 @@ public class LoginComponent {
 
     private UserDetails newValidUserByEmail(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
-        return new User(userDTO.getEmail() + userDTO.get_id(), userDTO.getPassword(), authorities);
+        authorities.add(new SimpleGrantedAuthority("ROLE_SELF"));
+        return new CustomUserDetails(userDTO.getEmail() + userDTO.get_id(), userDTO.getPassword(), authorities, userDTO.getEmail(), userDTO.get_id());
     }
 
     private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {
@@ -88,7 +89,8 @@ public class LoginComponent {
 
     private UserDetails newValidUserById(UserDTO userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
-        return new User(userDTO.get_id(), userDTO.getPassword(), authorities);
+        authorities.add(new SimpleGrantedAuthority("ROLE_SELF"));
+        return new CustomUserDetails(userDTO.get_id(), userDTO.getPassword(), authorities, userDTO.getEmail(), userDTO.get_id());
     }
 
 }

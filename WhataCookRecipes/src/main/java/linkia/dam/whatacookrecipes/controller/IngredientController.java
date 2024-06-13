@@ -23,19 +23,19 @@ public class IngredientController {
         return ingredientService.getAllCategories(page, size, mode);
     }
 
-    @GetMapping("/searchPaged")
+    @GetMapping("${app.sub-endpoint.by-name}")
     public Mono<Page<IngredientDto>> getCategoriesByNameContaining(@RequestParam String name,
                                                                  @RequestParam(required = false) String mode,
                                                                  @RequestParam int page, @RequestParam int size) {
         return ingredientService.getCategoriesByNameContaining(name, page, size, mode);
     }
 
-    @GetMapping("id/{id}")
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
     public Mono<IngredientDto> getIngredientById(@PathVariable String id) {
         return ingredientService.getIngredientById(id);
     }
 
-    @GetMapping("name/{name}")
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
     public Mono<IngredientDto> getIngredientByName(@PathVariable String name) {
         return ingredientService.getIngredientByName(name);
     }
@@ -45,17 +45,17 @@ public class IngredientController {
         return ingredientService.createIngredient(ingredientDto);
     }
 
-    @PostMapping("/bulk")
+    @PostMapping("${app.sub-endpoint.bulk}")
     public Flux<IngredientDto> createCategories(@RequestBody Flux<IngredientDto> ingredients) {
         return ingredientService.createCategories(ingredients);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
     public Mono<String> deleteIngredientById(@PathVariable String id) {
         return ingredientService.deleteIngredient(id);
     }
 
-    @DeleteMapping("/all")
+    @DeleteMapping("${app.sub-endpoint.all}")
     public Mono<Void> deleteAllCategories() {
         return ingredientService.deleteAllCategories();
     }

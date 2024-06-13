@@ -1,4 +1,4 @@
-package com.whatacook.cookers.controler;
+package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.Role;
@@ -22,6 +22,7 @@ public class ResendActivateTest extends BaseTestClass {
 
     @BeforeEach
     void setUp() {
+        pathVariable = usersEndpoint + usersResendActivationEndpoint;
         userDTO = userDtoBasicPending();
         activationDto = ActivationDto.to(userDTO);
         mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
@@ -35,7 +36,7 @@ public class ResendActivateTest extends BaseTestClass {
     void testResendActivationEmailNotFound() {
         Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(Mono.empty());
 
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResendActivationEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("emailToResend", "invalidMail").build())
                 .exchange()
                 .expectStatus().isOk()
@@ -63,7 +64,7 @@ public class ResendActivateTest extends BaseTestClass {
     }
 
     private void webTestClientForTestResendActivationOk() {
-        webTestClient.get().uri(uriBuilder -> uriBuilder.path(usersResendActivationEndpoint)
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path(pathVariable)
                         .queryParam("emailToResend", userDTO.getEmail()).build())
                 .exchange()
                 .expectStatus().isOk()

@@ -4,7 +4,7 @@ import linkia.dam.whatacookrecipes.controller.BaseConfigurationTest;
 import linkia.dam.whatacookrecipes.controller.MeasureController;
 import linkia.dam.whatacookrecipes.model.MeasureDto;
 import linkia.dam.whatacookrecipes.service.MeasureService;
-import linkia.dam.whatacookrecipes.service.contracts.MeasureDao;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
