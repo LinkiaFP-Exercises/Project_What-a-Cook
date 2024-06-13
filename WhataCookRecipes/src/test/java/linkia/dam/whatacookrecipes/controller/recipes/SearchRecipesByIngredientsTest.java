@@ -22,6 +22,7 @@ public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
         ingredientNames = List.of(ingredientDtoList.getFirst().getName(), ingredientDtoList.get(11).getName());
         size = 10;
 
+
         recipeDtoListFiltered = recipeDtoList.stream()
                 .filter(recipe -> ingredientNames.stream()
                         .allMatch(ingredientName -> recipe.getIngredients().stream()
@@ -39,7 +40,7 @@ public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
     }
 
     private void validateResponse(String mode, List<String> ingredients, RecipeDto expectedFirstRecipe, int numberOfElements) {
-        webTestClient.get()
+        var exchangeResult = webTestClient.get()
                 .uri(uriBuilder -> uriBuilder.path(recipesUri + PATH_ByIngredients)
                         .queryParam("page", page)
                         .queryParam("size", size)
@@ -50,9 +51,15 @@ public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.content").isArray()
-                .jsonPath("$.content.length()").isEqualTo(numberOfElements)
-                .jsonPath("$.content[0].id").isEqualTo(expectedFirstRecipe.getId())
-                .jsonPath("$.content[0].name").isEqualTo(expectedFirstRecipe.getName())
+                .jsonPath("$.content.length()").isEqualTo(numberOfElements);
+
+        if (numberOfElements > 0) {
+            exchangeResult
+                    .jsonPath("$.content[0].id").isEqualTo(expectedFirstRecipe.getId())
+                    .jsonPath("$.content[0].name").isEqualTo(expectedFirstRecipe.getName());
+        }
+
+        exchangeResult
                 .jsonPath("$.pageable.pageNumber").isEqualTo(page)
                 .jsonPath("$.pageable.pageSize").isEqualTo(size)
                 .jsonPath("$.totalElements").isEqualTo(recipeDtoListFiltered.size())
@@ -64,16 +71,20 @@ public class SearchRecipesByIngredientsTest extends BaseRecipesTest {
     @Test
     void getRecipesByIngredientsAsc() {
         page = 0;
-        RecipeDto expectedFirstRecipe = getExpectedRecipeDto(false, recipeDtoListFiltered);
-
+        RecipeDto expectedFirstRecipe = null;
+        if (!recipeDtoListFiltered.isEmpty()) {
+            expectedFirstRecipe = getExpectedRecipeDto(false, recipeDtoListFiltered);
+        }
         validateResponse("", ingredientNames, expectedFirstRecipe, recipeDtoListFiltered.size());
     }
 
     @Test
     void getRecipesByIngredientsDesc() {
         page = 0;
-        RecipeDto expectedFirstRecipe = getExpectedRecipeDto(true, recipeDtoListFiltered);
-
+        RecipeDto expectedFirstRecipe = null;
+        if (!recipeDtoListFiltered.isEmpty()) {
+            expectedFirstRecipe = getExpectedRecipeDto(true, recipeDtoListFiltered);
+        }
         validateResponse("D", ingredientNames, expectedFirstRecipe, recipeDtoListFiltered.size());
     }
 }
