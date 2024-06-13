@@ -11,10 +11,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static com.whatacook.cookers.service.FavoriteService.USER_FAVORITES_RETRIEVED;
+import static com.whatacook.cookers.service.FavoriteService.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -35,18 +38,22 @@ public class FavoriteControllerTest extends BaseTestClass {
     private String removeIngredientEndpoint;
 
     private FavoriteDto favoriteDto;
+    private FavoriteDto favoriteDtoVerify;
     private UserDTO userDTO;
-    private String token;
-    private final String r = "recipe";
-    private final String i = "ingredient";
-    private final List<String> recipes = List.of("recipe1", "recipe2");
-    private final List<String> ingredients = List.of("ingredient1", "ingredient2");
+    private final String recipe = "recipe-X";
+    private final String ingredient = "ingredient-x";
+    private final List<String> recipes = new ArrayList<>(List.of("recipe1", "recipe2"));
+    private final List<String> ingredients = new ArrayList<>(List.of("ingredient1", "ingredient2"));
 
     @BeforeEach
     void setUp() {
         userDTO = userDtoBasicOk();
         favoriteDto = generateFavoriteDto();
+        favoriteDtoVerify = generateFavoriteDto();
+        when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDTO));
         when(favoriteDao.findById(ID)).thenReturn(Mono.just(favoriteDto));
+        when(favoriteDao.save(any(FavoriteDto.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArguments()[0]));
     }
 
     @Test
@@ -64,11 +71,83 @@ public class FavoriteControllerTest extends BaseTestClass {
     }
 
     @Test
+    void testAddFavoriteRecipeByID() {
+
+        favoriteDtoVerify.getRecipes().add(recipe);
+        pathVariable = favoritesEndpoint + addRecipeEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
+                RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testAddFavoriteRecipeEmail() {
+
+        favoriteDtoVerify.getRecipes().add(recipe);
+        pathVariable = favoritesEndpoint + addRecipeEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
+                RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testRemoveFavoriteRecipeByID() {
+
+        favoriteDto.getRecipes().add(recipe);
+        pathVariable = favoritesEndpoint + removeRecipeEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
+                RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testRemoveFavoriteRecipeEmail() {
+
+        favoriteDto.getRecipes().add(recipe);
+        pathVariable = favoritesEndpoint + removeRecipeEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
+                RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testAddFavoriteIngredientByID() {
+
+        favoriteDtoVerify.getIngredients().add(ingredient);
+        pathVariable = favoritesEndpoint + addIngredientEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
+                INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testAddFavoriteIngredientEmail() {
+
+        favoriteDtoVerify.getIngredients().add(ingredient);
+        pathVariable = favoritesEndpoint + addIngredientEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
+                INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testRemoveFavoriteIngredientByID() {
+
+        favoriteDto.getIngredients().add(ingredient);
+        pathVariable = favoritesEndpoint + removeIngredientEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
+                INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
+    void testRemoveFavoriteIngredientEmail() {
+        
+        favoriteDto.getIngredients().add(ingredient);
+        pathVariable = favoritesEndpoint + removeIngredientEndpoint;
+        baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
+                INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+    }
+
+    @Test
     void testFailGetFavoritesByID() {
         String invalidId = "invalid-id";
         userDTO.set_id(invalidId);
         when(userDao.findBy_id(anyString())).thenReturn(Mono.just(userDTO));
-        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidId), requestFavorite(), UN_AUTH_MESSAGE);
+        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidId), requestFavorite());
     }
 
 
@@ -79,7 +158,7 @@ public class FavoriteControllerTest extends BaseTestClass {
         userDTO.set_id(invalidId);
         userDTO.setEmail(invalidEmail);
         when(userDao.findByEmail(anyString())).thenReturn(Mono.just(userDTO));
-        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidEmail), requestFavorite(), UN_AUTH_MESSAGE);
+        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidEmail), requestFavorite());
     }
 
 
@@ -95,7 +174,7 @@ public class FavoriteControllerTest extends BaseTestClass {
                 .expectBody()
                 .consumeWith(response -> {
                     // Convert the response body to a string and print it
-                    String receivedBody = new String(response.getResponseBody());
+                    String receivedBody = new String(Objects.requireNonNull(response.getResponseBody()));
                     System.out.println(receivedBody);
                 })
                 .jsonPath("$.success").isEqualTo(true)
@@ -113,7 +192,7 @@ public class FavoriteControllerTest extends BaseTestClass {
                 });
     }
 
-    void baseTestFavoritesFail(String path, String token, String body, String message) {
+    void baseTestFavoritesFail(String path, String token, String body) {
         webTestClient.post().uri(path)
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -123,12 +202,12 @@ public class FavoriteControllerTest extends BaseTestClass {
                 .expectBody()
                 .consumeWith(response -> {
                     // Convert the response body to a string and print it
-                    String receivedBody = new String(response.getResponseBody());
+                    String receivedBody = new String(Objects.requireNonNull(response.getResponseBody()));
                     System.out.println(receivedBody);
                 })
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").value(text ->
-                        Assertions.assertThat(text).asString().contains(message));
+                        Assertions.assertThat(text).asString().contains(BaseTestClass.UN_AUTH_MESSAGE));
 
     }
 
@@ -144,14 +223,15 @@ public class FavoriteControllerTest extends BaseTestClass {
         return "{ \"userId\": \"" + ID + "\" }";
     }
 
-    private static String requestFavoriteRecipe(String userId, String recipeId) {
-        return "{ \"userId\": \"" + userId + "\" " +
-                "{ \"recipeId\": \"" + recipeId + "\" }";
+    private static String requestFavoriteRecipe() {
+        return "{ \"userId\": \"" + ID + "\", " +
+                "\"recipeId\": \"" + "recipe-X" + "\" }";
     }
 
-    private static String requestFavoriteIngredient(String userId, String ingredientId) {
-        return "{ \"userId\": \"" + userId + "\" " +
-                "{ \"ingredientId\": \"" + ingredientId + "\" }";
+    private static String requestFavoriteIngredient() {
+        return "{ \"userId\": \"" + ID + "\", " +
+                "\"ingredientId\": \"" + "ingredient-x" + "\" }";
     }
+
 
 }
