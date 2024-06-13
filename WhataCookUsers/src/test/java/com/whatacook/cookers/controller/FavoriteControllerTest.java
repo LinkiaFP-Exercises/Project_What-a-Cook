@@ -6,6 +6,7 @@ import com.whatacook.cookers.service.contracts.FavoriteDao;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -50,6 +51,8 @@ public class FavoriteControllerTest extends BaseTestClass {
         userDTO = userDtoBasicOk();
         favoriteDto = generateFavoriteDto();
         favoriteDtoVerify = generateFavoriteDto();
+        // Crear un spy para favoriteDto
+        favoriteDto = Mockito.spy(favoriteDto);
         when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDTO));
         when(favoriteDao.findById(ID)).thenReturn(Mono.just(favoriteDto));
         when(favoriteDao.save(any(FavoriteDto.class)))
@@ -72,75 +75,92 @@ public class FavoriteControllerTest extends BaseTestClass {
 
     @Test
     void testAddFavoriteRecipeByID() {
-
         favoriteDtoVerify.getRecipes().add(recipe);
         pathVariable = favoritesEndpoint + addRecipeEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
                 RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método addRecipe fue llamado
+        Mockito.verify(favoriteDto).addRecipe(recipe);
     }
 
     @Test
     void testAddFavoriteRecipeEmail() {
-
         favoriteDtoVerify.getRecipes().add(recipe);
         pathVariable = favoritesEndpoint + addRecipeEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
                 RECIPE_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método addRecipe fue llamado
+        Mockito.verify(favoriteDto).addRecipe(recipe);
     }
 
     @Test
     void testRemoveFavoriteRecipeByID() {
-
         favoriteDto.getRecipes().add(recipe);
         pathVariable = favoritesEndpoint + removeRecipeEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
                 RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método removeRecipe fue llamado
+        Mockito.verify(favoriteDto).removeRecipe(recipe);
     }
 
     @Test
     void testRemoveFavoriteRecipeEmail() {
-
         favoriteDto.getRecipes().add(recipe);
         pathVariable = favoritesEndpoint + removeRecipeEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteRecipe(),
                 RECIPE_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método removeRecipe fue llamado
+        Mockito.verify(favoriteDto).removeRecipe(recipe);
     }
 
     @Test
     void testAddFavoriteIngredientByID() {
-
         favoriteDtoVerify.getIngredients().add(ingredient);
         pathVariable = favoritesEndpoint + addIngredientEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
                 INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método addIngredient fue llamado
+        Mockito.verify(favoriteDto).addIngredient(ingredient);
     }
 
     @Test
     void testAddFavoriteIngredientEmail() {
-
         favoriteDtoVerify.getIngredients().add(ingredient);
         pathVariable = favoritesEndpoint + addIngredientEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
                 INGREDIENT_SUCCESSFULLY_ADDED_TO_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método addIngredient fue llamado
+        Mockito.verify(favoriteDto).addIngredient(ingredient);
     }
 
     @Test
     void testRemoveFavoriteIngredientByID() {
-
         favoriteDto.getIngredients().add(ingredient);
         pathVariable = favoritesEndpoint + removeIngredientEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
                 INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método removeIngredient fue llamado
+        Mockito.verify(favoriteDto).removeIngredient(ingredient);
     }
 
     @Test
     void testRemoveFavoriteIngredientEmail() {
-        
         favoriteDto.getIngredients().add(ingredient);
         pathVariable = favoritesEndpoint + removeIngredientEndpoint;
         baseTestFavoritesOK(pathVariable, tokenUserOk(), requestFavoriteIngredient(),
                 INGREDIENT_SUCCESSFULLY_REMOVED_FROM_FAVORITES, favoriteDtoVerify);
+
+        // Verificar que el método removeIngredient fue llamado
+        Mockito.verify(favoriteDto).removeIngredient(ingredient);
     }
+
 
     @Test
     void testFailGetFavoritesByID() {
