@@ -17,7 +17,7 @@ public class DeleteCategoryByIdTest extends BaseCategoriesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         categoryDto = generateCategoryDto();
-        pathVariable = categoriesUri + PATH_ID;
+        pathVariable = categoriesUri + PATH_VARIABLE_ID;
         valuePathVariable = categoryDto.getId();
     }
 

@@ -30,7 +30,7 @@ public class GetCategoriesByNameContainingTest extends BaseCategoriesTest {
 
     private void validateResponse(String mode, String name, CategoryDto expectedFirstCategory, int numberOfElements) {
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(categoriesUri + "/searchPaged")
+                .uri(uriBuilder -> uriBuilder.path(categoriesUri + PATH_ByName)
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .queryParam("mode", mode)

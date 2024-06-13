@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 public class GetRecipesByNameContainingTest extends BaseRecipesTest {
 
+
     public List<RecipeDto> recipeDtoListFiltered;
 
     @BeforeEach
@@ -30,7 +31,7 @@ public class GetRecipesByNameContainingTest extends BaseRecipesTest {
 
     private void validateResponse(String mode, String name, RecipeDto expectedFirstRecipe, int numberOfElements) {
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(recipesUri + "/searchPaged")
+                .uri(uriBuilder -> uriBuilder.path(recipesUri + PATH_ByName)
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .queryParam("mode", mode)

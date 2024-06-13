@@ -49,6 +49,8 @@ public class CreateRecipesTest {
 
     @Value("${app.endpoint.recipes}")
     protected String recipesUri;
+    @Value("${app.sub-endpoint.bulk}")
+    protected String PATH_Bulk;
 
     private Flux<RecipeDto> recipeDtoFlux;
     private final List<RecipeDto> recipeDtoList = generateRecipeDtoListStatic();
@@ -94,7 +96,7 @@ public class CreateRecipesTest {
 
     private void testCreateRecipes() {
         webTestClient.post()
-                .uri(recipesUri + "/bulk")
+                .uri(recipesUri + PATH_Bulk)
                 .body(recipeDtoFlux, RecipeDto.class)
                 .exchange()
                 .expectStatus().isOk()

@@ -2,6 +2,7 @@ package linkia.dam.whatacookrecipes.controller;
 
 import linkia.dam.whatacookrecipes.model.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -14,12 +15,26 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @ExtendWith(SpringExtension.class)
 public class BaseConfigurationTest {
 
-    protected final String DELETED = "deleted";
-    protected final String PATH_SLASH_ID = "/id/{id}";
-    protected final String PATH_ID = "/{id}";
-    protected final String PATH_NAME = "/name/{name}";
-    protected String pathVariable, valuePathVariable, name;
-    protected int page, size, amount = 36;
+    @Value("${app.sub-endpoint.id.path-variable-id}")
+    protected String PATH_ID;
+    @Value("${app.sub-endpoint.name.path-variable-name}")
+    protected String PATH_NAME;
+    @Value("${app.sub-endpoint.path-variable-id}")
+    protected String PATH_VARIABLE_ID;
+    @Value("${app.sub-endpoint.by-name}")
+    protected String PATH_ByName;
+    @Value("${app.sub-endpoint.by-ingredients}")
+    protected String PATH_ByIngredients;
+    @Value("${app.sub-endpoint.by-all-ingredients}")
+    protected String PATH_ByAllIngredients;
+    @Value("${app.sub-endpoint.bulk}")
+    protected String PATH_Bulk;
+    @Value("${app.sub-endpoint.all}")
+    protected String PATH_All;
+
+    protected static String pathVariable, valuePathVariable, name;
+    protected static int page, size, amount = 36;
+    protected static final String DELETED = "deleted";
     public final List<IngredientDto> ingredientDtoList = generateIngredientDtoList();
 
     public final  List<IngredientDto> generateIngredientDtoList() {
@@ -106,4 +121,5 @@ public class BaseConfigurationTest {
                 .exchange()
                 .expectStatus().isNotFound();
     }
+
 }

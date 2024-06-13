@@ -14,7 +14,7 @@ public class GetCategoryByIdTest extends BaseCategoriesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         categoryDto = generateCategoryDto();
-        pathVariable = categoriesUri + PATH_SLASH_ID;
+        pathVariable = categoriesUri + PATH_ID;
         valuePathVariable = categoryDto.getId();
     }
 

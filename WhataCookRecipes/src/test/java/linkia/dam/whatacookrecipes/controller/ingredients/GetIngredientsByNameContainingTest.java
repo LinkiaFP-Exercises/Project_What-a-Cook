@@ -30,7 +30,7 @@ public class GetIngredientsByNameContainingTest extends BaseIngredientsTest {
 
     private void validateResponse(String mode, String name, IngredientDto expectedFirstIngredient, int numberOfElements) {
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path(ingredientsUri + "/searchPaged")
+                .uri(uriBuilder -> uriBuilder.path(ingredientsUri + PATH_ByName)
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .queryParam("mode", mode)

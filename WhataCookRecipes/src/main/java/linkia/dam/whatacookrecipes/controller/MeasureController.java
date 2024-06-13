@@ -16,12 +16,12 @@ public class MeasureController {
     
     private final MeasureService measureService;
 
-    @GetMapping("id/{id}")
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
     public Mono<MeasureDto> getMeasureById(@PathVariable String id) {
         return measureService.getMeasureById(id);
     }
 
-    @GetMapping("name/{name}")
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
     public Mono<MeasureDto> getMeasureByName(@PathVariable String name) {
         return measureService.getMeasureByNameIgnoreCase(name);
     }
@@ -31,17 +31,17 @@ public class MeasureController {
         return measureService.createMeasure(categoryDto);
     }
 
-    @PostMapping("/bulk")
+    @PostMapping("${app.sub-endpoint.bulk}")
     public Flux<MeasureDto> createMeasures(@RequestBody Flux<MeasureDto> categories) {
         return measureService.createMeasures(categories);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
     public Mono<String> deleteMeasureById(@PathVariable String id) {
         return measureService.deleteMeasure(id);
     }
 
-    @DeleteMapping("/all")
+    @DeleteMapping("${app.sub-endpoint.all}")
     public Mono<Void> deleteAllMeasures() {
         return measureService.deleteAllMeasures();
     }

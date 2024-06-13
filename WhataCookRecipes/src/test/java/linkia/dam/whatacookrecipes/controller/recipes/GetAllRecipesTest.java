@@ -14,6 +14,7 @@ public class GetAllRecipesTest extends BaseRecipesTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         size = 10;
+        amount = recipeDtoList.size();
         when(recipeDao.findAll()).thenReturn(Flux.fromIterable(recipeDtoList));
     }
 

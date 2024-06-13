@@ -42,6 +42,8 @@ public class CreateIngredientsTest {
     private MeasureDao measureDao;
     @Value("${app.endpoint.ingredients}")
     protected String ingredientsUri;
+    @Value("${app.sub-endpoint.bulk}")
+    protected String PATH_Bulk;
 
     protected IngredientDto ingredientDto;
 
@@ -94,7 +96,7 @@ public class CreateIngredientsTest {
 
     private void testCreateIngredients() {
         webTestClient.post()
-                .uri(ingredientsUri + "/bulk")
+                .uri(ingredientsUri + PATH_Bulk)
                 .body(ingredientDtoFlux, IngredientDto.class)
                 .exchange()
                 .expectStatus().isOk()

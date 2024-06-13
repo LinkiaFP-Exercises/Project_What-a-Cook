@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @AllArgsConstructor
 @Service
 @Slf4j
@@ -28,6 +30,16 @@ public class RecipeService {
 
     public Mono<Page<RecipeDto>> getRecipesByNameContaining(String name, int page, int size, String mode) {
         return recipeDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    public Mono<Page<RecipeDto>> findRecipesByIngredients(List<String> ingredientNames, int page, int size, String mode) {
+        return recipeDao.findByIngredientsNameIn(ingredientNames).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    public Mono<Page<RecipeDto>> findRecipesByAllIngredients(List<String> ingredientNames, int page, int size, String mode) {
+        return recipeDao.findByAllIngredientsNameIn(ingredientNames).collectList()
                 .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
     }
 
