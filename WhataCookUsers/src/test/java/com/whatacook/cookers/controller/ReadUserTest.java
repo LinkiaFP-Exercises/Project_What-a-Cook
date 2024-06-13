@@ -55,10 +55,9 @@ public class ReadUserTest extends BaseTestClass {
 
     @Test
     void testReadUserByOtherUser() {
-        final String unAuthMessage = "No tienes permiso para acceder a esta información";
         String emailTest = "other@email.com";
         Mockito.when(userDao.findByEmail(emailTest)).thenReturn(Mono.just(userDtoOtherOk(emailTest)));
-        testPost401EndpointWithTokenSuccessFalseMessageContains(pathVariable, tokenOtherUserOk(emailTest), requestBodyOnlyMail(EMAIL), unAuthMessage);
+        testPost401EndpointWithTokenSuccessFalseMessageContains(pathVariable, tokenOtherUserOk(emailTest), requestBodyOnlyMail(EMAIL), UN_AUTH_MESSAGE);
     }
 
     @Test

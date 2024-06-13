@@ -3,6 +3,7 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.model.favorites.FavoriteDto;
 import com.whatacook.cookers.model.users.UserDTO;
 import com.whatacook.cookers.service.contracts.FavoriteDao;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,48 +37,100 @@ public class FavoriteControllerTest extends BaseTestClass {
     private FavoriteDto favoriteDto;
     private UserDTO userDTO;
     private String token;
-    private List<String> recipes = List.of("recipe1", "recipe2");
-    private List<String> ingredients = List.of("ingredient1", "ingredient2");
+    private final String r = "recipe";
+    private final String i = "ingredient";
+    private final List<String> recipes = List.of("recipe1", "recipe2");
+    private final List<String> ingredients = List.of("ingredient1", "ingredient2");
 
     @BeforeEach
     void setUp() {
         userDTO = userDtoBasicOk();
         favoriteDto = generateFavoriteDto();
-        when(userDao.findBy_id(ID)).thenReturn(Mono.just(userDTO));
-        when(favoriteDao.findById(anyString())).thenReturn(Mono.just(favoriteDto));
+        when(favoriteDao.findById(ID)).thenReturn(Mono.just(favoriteDto));
     }
 
     @Test
-    void testGetFavorites() {
-        webTestClient.post().uri(favoritesEndpoint)
-                .header("Authorization", tokenUserOk(userDTO.get_id()))
+    void testGetFavoritesByID() {
+        when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDTO));
+        baseTestFavoritesOK(favoritesEndpoint, tokenUserOk(), requestFavorite(),
+                USER_FAVORITES_RETRIEVED, favoriteDto);
+    }
+
+    @Test
+    void testGetFavoritesByEmail() {
+        when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDTO));
+        baseTestFavoritesOK(favoritesEndpoint, tokenUserOk(), requestFavorite(),
+                USER_FAVORITES_RETRIEVED, favoriteDto);
+    }
+
+    @Test
+    void testFailGetFavoritesByID() {
+        String invalidId = "invalid-id";
+        userDTO.set_id(invalidId);
+        when(userDao.findBy_id(anyString())).thenReturn(Mono.just(userDTO));
+        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidId), requestFavorite(), UN_AUTH_MESSAGE);
+    }
+
+
+    @Test
+    void testFailGetFavoritesByEmail() {
+        String invalidEmail = "invalid@email.com";
+        String invalidId = "invalid-id";
+        userDTO.set_id(invalidId);
+        userDTO.setEmail(invalidEmail);
+        when(userDao.findByEmail(anyString())).thenReturn(Mono.just(userDTO));
+        baseTestFavoritesFail(favoritesEndpoint, tokenOtherUserOk(invalidEmail), requestFavorite(), UN_AUTH_MESSAGE);
+    }
+
+
+
+    @SuppressWarnings("unchecked")
+    void baseTestFavoritesOK(String path, String token, String body, String msg, FavoriteDto favoriteDto) {
+        webTestClient.post().uri(path)
+                .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestFavorite())
+                .bodyValue(body)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
                 .consumeWith(response -> {
                     // Convert the response body to a string and print it
-                    String body = new String(response.getResponseBody());
-                    System.out.println();
-                    System.out.println(body);
-                    System.out.println();
+                    String receivedBody = new String(response.getResponseBody());
+                    System.out.println(receivedBody);
                 })
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo(USER_FAVORITES_RETRIEVED)
-                .jsonPath("$.content.id").isEqualTo(userDTO.get_id())
+                .jsonPath("$.message").isEqualTo(msg)
+                .jsonPath("$.content.id").isEqualTo(favoriteDto.getId())
                 .jsonPath("$.content.recipes").value(recipesList -> {
                     assertThat(recipesList).isInstanceOf(List.class);
                     List<String> recipes = (List<String>) recipesList;
-                    assertThat(recipes).containsAll(this.recipes);
+                    assertThat(recipes).containsAll(favoriteDto.getRecipes());
                 })
                 .jsonPath("$.content.ingredients").value(ingredientsList -> {
                     assertThat(ingredientsList).isInstanceOf(List.class);
                     List<String> ingredients = (List<String>) ingredientsList;
-                    assertThat(ingredients).containsAll(this.ingredients);
+                    assertThat(ingredients).containsAll(favoriteDto.getIngredients());
                 });
     }
 
+    void baseTestFavoritesFail(String path, String token, String body, String message) {
+        webTestClient.post().uri(path)
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .exchange()
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .consumeWith(response -> {
+                    // Convert the response body to a string and print it
+                    String receivedBody = new String(response.getResponseBody());
+                    System.out.println(receivedBody);
+                })
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").value(text ->
+                        Assertions.assertThat(text).asString().contains(message));
+
+    }
 
     private FavoriteDto generateFavoriteDto() {
         FavoriteDto favoriteDto = new FavoriteDto();
@@ -91,31 +144,6 @@ public class FavoriteControllerTest extends BaseTestClass {
         return "{ \"userId\": \"" + ID + "\" }";
     }
 
-    void baseTestFavorites_Ok(String path, String token, String body, boolean success, String msg) {
-        webTestClient.post().uri(path)
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(body)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.success").isEqualTo(success)
-                .jsonPath("$.message").isEqualTo(msg)
-                .jsonPath("$.content.userId").isEqualTo(userDTO.get_id())
-                .jsonPath("$.content.recipes").value(recipesList -> {
-                    assertThat(recipesList).isInstanceOf(List.class);
-                    List<String> recipes = (List<String>) recipesList;
-                    assertThat(recipes).containsAll(this.recipes);
-                })
-                .jsonPath("$.content.ingredients").value(ingredientsList -> {
-                    assertThat(ingredientsList).isInstanceOf(List.class);
-                    List<String> ingredients = (List<String>) ingredientsList;
-                    assertThat(ingredients).containsAll(this.ingredients);
-                });
-    }
-
-
-
     private static String requestFavoriteRecipe(String userId, String recipeId) {
         return "{ \"userId\": \"" + userId + "\" " +
                 "{ \"recipeId\": \"" + recipeId + "\" }";
@@ -125,6 +153,5 @@ public class FavoriteControllerTest extends BaseTestClass {
         return "{ \"userId\": \"" + userId + "\" " +
                 "{ \"ingredientId\": \"" + ingredientId + "\" }";
     }
-
 
 }

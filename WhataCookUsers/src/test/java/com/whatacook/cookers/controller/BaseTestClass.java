@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class BaseTestClass {
 
+    public static final String UN_AUTH_MESSAGE = "No tienes permiso para acceder a esta información.";
     private static final Logger log = LoggerFactory.getLogger(BaseTestClass.class);
     @Autowired
     protected WebTestClient webTestClient;
