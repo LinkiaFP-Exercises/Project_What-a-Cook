@@ -94,9 +94,9 @@ public class BaseConfigurationTest {
         sortedList.sort((a, b) -> desc ? b.getName().compareTo(a.getName()) : a.getName().compareTo(b.getName()));
 
         int startIndex = page * size;
-        if (startIndex >= sortedList.size()) {
-            throw new IndexOutOfBoundsException("Start index is out of bounds");
-        }
+//        if (startIndex >= sortedList.size() || startIndex < 0) {
+//            throw new IndexOutOfBoundsException("Start index is out of bounds");
+//        }
 
         return sortedList.get(startIndex);
     }

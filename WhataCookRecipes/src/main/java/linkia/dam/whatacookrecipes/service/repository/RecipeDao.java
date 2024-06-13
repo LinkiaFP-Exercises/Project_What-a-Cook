@@ -16,6 +16,7 @@ public interface RecipeDao extends ReactiveMongoRepository<RecipeDto, String> {
 
     Mono<RecipeDto> findByNameIgnoreCase(String name);
 
+    @Query("{'ingredients.name': { $in: ?0 }}")
     Flux<RecipeDto> findByIngredientsNameIn(List<String> ingredientNames);
 
     @Query("{'ingredients.name': { $all: ?0 }}")
