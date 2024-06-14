@@ -33,7 +33,7 @@ import java.util.Map;
  * - deleteIngredientById(String id): Deletes an ingredient by its ID.
  * - deleteAllCategories(): Deletes all ingredients.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see IngredientService
  */
 @AllArgsConstructor

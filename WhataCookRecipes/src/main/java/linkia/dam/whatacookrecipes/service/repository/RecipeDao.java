@@ -23,7 +23,7 @@ import java.util.List;
  * - @Repository: Indicates that this interface is a Spring Data Repository.
  * - @Query: Custom query for finding recipes by ingredient names.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see ReactiveMongoRepository
  */
 @Repository

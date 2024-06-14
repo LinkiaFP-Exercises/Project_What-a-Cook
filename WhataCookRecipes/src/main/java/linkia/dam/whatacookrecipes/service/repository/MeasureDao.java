@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  * Annotations:
  * - @Repository: Indicates that this interface is a Spring Data Repository.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see ReactiveMongoRepository
  */
 @Repository

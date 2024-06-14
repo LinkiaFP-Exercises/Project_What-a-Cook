@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * - id: The unique identifier of the measure.
  * - name: The name of the measure, which is mandatory.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see NamedEntity
  */
 @NoArgsConstructor

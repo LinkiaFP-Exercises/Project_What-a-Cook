@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
  * - deleteCategoryById(String id): Deletes a category by its ID.
  * - deleteAllCategories(): Deletes all categories.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see CategoryService
  */
 @AllArgsConstructor

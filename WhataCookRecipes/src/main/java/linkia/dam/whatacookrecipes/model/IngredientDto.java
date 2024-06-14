@@ -28,7 +28,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @param name     The name of the ingredient, which is mandatory.
  * @param quantity The quantity of the ingredient.
  * @param measure  The measure associated with the ingredient.
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see NamedEntity
  */
 @NoArgsConstructor

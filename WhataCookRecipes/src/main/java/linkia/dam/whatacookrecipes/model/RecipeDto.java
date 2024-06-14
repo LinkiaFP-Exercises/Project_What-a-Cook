@@ -33,7 +33,7 @@ import java.util.List;
  * - RecipeDto(List<IngredientDto> ingredients, List<CategoryDto> categories, String preparation, int portion): Constructs
  * a RecipeDto with specified ingredients, categories, preparation, and portion.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see NamedEntity
  */
 @NoArgsConstructor

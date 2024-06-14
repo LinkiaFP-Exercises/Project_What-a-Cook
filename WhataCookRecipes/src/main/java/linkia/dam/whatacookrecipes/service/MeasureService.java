@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
  * - deleteMeasure(String id): Deletes a measure by its ID.
  * - deleteAllMeasures(): Deletes all measures.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see MeasureDao
  */
 @AllArgsConstructor

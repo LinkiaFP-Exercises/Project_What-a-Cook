@@ -23,7 +23,7 @@ import static linkia.dam.whatacookrecipes.utilities.ServiceUtil.getSortByName;
  * - createPagedResult(List<T> items, int page, int size, String mode): Creates a paged result from a list of items.
  * - getComparator(String mode): Returns a comparator for sorting items based on the mode.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  */
 @Log4j2
 public class PaginationUtil {

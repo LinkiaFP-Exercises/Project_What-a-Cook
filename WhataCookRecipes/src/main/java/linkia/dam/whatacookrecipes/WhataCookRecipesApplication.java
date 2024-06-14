@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Methods:
  * - main(String[] args): The main method that runs the Spring Boot application.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  */
 @SpringBootApplication
 public class WhataCookRecipesApplication {

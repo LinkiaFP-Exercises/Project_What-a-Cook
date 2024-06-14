@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 /**
  * Configuration class for setting up MongoDB with reactive support.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  */
 @Configuration
 @EnableReactiveMongoRepositories(basePackages = "linkia.dam.whatacookrecipes")

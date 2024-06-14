@@ -14,7 +14,7 @@ import org.springframework.data.domain.Sort;
  * - getSortByName(String mode): Returns a {@link Sort} object for sorting by name based on the mode.
  * - isNotNullAndStartWithD(String mode): Checks if the mode string is not null and starts with "d".
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  */
 @UtilityClass
 public class ServiceUtil {

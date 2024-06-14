@@ -38,7 +38,7 @@ import java.util.Map;
  * - deleteRecipe(String id): Deletes a recipe by its ID.
  * - deleteAllRecipes(): Deletes all recipes.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see RecipeDao
  * @see CreateRecipesComponent
  * @see PaginationUtil

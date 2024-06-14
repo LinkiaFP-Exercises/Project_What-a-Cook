@@ -28,7 +28,7 @@ import java.time.Duration;
  * - isDuplicateKeyException(Throwable throwable): Checks if the given throwable is a duplicate key error.
  * - getWarned(String ingredientName, Retry.RetrySignal retrySignal): Logs a warning message before retrying due to duplicate key error.
  *
- * @Author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  * @see IngredientDao
  * @see MeasureDao
  */
