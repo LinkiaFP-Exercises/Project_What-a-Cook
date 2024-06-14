@@ -1,0 +1,16 @@
+com.whatacook.cookers
+com.whatacook.cookers.config
+com.whatacook.cookers.config.filter
+com.whatacook.cookers.config.filter.implement
+com.whatacook.cookers.config.jwt
+com.whatacook.cookers.controller
+com.whatacook.cookers.model.auth
+com.whatacook.cookers.model.constants
+com.whatacook.cookers.model.exceptions
+com.whatacook.cookers.model.favorites
+com.whatacook.cookers.model.responses
+com.whatacook.cookers.model.users
+com.whatacook.cookers.service
+com.whatacook.cookers.service.components
+com.whatacook.cookers.service.contracts
+com.whatacook.cookers.utilities
