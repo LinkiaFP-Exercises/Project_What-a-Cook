@@ -1,7 +1,7 @@
 package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.favorites.FavoriteDto;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.service.contracts.FavoriteDao;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ public class FavoriteControllerTest extends BaseTestClass {
 
     private FavoriteDto favoriteDto;
     private FavoriteDto favoriteDtoVerify;
-    private UserDTO userDTO;
+    private UserDto userDTO;
     private final String recipe = "recipe-X";
     private final String ingredient = "ingredient-x";
     private final List<String> recipes = new ArrayList<>(List.of("recipe1", "recipe2"));

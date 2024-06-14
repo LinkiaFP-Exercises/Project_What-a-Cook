@@ -2,7 +2,7 @@ package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -18,17 +18,17 @@ public class DeleteTest extends BaseTestClass {
     @Value("${app.endpoint.users}")
     private String deleteOneEndpoint;
 
-    private ArgumentCaptor<UserDTO> argumentCaptor;
-    private static UserDTO userDTO = userDtoBasicOk();
+    private ArgumentCaptor<UserDto> argumentCaptor;
+    private static UserDto userDTO = userDtoBasicOk();
 
     @BeforeEach
     void setUp() {
-        argumentCaptor = ArgumentCaptor.forClass(UserDTO.class);
+        argumentCaptor = ArgumentCaptor.forClass(UserDto.class);
         Mockito.when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDTO));
         Mockito.when(userDao.findBy_id(ID)).thenReturn(Mono.just(userDTO));
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArguments()[0]));
-        Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
+        Mockito.when(userDao.delete(Mockito.any(UserDto.class))).thenReturn(Mono.empty());
     }
 
     @Test

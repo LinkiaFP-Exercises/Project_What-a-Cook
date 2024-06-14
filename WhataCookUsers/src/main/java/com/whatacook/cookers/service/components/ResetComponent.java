@@ -4,7 +4,7 @@ import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.ResetService;
 import com.whatacook.cookers.service.contracts.UserDao;
@@ -77,7 +77,7 @@ public class ResetComponent {
                 .onErrorResume(this::buildHtmlFailSetNewPassword);
     }
 
-    private Mono<String> buildHtmlSuccessSetNewPassword(UserDTO userDTO) {
+    private Mono<String> buildHtmlSuccessSetNewPassword(UserDto userDTO) {
         return resetService.deleteById(userDTO.get_id())
                 .then(Mono.fromCallable(() -> Htmls.SuccessSetNewPassword.get()
                         .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())

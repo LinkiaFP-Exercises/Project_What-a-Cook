@@ -1,8 +1,7 @@
 package com.whatacook.cookers.service;
 
-import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.auth.ResetDto;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.service.contracts.ResetDao;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,7 @@ public class ResetService {
 
     private final ResetDao DAO;
 
-    public Mono<ResetDto> createNew(UserDTO userDTO) {return DAO.save(ResetDto.to(userDTO));}
+    public Mono<ResetDto> createNew(UserDto userDTO) {return DAO.save(ResetDto.to(userDTO));}
 
     public Mono<ResetDto> findById(String id) {
         return DAO.findById(id);

@@ -3,7 +3,7 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.utilities.Util;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ public class SetNewPasswordTest extends BaseTestClass {
     private String usersSetNewPasswordEndpoint;
     private String htmlToTest;
     private ResetDto resetDto;
-    private UserDTO userDTO;
+    private UserDto userDTO;
     private String newPassword;
     private String body;
 
@@ -138,9 +138,9 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("USER_NAME", userDTO.getFirstName());
 
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        ArgumentCaptor<UserDTO> userDtoCaptor = ArgumentCaptor.forClass(UserDTO.class);
+        ArgumentCaptor<UserDto> userDtoCaptor = ArgumentCaptor.forClass(UserDto.class);
 
         Mockito.when(resetDao.deleteById(Mockito.anyString())).thenReturn(Mono.empty());
 
@@ -154,7 +154,7 @@ public class SetNewPasswordTest extends BaseTestClass {
                 .value(html -> assertEquals(htmlToTest, html));
 
         Mockito.verify(userDao, Mockito.times(1)).save(userDtoCaptor.capture());
-        UserDTO userDtoCaptured = userDtoCaptor.getValue();
+        UserDto userDtoCaptured = userDtoCaptor.getValue();
         Mockito.verify(resetDao, Mockito.times(1)).deleteById(Mockito.anyString());
         assertTrue(Util.encryptMatches(newPassword, userDtoCaptured.getPassword()));
     }

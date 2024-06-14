@@ -41,7 +41,7 @@ public class UserJson {
     private String accountStatusMsg;
     private LocalDateTime requestDeleteDate;
 
-    public UserJson(UserDTO userDTO) {
+    public UserJson(UserDto userDTO) {
 
         if (userDTO.get_id() != null)
             this._id = userDTO.get_id();
@@ -58,6 +58,6 @@ public class UserJson {
 
     public UserJson(String id) { _id = id; }
 
-    public static UserJson from(UserDTO userDTO) { return new UserJson(userDTO); }
+    public static UserJson from(UserDto userDTO) { return new UserJson(userDTO); }
 
 }

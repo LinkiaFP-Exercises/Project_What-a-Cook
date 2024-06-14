@@ -1,7 +1,7 @@
 package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.model.users.UserJustToSave;
 import com.whatacook.cookers.service.EmailService;
@@ -65,7 +65,7 @@ public class SaveComponent {
                         : Mono.just(userJustToSave));
     }
 
-    private Mono<UserDTO> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
+    private Mono<UserDto> saveUserByJtsReturnDto(UserJustToSave userJustToSave) {
         return Mono.just(userJustToSave)
                 .flatMap(user -> {
                     user.setFirstName(TitleCase(user.getFirstName()));

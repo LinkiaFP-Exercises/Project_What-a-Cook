@@ -3,7 +3,7 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.GlobalValues;
 import com.whatacook.cookers.service.ActivationService;
@@ -52,7 +52,7 @@ public class ActivateComponent {
                 .onErrorResume(this::buildHtmlFailAccountActivatedContent);
     }
 
-    private String buildHtmlOkAccountActivatedContent(UserDTO userDTO) {
+    private String buildHtmlOkAccountActivatedContent(UserDto userDTO) {
         return Htmls.SuccessActivation.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
                 .replace("USER_NAME", userDTO.getFirstName());

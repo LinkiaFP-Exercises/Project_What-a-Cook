@@ -1,7 +1,7 @@
 package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,15 +25,15 @@ public class UpdateUserTest extends BaseTestClass {
     @Value("${app.endpoint.users}")
     private String updateOneEndpoint;
 
-    private ArgumentCaptor<UserDTO> argumentCaptor;
+    private ArgumentCaptor<UserDto> argumentCaptor;
 
 
     @BeforeEach
     void setUp() {
-        argumentCaptor = ArgumentCaptor.forClass(UserDTO.class);
+        argumentCaptor = ArgumentCaptor.forClass(UserDto.class);
         Mockito.when(userDao.findByEmail(EMAIL)).thenReturn(Mono.just(userDtoBasicOk()));
         Mockito.when(userDao.findBy_id(ID)).thenReturn(Mono.just(userDtoBasicOk()));
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArguments()[0]));
     }
 
@@ -60,18 +60,18 @@ public class UpdateUserTest extends BaseTestClass {
                 .jsonPath("$.content.accountStatusMsg").isEqualTo(OK.getDetails());
 
         Mockito.verify(userDao).save(argumentCaptor.capture());
-        UserDTO capturedUserDTO = argumentCaptor.getValue();
+        UserDto capturedUserDto = argumentCaptor.getValue();
         final String[] dateParts = birthdate.split("-");
         final int year = Integer.parseInt(dateParts[0]);
         final int month = Integer.parseInt(dateParts[1]);
         final int day = Integer.parseInt(dateParts[2]);
 
         assertAll(
-                () -> assertEquals(email, capturedUserDTO.getEmail()),
-                () -> assertTrue(encryptMatches(password, capturedUserDTO.getPassword())),
-                () -> assertEquals(firstName, capturedUserDTO.getFirstName()),
-                () -> assertEquals(surNames, capturedUserDTO.getSurNames()),
-                () -> assertEquals(LocalDate.of(year, month, day), capturedUserDTO.getBirthdate())
+                () -> assertEquals(email, capturedUserDto.getEmail()),
+                () -> assertTrue(encryptMatches(password, capturedUserDto.getPassword())),
+                () -> assertEquals(firstName, capturedUserDto.getFirstName()),
+                () -> assertEquals(surNames, capturedUserDto.getSurNames()),
+                () -> assertEquals(LocalDate.of(year, month, day), capturedUserDto.getBirthdate())
         );
     }
 

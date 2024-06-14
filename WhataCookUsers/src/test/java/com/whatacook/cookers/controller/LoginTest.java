@@ -1,6 +1,6 @@
 package com.whatacook.cookers.controller;
 
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,9 +28,9 @@ public class LoginTest extends BaseTestClass {
 
     @ParameterizedTest
     @MethodSource("provideVariablesForSuccessLoginRequests")
-    void testLoginIsSuccessful(Mono<UserDTO> userResponse) {
+    void testLoginIsSuccessful(Mono<UserDto> userResponse) {
         Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(userResponse);
-        Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
+        Mockito.when(userDao.delete(Mockito.any(UserDto.class))).thenReturn(Mono.empty());
         webTestClient.post().uri(loginEndpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
@@ -55,11 +55,11 @@ public class LoginTest extends BaseTestClass {
 
     @ParameterizedTest
     @MethodSource("provideVariablesForNoSuccessLoginRequests")
-    void testLoginFail(String expectedMessagePart, Mono<UserDTO> userResponse) {
+    void testLoginFail(String expectedMessagePart, Mono<UserDto> userResponse) {
         Mockito.when(userDao.findByEmail(Mockito.anyString())).thenReturn(userResponse);
         Mockito.when(userDao.findBy_id(Mockito.anyString())).thenReturn(userResponse);
-        Mockito.when(userDao.delete(Mockito.any(UserDTO.class))).thenReturn(Mono.empty());
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.delete(Mockito.any(UserDto.class))).thenReturn(Mono.empty());
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArguments()[0]));
 
         webTestClient.post().uri(loginEndpoint)

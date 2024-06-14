@@ -3,7 +3,7 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,7 +21,7 @@ public class ResetPassCodeTest extends BaseTestClass {
     private String usersResetPasswordEndpoint;
     private String htmlToTest;
     private ResetDto resetDto;
-    private UserDTO userDTO;
+    private UserDto userDTO;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +79,7 @@ public class ResetPassCodeTest extends BaseTestClass {
     void testResetPassCodeOK() {
         Mockito.when(resetDao.save(Mockito.any(ResetDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
         ArgumentCaptor<ResetDto> resetDtoCaptor = ArgumentCaptor.forClass(ResetDto.class);
 

@@ -1,6 +1,6 @@
 package com.whatacook.cookers.model.auth;
 
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,7 +23,7 @@ public class ResetDto {
     private String code = generateCode();
     private LocalDateTime expiration = LocalDateTime.now();
 
-    public static ResetDto to(UserDTO user) {
+    public static ResetDto to(UserDto user) {
         var resetDto = new ResetDto();
         resetDto.setId(user.get_id());
         return resetDto;

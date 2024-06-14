@@ -5,7 +5,7 @@ import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.Htmls;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.GlobalValues;
 import jakarta.mail.MessagingException;
@@ -26,12 +26,12 @@ public class EmailService {
     private final ResetService resetService;
     private final GlobalValues globalValues;
 
-    public Mono<UserJson> createActivationCodeAndSendEmail(UserDTO userDTO) {
+    public Mono<UserJson> createActivationCodeAndSendEmail(UserDto userDTO) {
         return activationService.createNew(userDTO)
                 .flatMap(activation -> sendActivationMail(activation, userDTO));
     }
 
-    public Mono<UserJson> sendActivationMail(ActivationDto activationDto, UserDTO userDTO) {
+    public Mono<UserJson> sendActivationMail(ActivationDto activationDto, UserDto userDTO) {
         return Mono.fromCallable(() -> buildMimeMessage(activationDto, userDTO))
                 .flatMap(this::sendEmail)
                     .retry(2)
@@ -39,7 +39,7 @@ public class EmailService {
                 .doOnError(UserServiceException::doOnErrorMap);
     }
 
-    private MimeMessage buildMimeMessage(ActivationDto activationDto, UserDTO userDTO) throws MessagingException {
+    private MimeMessage buildMimeMessage(ActivationDto activationDto, UserDto userDTO) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setFrom(springMailConfig.getSpringMailUser());
@@ -50,7 +50,7 @@ public class EmailService {
         return message;
     }
 
-    private String buildHtmlContentToActivateAccount(ActivationDto activationDto, UserDTO userDTO) {
+    private String buildHtmlContentToActivateAccount(ActivationDto activationDto, UserDto userDTO) {
         String activationLink = globalValues.getUrlActivationAccount() + activationDto.getCode();
         return Htmls.ActivationEmail.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
@@ -62,12 +62,12 @@ public class EmailService {
         return Mono.fromRunnable(() -> emailSender.send(message));
     }
 
-    public Mono<UserJson> createResetCodeAndSendEmail(UserDTO userDTO) {
+    public Mono<UserJson> createResetCodeAndSendEmail(UserDto userDTO) {
         return resetService.createNew(userDTO)
                 .flatMap(resetCode -> sendResetMail(resetCode, userDTO));
     }
 
-    public Mono<UserJson> sendResetMail(ResetDto resetCode, UserDTO userDTO) {
+    public Mono<UserJson> sendResetMail(ResetDto resetCode, UserDto userDTO) {
         return Mono.fromCallable(() -> buildMimeMessage(resetCode, userDTO))
                 .flatMap(this::sendEmail)
                     .retry(2)
@@ -75,7 +75,7 @@ public class EmailService {
                 .doOnError(UserServiceException::doOnErrorMap);
     }
 
-    private MimeMessage buildMimeMessage(ResetDto resetCode, UserDTO userDTO) throws MessagingException {
+    private MimeMessage buildMimeMessage(ResetDto resetCode, UserDto userDTO) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setFrom(springMailConfig.getSpringMailUser());
@@ -86,7 +86,7 @@ public class EmailService {
         return message;
     }
 
-    private String buildHtmlContentToResetAccount(ResetDto resetCode, UserDTO userDTO) {
+    private String buildHtmlContentToResetAccount(ResetDto resetCode, UserDto userDTO) {
         String activationLink = globalValues.getUrlResetPassword() + resetCode.getCode();
         return Htmls.ResetPasswordMail.get()
                 .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())

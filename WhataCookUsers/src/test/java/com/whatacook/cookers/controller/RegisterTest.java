@@ -3,7 +3,7 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,7 @@ public class RegisterTest extends BaseTestClass {
         activationCaptor = ArgumentCaptor.forClass(ActivationDto.class);
         mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         Mockito.when(userDao.existsByEmail(Mockito.anyString())).thenReturn(Mono.just(false));
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class))).thenReturn(Mono.just(userDtoBasicPending()));
+        Mockito.when(userDao.save(Mockito.any(UserDto.class))).thenReturn(Mono.just(userDtoBasicPending()));
         Mockito.when(activationDao.save(Mockito.any(ActivationDto.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
         Mockito.when(emailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));

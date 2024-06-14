@@ -4,7 +4,7 @@ import static com.whatacook.cookers.model.constants.AccountStatus.*;
 
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.utilities.Util;
 import com.whatacook.cookers.service.contracts.UserDao;
@@ -37,7 +37,7 @@ public class UpdateComponent {
                 .flatMap(this::updateUserByDtoReturnJson);
     }
 
-    private static Mono<UserDTO> updatePlayerIfNecessary(UserDTO oldUser, UserJson updateInfo) {
+    private static Mono<UserDto> updatePlayerIfNecessary(UserDto oldUser, UserJson updateInfo) {
         AtomicBoolean updated = new AtomicBoolean(false);
         return Mono.just(oldUser)
                 .flatMap(user -> {
@@ -55,27 +55,27 @@ public class UpdateComponent {
                 });
     }
 
-    private static void updateFirstName(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updateFirstName(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         boolean isFirstNameUpdated = updateAttribute(user::getFirstName, () -> verifyNames(updateInfo.getFirstName()), user::setFirstName);
         updated.set(isFirstNameUpdated || updated.get());
     }
 
-    private static void updateSurnames(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updateSurnames(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         boolean isSurnamesUpdated = updateAttribute(user::getSurNames, () -> verifyNames(updateInfo.getSurNames()), user::setSurNames);
         updated.set(isSurnamesUpdated || updated.get());
     }
 
-    private static void updateEmail(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updateEmail(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         boolean isEmailUpdated = updateAttribute(user::getEmail, () -> verifyEmail(updateInfo.getEmail()), user::setEmail);
         updated.set(isEmailUpdated || updated.get());
     }
 
-    private static void updateBirthdate(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updateBirthdate(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         boolean isBirthdateUpdated = updateAttribute(user::getBirthdate, () -> verifyBirthdate(updateInfo.getBirthdate()), user::setBirthdate);
         updated.set(isBirthdateUpdated || updated.get());
     }
 
-    private static void updatePassword(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updatePassword(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         if (updateInfo.getNewPassword() != null) {
             Optional.ofNullable(updateInfo.getPassword())
                     .filter(pwd -> Util.encryptMatches(pwd, user.getPassword()))
@@ -89,7 +89,7 @@ public class UpdateComponent {
         }
     }
 
-    private static void updateAccountStatus(UserDTO user, UserJson updateInfo, AtomicBoolean updated) {
+    private static void updateAccountStatus(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         if (updateInfo.getAccountStatus() != null) {
             boolean isCurrentStatusEligibleForUpdate =
                     EnumSet.of(OK, OFF, OUTDATED, REQUEST_DELETE).contains(user.getAccountStatus());
@@ -104,8 +104,8 @@ public class UpdateComponent {
         }
     }
 
-    private Mono<UserJson> updateUserByDtoReturnJson(UserDTO userToSave) {
-        return Mono.just(userToSave).flatMap(DAO::save).map(UserDTO::toJson);
+    private Mono<UserJson> updateUserByDtoReturnJson(UserDto userToSave) {
+        return Mono.just(userToSave).flatMap(DAO::save).map(UserDto::toJson);
     }
 
     private static <T> boolean updateAttribute(Supplier<T> original, Supplier<T> updated, Consumer<T> setter) {
