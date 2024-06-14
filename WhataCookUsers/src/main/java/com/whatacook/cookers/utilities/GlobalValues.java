@@ -4,6 +4,26 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Configuration properties for global values used in the application.
+ * <p>
+ * Annotations:
+ * - @Getter: Generates getters for all fields.
+ * - @ConfigurationProperties: Binds the class fields to properties prefixed with "global.values".
+ * <p>
+ * Fields:
+ * - urlWacLogoPngSmall: URL for the small WAC logo.
+ * - baseIp: Base IP address for the application.
+ * - urlActivationAccount: URL for account activation.
+ * - urlForgotPassword: URL for forgotten password.
+ * - urlResetPassword: URL for resetting password.
+ * - urlSetNewPassword: URL for setting a new password.
+ * - mailToWac: Email address for WAC.
+ * - pathToResendActvationMail: Path to resend activation email.
+ * - pathToCheckIfEmailAlreadyExists: Path to check if email already exists.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 @Getter
 @ConfigurationProperties(prefix = "global.values")
 public class GlobalValues {
