@@ -1,5 +1,23 @@
 package com.whatacook.cookers.model.constants;
 
+/**
+ * Enumeration representing different HTML templates used in the application.
+ * <p>
+ * Templates:
+ * - ActivationEmail: HTML template for account activation email.
+ * - FailActivation: HTML template for failed account activation.
+ * - SuccessActivation: HTML template for successful account activation.
+ * - ResetPasswordMail: HTML template for password reset email.
+ * - FailReset: HTML template for failed password reset.
+ * - FormToSendNewPassword: HTML template for the form to send a new password.
+ * - FailSetNewPassword: HTML template for failed password setting.
+ * - SuccessSetNewPassword: HTML template for successful password setting.
+ * <p>
+ * Methods:
+ * - get(): Returns the HTML code associated with the template.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 public enum Htmls {
 
     ActivationEmail("""
@@ -91,26 +109,26 @@ public enum Htmls {
     ),
 
     FailReset("""
-            <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Reinicio de Contraseña Fallido</title>
-                </head>
-                <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
-                    <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #dda; border-radius: 8px; background-color: #FFEEDD;">
-                        <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
-                        <h1 style="color: #CC7700;">No fue posible procesar tu solicitud de reinicio de contraseña.</h1>
-                        <p style="font-size: 17px">
-                        Por favor, intenta reiniciar tu contraseña nuevamente utilizando el enlace proporcionado en el correo electrónico de reinicio.</p>
-                        <p style="font-size: 13px";>
-                            Si sigues teniendo problemas,\s
-                            <a href="mailto:EMAIL_WAC" style="color: #FFA500;">contacta con soporte</a>.</p>
-                            <input type="hidden" id="errorDescription" value="errorDescriptionValue">
-                    </div>
-                </body>
-                </html>
-        """
+                <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Reinicio de Contraseña Fallido</title>
+                    </head>
+                    <body style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+                        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #dda; border-radius: 8px; background-color: #FFEEDD;">
+                            <img src="LOGO_WAC" alt="Logo WhataCook" style="width: 200px; height: auto; margin-bottom: 20px;"/>
+                            <h1 style="color: #CC7700;">No fue posible procesar tu solicitud de reinicio de contraseña.</h1>
+                            <p style="font-size: 17px">
+                            Por favor, intenta reiniciar tu contraseña nuevamente utilizando el enlace proporcionado en el correo electrónico de reinicio.</p>
+                            <p style="font-size: 13px";>
+                                Si sigues teniendo problemas,\s
+                                <a href="mailto:EMAIL_WAC" style="color: #FFA500;">contacta con soporte</a>.</p>
+                                <input type="hidden" id="errorDescription" value="errorDescriptionValue">
+                        </div>
+                    </body>
+                    </html>
+            """
     ),
 
     FormToSendNewPassword("""
@@ -145,7 +163,7 @@ public enum Htmls {
                                 "newPassword": newPassword
                             };
                         
-            
+                        
                             fetch('ENDPOINT_RESET_PASS', {
                                 method: 'POST',
                                 headers: {
@@ -166,7 +184,7 @@ public enum Htmls {
                             .catch((error) => {
                                 console.error('Error:', error);
                             });
-            
+                        
                         });
                     };
                 </script>
@@ -237,7 +255,13 @@ public enum Htmls {
             """
     );
 
-    Htmls (String code) {this.code = code;}
+    Htmls(String code) {
+        this.code = code;
+    }
+
     private final String code;
-    public String get() {return code;}
+
+    public String get() {
+        return code;
+    }
 }
