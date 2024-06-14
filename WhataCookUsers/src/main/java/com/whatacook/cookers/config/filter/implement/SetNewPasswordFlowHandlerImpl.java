@@ -12,7 +12,27 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@AllArgsConstructor @Component
+/**
+ * Implementation of SetNewPasswordFlowHandler.
+ * Handles the set new password flow by verifying the reset code and authenticating the user.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * - @AllArgsConstructor: Generates a constructor with one parameter for each field.
+ * <p>
+ * Fields:
+ * - resetService: Service for handling reset logic.
+ * - globalValues: Utility class for accessing global values.
+ * - authenticationManager: Manager for handling authentication.
+ * - responseErrorHtml: Service for sending error responses in HTML format.
+ * <p>
+ * Methods:
+ * - handle(String codeToSet, ServerWebExchange exchange, WebFilterChain chain): Handles the set new password flow.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@AllArgsConstructor
+@Component
 public class SetNewPasswordFlowHandlerImpl implements SetNewPasswordFlowHandler {
 
     private final ResetService resetService;

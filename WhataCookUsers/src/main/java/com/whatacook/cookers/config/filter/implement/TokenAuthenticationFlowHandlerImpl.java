@@ -19,6 +19,25 @@ import reactor.core.publisher.Mono;
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.utilities.Util.convertToJsonAsBytes;
 
+/**
+ * Implementation of TokenAuthenticationFlowHandler.
+ * Handles the token authentication flow by verifying the JWT token and authenticating the user.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * - @AllArgsConstructor: Generates a constructor with one parameter for each field.
+ * <p>
+ * Fields:
+ * - jwtUtil: Utility class for JWT operations.
+ * - authenticationManager: Manager for handling authentication.
+ * <p>
+ * Methods:
+ * - handle(String requestToken, ServerWebExchange exchange, WebFilterChain chain): Handles the token authentication flow.
+ * - handleError(Throwable e, ServerWebExchange exchange): Handles errors during the token authentication process.
+ * - sendUnauthorizedResponse(ServerWebExchange exchange, String errorMessage): Sends an unauthorized response.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 @AllArgsConstructor
 @Component
 public class TokenAuthenticationFlowHandlerImpl implements TokenAuthenticationFlowHandler {
@@ -47,7 +66,7 @@ public class TokenAuthenticationFlowHandlerImpl implements TokenAuthenticationFl
                 errorMessage = "Invalid token.";
             else
                 errorMessage = e.getMessage();
-            
+
             return sendUnauthorizedResponse(exchange, errorMessage);
         } else {
             return Mono.empty();
@@ -64,5 +83,4 @@ public class TokenAuthenticationFlowHandlerImpl implements TokenAuthenticationFl
         DataBuffer buffer = response.bufferFactory().wrap(bytes);
         return response.writeWith(Mono.just(buffer));
     }
-
 }

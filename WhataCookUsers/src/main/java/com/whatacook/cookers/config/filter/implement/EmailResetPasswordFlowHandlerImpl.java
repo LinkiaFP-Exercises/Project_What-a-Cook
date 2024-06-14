@@ -12,19 +12,40 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@AllArgsConstructor @Component
+/**
+ * Implementation of EmailResetPasswordFlowHandler.
+ * Handles the email reset password flow by verifying the reset code and authenticating the user.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * - @AllArgsConstructor: Generates a constructor with one parameter for each field.
+ * <p>
+ * Fields:
+ * - resetService: Service for handling reset logic.
+ * - globalValues: Utility class for accessing global values.
+ * - authenticationManager: Manager for handling authentication.
+ * - responseErrorHtml: Service for sending error responses in HTML format.
+ * <p>
+ * Methods:
+ * - handle(String resetCode, ServerWebExchange exchange, WebFilterChain chain): Handles the email reset password flow.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@AllArgsConstructor
+@Component
 public class EmailResetPasswordFlowHandlerImpl implements EmailResetPasswordFlowHandler {
 
     private final ResetService resetService;
     private final GlobalValues globalValues;
     private final AuthenticationManager authenticationManager;
     private final ResponseErrorHtml responseErrorHtml;
+
     @SuppressWarnings("ReactorTransformationOnMonoVoid")
     @Override
     public Mono<Void> handle(String resetCode, ServerWebExchange exchange, WebFilterChain chain) {
         String FAIL_HTML_FOR_RESET = Htmls.FailReset.get()
-                                        .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
-                                        .replace("EMAIL_WAC", globalValues.getMailToWac());
+                .replace("LOGO_WAC", globalValues.getUrlWacLogoPngSmall())
+                .replace("EMAIL_WAC", globalValues.getMailToWac());
         return resetService.findByCode(resetCode)
                 .flatMap(resetDto -> authenticationManager.setAuthenticated(resetDto.getId(), null, exchange, chain))
                 .switchIfEmpty(Mono.defer(() -> responseErrorHtml.send(exchange,
