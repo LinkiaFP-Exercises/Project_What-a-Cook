@@ -18,12 +18,20 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:3.3.0")
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.0")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:3.3.0") {
+        exclude(group = "javax.annotation", module = "javax.annotation-api")
+    }
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.0") {
+        exclude(group = "javax.annotation", module = "javax.annotation-api")
+    }
+    implementation("org.springframework.boot:spring-boot-starter-validation") {
+        exclude(group = "javax.annotation", module = "javax.annotation-api")
+    }
 
     // Declarar las dependencias transitivas directamente
-    implementation("io.projectreactor:reactor-core:3.6.6")
+    implementation("io.projectreactor:reactor-core:3.6.6") {
+        exclude(group = "javax.annotation", module = "javax.annotation-api")
+    }
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     implementation("org.apache.logging.log4j:log4j-api:2.23.1")
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.3.0")
@@ -32,6 +40,9 @@ dependencies {
     implementation("org.springframework.data:spring-data-mongodb:4.3.0")
     implementation("org.springframework:spring-context:6.1.8")
     implementation("org.springframework:spring-web:6.1.8")
+
+    // Asegurarse de incluir la dependencia de jakarta.annotation
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
 
     // Lombok
     compileOnly("org.projectlombok:lombok")
@@ -57,6 +68,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+
 plugins {
     java
     id("org.springframework.boot") version "3.3.0"
@@ -66,14 +78,20 @@ plugins {
 
 // Configure Javadoc task
 tasks.withType<Javadoc> {
+    // Configura opciones específicas de Javadoc
     options {
         encoding = "UTF-8"
         (this as StandardJavadocDocletOptions).apply {
             windowTitle = "What-a-Cook #RECIPES API Documentation"
             docTitle = "What-a-Cook #RECIPES API Documentation - v1.0"
+            addStringOption("Xdoclint:none", "-quiet")
         }
     }
+
+    // Excluir archivos específicos que causan problemas
+    exclude("**/org/springframework/lang/Nullable.java")
 }
+
 
 // Function that loads environment variables from the .env file
 fun loadEnv() {
