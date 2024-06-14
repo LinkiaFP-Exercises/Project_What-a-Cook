@@ -25,7 +25,12 @@ public class Response {
     public static Mono<Response> monoError(String message) {
         return Mono.just(error(message));
     }
+
     public static Mono<Response> monoError(Exception e) {
+        return monoError(e.getMessage());
+    }
+
+    public static Mono<Response> monoError(Throwable e) {
         return monoError(e.getMessage());
     }
 
