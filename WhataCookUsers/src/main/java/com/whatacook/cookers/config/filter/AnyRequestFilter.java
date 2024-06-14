@@ -41,6 +41,16 @@ public class AnyRequestFilter implements WebFilter {
 
     private final Map<String, RequestHandler> handlers;
 
+    /**
+     * Constructor that initializes the handlers map with appropriate request handlers.
+     *
+     * @param jwtUtil                        The utility class for JWT operations.
+     * @param tokenAuthenticationFlowHandler The handler for token authentication flow.
+     * @param activationCodeFlowHandler      The handler for activation code flow.
+     * @param emailResendFlowHandler         The handler for email resend flow.
+     * @param emailResetPasswordFlowHandler  The handler for email reset password flow.
+     * @param setNewPasswordFlowHandler      The handler for setting new password flow.
+     */
     public AnyRequestFilter(JwtUtil jwtUtil, TokenAuthenticationFlowHandler tokenAuthenticationFlowHandler,
                             ActivationCodeFlowHandler activationCodeFlowHandler,
                             EmailResendFlowHandler emailResendFlowHandler,
@@ -55,6 +65,13 @@ public class AnyRequestFilter implements WebFilter {
         );
     }
 
+    /**
+     * Creates a request handler that processes requests based on the specified handler function and JWT key.
+     *
+     * @param handlerFunction The function to handle the request.
+     * @param jwtKey          The JWT key used to identify the request.
+     * @return A RequestHandler that processes the request.
+     */
     private RequestHandler createHandler(TriFunction<String, ServerWebExchange, WebFilterChain, Mono<Void>> handlerFunction, String jwtKey) {
         return (exchange, chain) -> {
             String paramValue = getHeaderOrParamValue(exchange, jwtKey);
@@ -62,6 +79,13 @@ public class AnyRequestFilter implements WebFilter {
         };
     }
 
+    /**
+     * Filters the web exchange and delegates to the appropriate handler based on the presence of specific headers or query parameters.
+     *
+     * @param exchange The current server web exchange.
+     * @param chain    The web filter chain.
+     * @return A Mono<Void> that indicates when request processing is complete.
+     */
     @SuppressWarnings("NullableProblems")
     @Override
     public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
@@ -72,21 +96,46 @@ public class AnyRequestFilter implements WebFilter {
                 .orElseGet(() -> chain.filter(exchange));
     }
 
+    /**
+     * Checks if the request contains the specified key in headers or query parameters.
+     *
+     * @param exchange The current server web exchange.
+     * @param key      The key to check in the request.
+     * @return True if the request contains the specified key, false otherwise.
+     */
     private boolean requestContainsKey(ServerWebExchange exchange, String key) {
         return exchange.getRequest().getHeaders().containsKey(key) ||
                 exchange.getRequest().getQueryParams().containsKey(key);
     }
 
+    /**
+     * Retrieves the value of the specified key from the request headers or query parameters.
+     *
+     * @param exchange The current server web exchange.
+     * @param key      The key to retrieve the value for.
+     * @return The value of the specified key, or null if not found.
+     */
     private String getHeaderOrParamValue(ServerWebExchange exchange, String key) {
         return Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(key))
                 .orElse(exchange.getRequest().getQueryParams().getFirst(key));
     }
 
+    /**
+     * Functional interface for handling requests.
+     */
     @FunctionalInterface
     public interface RequestHandler {
         Mono<Void> handle(ServerWebExchange exchange, WebFilterChain chain);
     }
 
+    /**
+     * Functional interface that takes three arguments and produces a result.
+     *
+     * @param <T> The type of the first argument to the function.
+     * @param <U> The type of the second argument to the function.
+     * @param <V> The type of the third argument to the function.
+     * @param <R> The type of the result of the function.
+     */
     @FunctionalInterface
     public interface TriFunction<T, U, V, R> {
         R apply(T t, U u, V v);
