@@ -18,6 +18,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
+/**
+ * Security configuration class for setting up Spring Security with WebFlux.
+ * Configures security filters, authentication manager, and password encoding.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates an all-arguments constructor.
+ * - @Configuration: Indicates that this class contains Spring configuration.
+ * - @EnableWebFluxSecurity: Enables WebFlux security for the application.
+ * - @EnableConfigurationProperties: Enables configuration properties for specified classes.
+ * <p>
+ * Fields:
+ * - jwtUtil: Utility class for handling JWT operations.
+ * - globalValues: Class containing global values and configurations.
+ * <p>
+ * Methods:
+ * - filterChain(ServerHttpSecurity httpSecurity, AnyRequestFilter anyRequestFilter, ReactiveAuthenticationManager reactiveAuthenticationManager):
+ * Configures the security filter chain.
+ * - passwordEncoder(): Provides a PasswordEncoder bean for encoding passwords.
+ * - reactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService, PasswordEncoder passwordEncoder):
+ * Configures the ReactiveAuthenticationManager.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 @AllArgsConstructor
 @Configuration
 @EnableWebFluxSecurity
@@ -27,7 +50,14 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final GlobalValues globalValues;
 
-
+    /**
+     * Configures the security filter chain.
+     *
+     * @param httpSecurity                  The ServerHttpSecurity instance.
+     * @param anyRequestFilter              The custom request filter.
+     * @param reactiveAuthenticationManager The reactive authentication manager.
+     * @return The configured SecurityWebFilterChain.
+     */
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity httpSecurity, AnyRequestFilter anyRequestFilter,
                                               ReactiveAuthenticationManager reactiveAuthenticationManager) {
@@ -48,11 +78,23 @@ public class SecurityConfig {
                 .build();
     }
 
+    /**
+     * Provides a PasswordEncoder bean for encoding passwords.
+     *
+     * @return The BCryptPasswordEncoder instance.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures the ReactiveAuthenticationManager.
+     *
+     * @param userDetailsService The ReactiveUserDetailsService instance.
+     * @param passwordEncoder    The PasswordEncoder instance.
+     * @return The configured ReactiveAuthenticationManager.
+     */
     @Bean
     public ReactiveAuthenticationManager reactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService,
                                                                        PasswordEncoder passwordEncoder) {
@@ -60,5 +102,4 @@ public class SecurityConfig {
         authenticationManager.setPasswordEncoder(passwordEncoder);
         return authenticationManager;
     }
-
 }

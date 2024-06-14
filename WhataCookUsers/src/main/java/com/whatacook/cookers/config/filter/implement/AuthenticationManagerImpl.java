@@ -11,7 +11,24 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-@AllArgsConstructor @Component
+/**
+ * Implementation of AuthenticationManager.
+ * Handles user authentication by setting the authentication context.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * - @AllArgsConstructor: Generates a constructor with one parameter for each field.
+ * <p>
+ * Fields:
+ * - userService: Service for handling user-related logic.
+ * <p>
+ * Methods:
+ * - setAuthenticated(String userEmailOrId, String token, ServerWebExchange exchange, WebFilterChain chain): Sets the authentication context for the user.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@AllArgsConstructor
+@Component
 public class AuthenticationManagerImpl implements AuthenticationManager {
 
     private final UserService userService;

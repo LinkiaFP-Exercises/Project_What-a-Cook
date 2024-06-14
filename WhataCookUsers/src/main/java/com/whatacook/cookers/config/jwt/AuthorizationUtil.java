@@ -11,6 +11,22 @@ import reactor.core.publisher.Mono;
 
 import java.util.function.BiFunction;
 
+/**
+ * Utility class for handling authorization checks.
+ * Provides methods to execute actions if the user is authorized.
+ *
+ * Methods:
+ * - executeIfAuthorized(UserJson userJson, BiFunction<UserJson, UserDetails, Mono<Response>> action):
+ *     Executes the given action if the user is authorized.
+ * - getAuthentication(): Retrieves the current authentication object.
+ * - isAuthorized(UserJson userJson, Authentication authentication): Checks if the user is authorized.
+ * - isAdmin(Authentication authentication): Checks if the authenticated user has admin privileges.
+ * - isOwnUser(UserJson userJson, UserDetails userDetails): Checks if the authenticated user is the owner.
+ * - getUserDetails(Authentication authentication): Retrieves the UserDetails from the authentication object.
+ *
+ * @author
+ * <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 public class AuthorizationUtil {
 
     public static Mono<Response> executeIfAuthorized(UserJson userJson,
@@ -46,5 +62,4 @@ public class AuthorizationUtil {
     private static UserDetails getUserDetails(Authentication authentication) {
         return (UserDetails) authentication.getPrincipal();
     }
-    
 }

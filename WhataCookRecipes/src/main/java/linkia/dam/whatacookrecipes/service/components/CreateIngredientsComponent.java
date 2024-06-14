@@ -13,6 +13,25 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
+/**
+ * Component class for creating ingredients.
+ * Provides methods to create single or multiple ingredients with proper handling of duplicate key errors.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Component: Indicates that this class is a Spring component.
+ * - @Slf4j: Generates a logger for the class.
+ * <p>
+ * Methods:
+ * - createIngredients(Flux<IngredientDto> ingredients): Creates multiple ingredients.
+ * - createIngredient(IngredientDto ingredientDto): Creates a single ingredient with retry logic for duplicate key errors.
+ * - isDuplicateKeyException(Throwable throwable): Checks if the given throwable is a duplicate key error.
+ * - getWarned(String ingredientName, Retry.RetrySignal retrySignal): Logs a warning message before retrying due to duplicate key error.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see IngredientDao
+ * @see MeasureDao
+ */
 @AllArgsConstructor
 @Component
 @Slf4j
@@ -22,6 +41,12 @@ public class CreateIngredientsComponent {
     private final IngredientDao ingredientDao;
     private final MeasureDao measureDao;
 
+    /**
+     * Creates multiple ingredients.
+     *
+     * @param ingredients The flux of ingredients to create.
+     * @return A {@link Flux} emitting the created {@link IngredientDto} objects.
+     */
     public Flux<IngredientDto> createIngredients(Flux<IngredientDto> ingredients) {
         return ingredients
                 .concatMap(ingredient -> Mono.just(ingredient)
@@ -37,6 +62,12 @@ public class CreateIngredientsComponent {
                 });
     }
 
+    /**
+     * Creates a single ingredient with retry logic for duplicate key errors.
+     *
+     * @param ingredientDto The ingredient data to create.
+     * @return A {@link Mono} emitting the created {@link IngredientDto} object.
+     */
     public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
         return measureDao.findByNameIgnoreCase(ingredientDto.getMeasure().getName())
                 .switchIfEmpty(Mono.defer(() -> measureDao.save(ingredientDto.getMeasure())))
@@ -55,12 +86,23 @@ public class CreateIngredientsComponent {
                 });
     }
 
-
+    /**
+     * Checks if the given throwable is a duplicate key error.
+     *
+     * @param throwable The throwable to check.
+     * @return true if the throwable is a duplicate key error, false otherwise.
+     */
     private boolean isDuplicateKeyException(Throwable throwable) {
         return throwable instanceof MongoWriteException &&
                 ((MongoWriteException) throwable).getCode() == 11000;
     }
 
+    /**
+     * Logs a warning message before retrying due to duplicate key error.
+     *
+     * @param ingredientName The name of the ingredient being retried.
+     * @param retrySignal    The retry signal containing failure information.
+     */
     private static void getWarned(String ingredientName, Retry.RetrySignal retrySignal) {
         log.warn(RETRYING_DUE_TO_DUPLICATE_KEY_ERROR, ingredientName, retrySignal.failure().getMessage());
     }

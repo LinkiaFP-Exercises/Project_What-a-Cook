@@ -19,7 +19,27 @@ import java.util.Objects;
 import static com.whatacook.cookers.model.responses.Response.error;
 import static com.whatacook.cookers.utilities.Util.convertToJsonAsBytes;
 
-@AllArgsConstructor @Component
+/**
+ * Implementation of EmailResendFlowHandler.
+ * Handles the email resend flow by verifying the email and authenticating the user.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * - @AllArgsConstructor: Generates a constructor with one parameter for each field.
+ * <p>
+ * Fields:
+ * - DAO: Data access object for user-related operations.
+ * - activationService: Service for handling activation logic.
+ * - authenticationManager: Manager for handling authentication.
+ * <p>
+ * Methods:
+ * - handle(String emailToResend, ServerWebExchange exchange, WebFilterChain chain): Handles the email resend flow.
+ * - respondWithJson(ServerWebExchange exchange, Object response): Sends a JSON response.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@AllArgsConstructor
+@Component
 public class EmailResendFlowHandlerImpl implements EmailResendFlowHandler {
 
     private final UserDao DAO;
@@ -42,7 +62,8 @@ public class EmailResendFlowHandlerImpl implements EmailResendFlowHandler {
             byte[] jsonBytes = convertToJsonAsBytes(response);
             DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(jsonBytes);
             return exchange.getResponse().writeWith(Mono.just(dataBuffer));
-        } else { return Mono.empty(); }
+        } else {
+            return Mono.empty();
+        }
     }
-
 }

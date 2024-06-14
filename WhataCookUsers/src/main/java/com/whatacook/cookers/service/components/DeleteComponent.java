@@ -13,18 +13,56 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Component for handling user account deletion processes.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field.
+ * - @Component: Indicates that this class is a Spring component.
+ * <p>
+ * Fields:
+ * - DAO: Data Access Object for UserDto.
+ * <p>
+ * Methods:
+ * - proceedIfApplicable(UserJson userJson): Checks and proceeds with the deletion if applicable.
+ * - handleStatusChange(UserDto userDTO): Handles the account status change during deletion.
+ * - handleOkStatus(UserDto userDTO): Handles the OK status during deletion.
+ * - handleRequestDeleteStatus(UserDto userDTO): Handles the REQUEST_DELETE status during deletion.
+ * - handleMarkedDeleteStatus(UserDto userDTO): Handles the MARKED_DELETE status during deletion.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see UserDao
+ * @see UserDto
+ * @see UserJson
+ * @see Response
+ * @see Mono
+ * @see AllArgsConstructor
+ * @see Component
+ */
 @AllArgsConstructor
 @Component
 public class DeleteComponent {
 
     private final UserDao DAO;
 
+    /**
+     * Checks and proceeds with the deletion if applicable.
+     *
+     * @param userJson the user details
+     * @return a response indicating the result of the deletion process
+     */
     public Mono<Response> proceedIfApplicable(UserJson userJson) {
         return DAO.findBy_id(userJson.get_id())
                 .switchIfEmpty(UserServiceException.mono("User not found"))
                 .flatMap(this::handleStatusChange);
     }
 
+    /**
+     * Handles the account status change during deletion.
+     *
+     * @param userDTO the user details
+     * @return a response indicating the result of the status change
+     */
     private Mono<Response> handleStatusChange(UserDto userDTO) {
         return switch (userDTO.getAccountStatus()) {
             case OK -> handleOkStatus(userDTO);
@@ -34,6 +72,12 @@ public class DeleteComponent {
         };
     }
 
+    /**
+     * Handles the OK status during deletion.
+     *
+     * @param userDTO the user details
+     * @return a response indicating the result of setting the REQUEST_DELETE status
+     */
     private Mono<Response> handleOkStatus(UserDto userDTO) {
         userDTO.setAccountStatus(AccountStatus.REQUEST_DELETE);
         userDTO.setRequestDeleteDate(LocalDateTime.now());
@@ -42,6 +86,12 @@ public class DeleteComponent {
                 .onErrorResume(UserServiceException::mono);
     }
 
+    /**
+     * Handles the REQUEST_DELETE status during deletion.
+     *
+     * @param userDTO the user details
+     * @return a response indicating the result of handling the REQUEST_DELETE status
+     */
     private Mono<Response> handleRequestDeleteStatus(UserDto userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 1) {
@@ -53,6 +103,12 @@ public class DeleteComponent {
         return Mono.just(Response.success("REQUEST_DELETE request is not yet a year old", userDTO.toJson()));
     }
 
+    /**
+     * Handles the MARKED_DELETE status during deletion.
+     *
+     * @param userDTO the user details
+     * @return a response indicating the result of handling the MARKED_DELETE status
+     */
     private Mono<Response> handleMarkedDeleteStatus(UserDto userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 2) {

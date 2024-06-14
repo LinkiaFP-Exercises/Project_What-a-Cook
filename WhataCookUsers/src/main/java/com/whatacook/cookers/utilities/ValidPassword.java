@@ -8,12 +8,30 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Annotation for validating passwords.
+ * Ensures passwords contain at least 8 characters, including uppercase, lowercase letters, numbers, and special characters.
+ * <p>
+ * Annotations:
+ * - @Documented: Indicates that elements using this annotation should be documented by javadoc and similar tools.
+ * - @Constraint: Specifies the validator class.
+ * - @Target: Specifies the kinds of elements an annotation type can be applied to.
+ * - @Retention: Specifies how long annotations with the annotated type are to be retained.
+ * <p>
+ * Fields:
+ * - message: Custom error message for invalid passwords.
+ * - groups: Allows the specification of validation groups.
+ * - payload: Can be used by clients to associate metadata with a given constraint declaration.
+ * <p>
+ * Constants:
+ * - characters: Allowed special characters in the password.
+ * - regex: Regular expression for password validation.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 @Documented
 @Constraint(validatedBy = {})
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE})
@@ -22,10 +40,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ValidPassword {
     String characters = "";
     String regex = "";
+
     String message() default "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers, and special characters (!#$%&'*+/=?^_`{|}~-).";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 }
-

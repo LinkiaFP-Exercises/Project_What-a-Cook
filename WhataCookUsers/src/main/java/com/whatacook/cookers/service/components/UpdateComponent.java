@@ -1,7 +1,5 @@
 package com.whatacook.cookers.service.components;
 
-import static com.whatacook.cookers.model.constants.AccountStatus.*;
-
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.users.UserDto;
@@ -20,6 +18,36 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Component for updating user information.
+ * <p>
+ * Fields:
+ * - DAO: Data Access Object for UserDto.
+ * <p>
+ * Methods:
+ * - updateUser(UserJson userJson): Updates user information.
+ * - updatePlayerIfNecessary(UserDto oldUser, UserJson updateInfo): Updates user attributes if necessary.
+ * - updateFirstName(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates first name if necessary.
+ * - updateSurnames(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates surnames if necessary.
+ * - updateEmail(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates email if necessary.
+ * - updateBirthdate(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates birthdate if necessary.
+ * - updatePassword(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates password if necessary.
+ * - updateAccountStatus(UserDto user, UserJson updateInfo, AtomicBoolean updated): Updates account status if necessary.
+ * - updateUserByDtoReturnJson(UserDto userToSave): Updates user and returns UserJson.
+ * - updateAttribute(Supplier<T> original, Supplier<T> updated, Consumer<T> setter): Updates attribute if necessary.
+ * - verifyNames(String nameOrSurname): Verifies and formats name or surname.
+ * - verifyEmail(String email): Verifies email format.
+ * - verifyBirthdate(LocalDate localDate): Verifies birthdate format.
+ *
+ * @see UserServiceException
+ * @see UserDto
+ * @see UserJson
+ * @see UserDao
+ * @see Util
+ * @see AccountStatus
+ * @see Mono
+ * @see Component
+ */
 @Component
 public class UpdateComponent {
 
@@ -29,6 +57,12 @@ public class UpdateComponent {
         this.DAO = DAO;
     }
 
+    /**
+     * Updates user information.
+     *
+     * @param userJson the user details to update
+     * @return a Mono containing the updated user details as UserJson
+     */
     public Mono<UserJson> updateUser(UserJson userJson) {
         return DAO.findBy_id(userJson.get_id())
                 .switchIfEmpty(UserServiceException.mono(
@@ -37,6 +71,13 @@ public class UpdateComponent {
                 .flatMap(this::updateUserByDtoReturnJson);
     }
 
+    /**
+     * Updates user attributes if necessary.
+     *
+     * @param oldUser    the current user details
+     * @param updateInfo the new user details
+     * @return a Mono containing the updated user details as UserDto
+     */
     private static Mono<UserDto> updatePlayerIfNecessary(UserDto oldUser, UserJson updateInfo) {
         AtomicBoolean updated = new AtomicBoolean(false);
         return Mono.just(oldUser)
@@ -92,9 +133,9 @@ public class UpdateComponent {
     private static void updateAccountStatus(UserDto user, UserJson updateInfo, AtomicBoolean updated) {
         if (updateInfo.getAccountStatus() != null) {
             boolean isCurrentStatusEligibleForUpdate =
-                    EnumSet.of(OK, OFF, OUTDATED, REQUEST_DELETE).contains(user.getAccountStatus());
-            AccountStatus toUpdate = valueOf(updateInfo.getAccountStatus());
-            boolean isNewStatusValid = !MARKED_DELETE.equals(toUpdate);
+                    EnumSet.of(AccountStatus.OK, AccountStatus.OFF, AccountStatus.OUTDATED, AccountStatus.REQUEST_DELETE).contains(user.getAccountStatus());
+            AccountStatus toUpdate = AccountStatus.valueOf(updateInfo.getAccountStatus());
+            boolean isNewStatusValid = !AccountStatus.MARKED_DELETE.equals(toUpdate);
 
             if (isCurrentStatusEligibleForUpdate && isNewStatusValid) {
                 boolean isAccountStatusUpdated =
