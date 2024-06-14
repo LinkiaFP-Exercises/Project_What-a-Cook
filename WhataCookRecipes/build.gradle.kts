@@ -1,4 +1,3 @@
-
 group = "com.whatacook"
 version = "0.0.1-SNAPSHOT"
 
@@ -65,7 +64,18 @@ plugins {
     id("com.autonomousapps.dependency-analysis") version "1.32.0"
 }
 
-// function that loads environment variables from the .env file
+// Configure Javadoc task
+tasks.withType<Javadoc> {
+    options {
+        encoding = "UTF-8"
+        (this as StandardJavadocDocletOptions).apply {
+            windowTitle = "What-a-Cook #RECIPES API Documentation"
+            docTitle = "What-a-Cook #RECIPES API Documentation - v1.0"
+        }
+    }
+}
+
+// Function that loads environment variables from the .env file
 fun loadEnv() {
     val envFile = file("../.env")
     if (envFile.exists()) {
@@ -75,7 +85,7 @@ fun loadEnv() {
             if (parts.size == 2) {
                 val key = parts[0].trim()
                 val value = parts[1].trim()
-//                println("Setting $key=$value")
+                // println("Setting $key=$value")
                 println("Setting $key")
                 System.setProperty(key, value)
             }
@@ -95,7 +105,7 @@ tasks.test {
     jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.instrument.traceUsage=false")
 }
 
-// force unit testing before generating JAR
+// Force unit testing before generating JAR
 tasks.register<Jar>("customJar") {
     dependsOn("test")
     archiveClassifier.set("custom")
