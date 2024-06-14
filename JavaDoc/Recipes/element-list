@@ -1,0 +1,9 @@
+linkia.dam.whatacookrecipes
+linkia.dam.whatacookrecipes.config
+linkia.dam.whatacookrecipes.controller
+linkia.dam.whatacookrecipes.model
+linkia.dam.whatacookrecipes.model.exception
+linkia.dam.whatacookrecipes.service
+linkia.dam.whatacookrecipes.service.components
+linkia.dam.whatacookrecipes.service.repository
+linkia.dam.whatacookrecipes.utilities
