@@ -7,6 +7,30 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 
+/**
+ * Utility class containing various helper methods for validation and data conversion.
+ * <p>
+ * Methods:
+ * - isValidBirthdate(LocalDate birthdate): Checks if the given birthdate is valid (at least 7 years old).
+ * - notValidBirthdate(LocalDate birthdate): Checks if the given birthdate is not valid.
+ * - isNullOrEmpty(String something): Checks if the given string is null or empty.
+ * - isNullOrEmptyOrLiteralNull(String something): Checks if the given string is null, empty, or the literal string "null".
+ * - notNullOrEmpty(String something): Checks if the given string is not null, empty, or the literal string "null".
+ * - TitleCase(String toConvert): Converts a string to title case.
+ * - encryptPassword(String toEncrypt): Encrypts a password using BCrypt.
+ * - encryptMatches(String rawPassword, String encodedPassword): Checks if the raw password matches the encoded password.
+ * - encryptNotMatches(String rawPassword, String encodedPassword): Checks if the raw password does not match the encoded password.
+ * - isValidEmail(String email): Checks if the given email is valid.
+ * - notValidEmail(String email): Checks if the given email is not valid.
+ * - buildEmailRegex(): Builds the regex pattern for email validation.
+ * - isValidPassword(String password): Checks if the given password is valid.
+ * - notValidPassword(String password): Checks if the given password is not valid.
+ * - buildPassRegex(): Builds the regex pattern for password validation.
+ * - convertToJsonAsString(Object obj): Converts an object to a JSON string.
+ * - convertToJsonAsBytes(Object obj): Converts an object to a byte array in JSON format.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 public class Util {
 
     public static boolean isValidBirthdate(LocalDate birthdate) {
