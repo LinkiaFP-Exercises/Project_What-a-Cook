@@ -11,6 +11,31 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Web filter that handles various request flows based on the presence of specific headers or query parameters.
+ * Utilizes different handlers for JWT authentication, activation codes, email resending, password resetting, and setting new passwords.
+ * <p>
+ * Annotations:
+ * - @Component: Indicates that this class is a Spring component.
+ * <p>
+ * Fields:
+ * - handlers: A map of request handlers associated with specific JWT keys.
+ * <p>
+ * Methods:
+ * - AnyRequestFilter(JwtUtil jwtUtil, TokenAuthenticationFlowHandler tokenAuthenticationFlowHandler, ActivationCodeFlowHandler activationCodeFlowHandler,
+ * EmailResendFlowHandler emailResendFlowHandler, EmailResetPasswordFlowHandler emailResetPasswordFlowHandler, SetNewPasswordFlowHandler setNewPasswordFlowHandler):
+ * Constructor that initializes the handlers map with appropriate request handlers.
+ * - createHandler(TriFunction<String, ServerWebExchange, WebFilterChain, Mono<Void>> handlerFunction, String jwtKey): Creates a request handler.
+ * - filter(ServerWebExchange exchange, WebFilterChain chain): Filters the web exchange and delegates to the appropriate handler.
+ * - requestContainsKey(ServerWebExchange exchange, String key): Checks if the request contains the specified key.
+ * - getHeaderOrParamValue(ServerWebExchange exchange, String key): Retrieves the value of the specified key from the request headers or query parameters.
+ * <p>
+ * Functional Interfaces:
+ * - RequestHandler: Functional interface for handling requests.
+ * - TriFunction: Functional interface that takes three arguments and produces a result.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
 @Component
 public class AnyRequestFilter implements WebFilter {
 
