@@ -76,8 +76,8 @@ tasks.withType<Javadoc> {
     options {
         encoding = "UTF-8"
         (this as StandardJavadocDocletOptions).apply {
-            windowTitle = "What-a-Cook #RECIPES API Documentation"
-            docTitle = "What-a-Cook #RECIPES API Documentation - v1.0"
+            windowTitle = "What-a-Cook #USERS API Documentation"
+            docTitle = "What-a-Cook #USERS API Documentation - v1.0"
         }
     }
 }
