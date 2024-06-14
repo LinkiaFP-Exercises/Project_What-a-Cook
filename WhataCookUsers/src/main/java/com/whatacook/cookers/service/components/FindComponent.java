@@ -1,7 +1,7 @@
 package com.whatacook.cookers.service.components;
 
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.Util;
@@ -31,7 +31,7 @@ public class FindComponent {
                 .filter(Util::isValidEmail)
                 .flatMap(DAO::findByEmail)
                 .switchIfEmpty(UserServiceException.mono("This user does not exist or email is invalid!"))
-                .map(UserDTO::toJson)
+                .map(UserDto::toJson)
                 .doOnError(UserServiceException::onErrorMap);
     }
 

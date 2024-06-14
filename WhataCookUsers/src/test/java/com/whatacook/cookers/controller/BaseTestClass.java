@@ -8,7 +8,7 @@ import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.auth.ResetDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.service.contracts.ActivationDao;
 import com.whatacook.cookers.service.contracts.ResetDao;
 import com.whatacook.cookers.service.contracts.UserDao;
@@ -124,8 +124,8 @@ public class BaseTestClass {
         return requestBodyFullWithoutID(EMAIL, PASSWORD, FIRST_NAME, SUR_NAMES, BIRTHDATE_STR);
     }
 
-    protected static UserDTO userDtoBasicPending() {
-        UserDTO userDTO = new UserDTO();
+    protected static UserDto userDtoBasicPending() {
+        UserDto userDTO = new UserDto();
         userDTO.set_id(ID);
         userDTO.setRegistration(LOCAL_DATE_TIME);
         userDTO.setEmail(EMAIL);
@@ -138,28 +138,28 @@ public class BaseTestClass {
         return userDTO;
     }
 
-    protected static UserDTO userDtoBasicAccountStatus(AccountStatus status) {
-        UserDTO userDTO = userDtoBasicPending();
+    protected static UserDto userDtoBasicAccountStatus(AccountStatus status) {
+        UserDto userDTO = userDtoBasicPending();
         userDTO.setAccountStatus(status);
         userDTO.setRequestDeleteDate(LocalDateTime.now().minusYears(3));
         return userDTO;
     }
 
-    protected static UserDTO userDtoBasicOk() {
-        UserDTO userDTO = userDtoBasicPending();
+    protected static UserDto userDtoBasicOk() {
+        UserDto userDTO = userDtoBasicPending();
         userDTO.setAccountStatus(AccountStatus.OK);
         return userDTO;
     }
 
-    protected static UserDTO userDtoAdminOk(String email) {
-        UserDTO userDTO = userDtoBasicOk();
+    protected static UserDto userDtoAdminOk(String email) {
+        UserDto userDTO = userDtoBasicOk();
         userDTO.setRoleType(Role.FULL);
         userDTO.setEmail(email);
         return userDTO;
     }
 
-    protected static UserDTO userDtoOtherOk(String email) {
-        UserDTO userDTO = userDtoBasicOk();
+    protected static UserDto userDtoOtherOk(String email) {
+        UserDto userDTO = userDtoBasicOk();
         userDTO.setEmail(email);
         return userDTO;
     }

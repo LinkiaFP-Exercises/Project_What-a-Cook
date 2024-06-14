@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @Service
@@ -47,6 +49,26 @@ public class RecipeService {
         return recipeDao.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with id=" + id)));
     }
+
+    public Mono<Map<String, Object>> getRecipesByIds(List<String> ids) {
+        return recipeDao.findAllById(ids)
+                .collectList()
+                .flatMap(recipes -> {
+                    List<String> foundIds = recipes.stream()
+                            .map(RecipeDto::getId)
+                            .toList();
+                    List<String> notFoundIds = ids.stream()
+                            .filter(id -> !foundIds.contains(id))
+                            .toList();
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("found", recipes);
+                    result.put("notFound", notFoundIds);
+
+                    return Mono.just(result);
+                });
+    }
+
 
     public Mono<RecipeDto> getRecipeByName(String name) {
         return recipeDao.findByNameIgnoreCase(name)

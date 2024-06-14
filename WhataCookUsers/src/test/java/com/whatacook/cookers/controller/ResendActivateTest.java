@@ -2,7 +2,7 @@ package com.whatacook.cookers.controller;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.Role;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ public class ResendActivateTest extends BaseTestClass {
     @Value("${app.endpoint.users-resend}")
     private String usersResendActivationEndpoint;
     private ActivationDto activationDto;
-    private UserDTO userDTO;
+    private UserDto userDTO;
 
     @BeforeEach
     void setUp() {

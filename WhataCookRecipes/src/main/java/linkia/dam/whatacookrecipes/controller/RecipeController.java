@@ -10,6 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @RestController
@@ -49,6 +50,11 @@ public class RecipeController {
     @GetMapping("${app.sub-endpoint.id.path-variable-id}")
     public Mono<RecipeDto> getRecipeById(@PathVariable String id) {
         return recipeService.getRecipeById(id);
+    }
+
+    @PostMapping("${app.sub-endpoint.by-ids}")
+    public Mono<Map<String, Object>> getRecipesByIds(@RequestBody List<String> ids) {
+        return recipeService.getRecipesByIds(ids);
     }
 
     @GetMapping("${app.sub-endpoint.name.path-variable-name}")

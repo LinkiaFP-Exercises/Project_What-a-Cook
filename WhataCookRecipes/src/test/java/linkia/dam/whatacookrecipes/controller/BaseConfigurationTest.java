@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -31,6 +29,8 @@ public class BaseConfigurationTest {
     protected String PATH_Bulk;
     @Value("${app.sub-endpoint.all}")
     protected String PATH_All;
+    @Value("${app.sub-endpoint.by-ids}")
+    protected String byIdsEndpoint;
 
     protected static String pathVariable, valuePathVariable, queryParam, queryParamValue;
     protected static int page, size, amount = 36;

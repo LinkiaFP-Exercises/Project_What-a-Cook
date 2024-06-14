@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("${app.endpoint.ingredients}")
@@ -33,6 +36,11 @@ public class IngredientController {
     @GetMapping("${app.sub-endpoint.id.path-variable-id}")
     public Mono<IngredientDto> getIngredientById(@PathVariable String id) {
         return ingredientService.getIngredientById(id);
+    }
+
+    @PostMapping("${app.sub-endpoint.by-ids}")
+    public Mono<Map<String, Object>> getIngredientsByIds(@RequestBody List<String> ids) {
+        return ingredientService.getIngredientsByIds(ids);
     }
 
     @GetMapping("${app.sub-endpoint.name.path-variable-name}")

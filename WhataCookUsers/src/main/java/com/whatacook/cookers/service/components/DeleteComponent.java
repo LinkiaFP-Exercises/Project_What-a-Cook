@@ -3,7 +3,7 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
 import com.whatacook.cookers.model.responses.Response;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.model.users.UserJson;
 import com.whatacook.cookers.service.contracts.UserDao;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ public class DeleteComponent {
                 .flatMap(this::handleStatusChange);
     }
 
-    private Mono<Response> handleStatusChange(UserDTO userDTO) {
+    private Mono<Response> handleStatusChange(UserDto userDTO) {
         return switch (userDTO.getAccountStatus()) {
             case OK -> handleOkStatus(userDTO);
             case REQUEST_DELETE -> handleRequestDeleteStatus(userDTO);
@@ -34,7 +34,7 @@ public class DeleteComponent {
         };
     }
 
-    private Mono<Response> handleOkStatus(UserDTO userDTO) {
+    private Mono<Response> handleOkStatus(UserDto userDTO) {
         userDTO.setAccountStatus(AccountStatus.REQUEST_DELETE);
         userDTO.setRequestDeleteDate(LocalDateTime.now());
         return DAO.save(userDTO)
@@ -42,7 +42,7 @@ public class DeleteComponent {
                 .onErrorResume(UserServiceException::mono);
     }
 
-    private Mono<Response> handleRequestDeleteStatus(UserDTO userDTO) {
+    private Mono<Response> handleRequestDeleteStatus(UserDto userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 1) {
             userDTO.setAccountStatus(AccountStatus.MARKED_DELETE);
@@ -53,7 +53,7 @@ public class DeleteComponent {
         return Mono.just(Response.success("REQUEST_DELETE request is not yet a year old", userDTO.toJson()));
     }
 
-    private Mono<Response> handleMarkedDeleteStatus(UserDTO userDTO) {
+    private Mono<Response> handleMarkedDeleteStatus(UserDto userDTO) {
         LocalDateTime requestDeleteDate = userDTO.getRequestDeleteDate();
         if (requestDeleteDate != null && ChronoUnit.YEARS.between(requestDeleteDate, LocalDateTime.now()) >= 2) {
             return DAO.delete(userDTO)

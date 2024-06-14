@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @ToString
 @EqualsAndHashCode
 @Document(collection = "users")
-public class UserDTO {
+public class UserDto {
 
     @Id
     private String _id;

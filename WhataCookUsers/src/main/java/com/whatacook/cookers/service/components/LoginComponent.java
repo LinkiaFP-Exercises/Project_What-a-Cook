@@ -3,7 +3,7 @@ package com.whatacook.cookers.service.components;
 import com.whatacook.cookers.config.jwt.CustomUserDetails;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.exceptions.UserServiceException;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.service.contracts.UserDao;
 import com.whatacook.cookers.utilities.Util;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class LoginComponent {
                 .map(this::newValidUserByEmail);
     }
 
-    private Mono<UserDTO> verifyAccountStatusByEmail(UserDTO userDTO) {
+    private Mono<UserDto> verifyAccountStatusByEmail(UserDto userDTO) {
         final AccountStatus accountStatus = userDTO.getAccountStatus();
         if (EnumSet.of(OK, OFF, REQUEST_DELETE).contains(accountStatus))
             return Mono.just(userDTO);
@@ -57,13 +57,13 @@ public class LoginComponent {
             return UserServiceException.mono(accountStatus.getDetails());
     }
 
-    private UserDetails newValidUserByEmail(UserDTO userDTO) {
+    private UserDetails newValidUserByEmail(UserDto userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         authorities.add(new SimpleGrantedAuthority("ROLE_SELF"));
         return new CustomUserDetails(userDTO.getEmail() + userDTO.get_id(), userDTO.getPassword(), authorities, userDTO.getEmail(), userDTO.get_id());
     }
 
-    private Set<GrantedAuthority> listAuthorities(UserDTO userDTO) {
+    private Set<GrantedAuthority> listAuthorities(UserDto userDTO) {
         return Arrays.stream(userDTO.getRoleType().get().split(","))
                 .map(String::trim)
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -77,7 +77,7 @@ public class LoginComponent {
                 .map(this::newValidUserById);
     }
 
-    private Mono<UserDTO> verifyAccountStatusById(UserDTO userDTO) {
+    private Mono<UserDto> verifyAccountStatusById(UserDto userDTO) {
         String errorMsg = "Account Status Incorrect for this request: " + userDTO.getAccountStatus().getDetails();
         if (EnumSet.of(AccountStatus.OK, AccountStatus.PENDING, AccountStatus.OUTDATED)
                 .contains(userDTO.getAccountStatus())) {
@@ -87,7 +87,7 @@ public class LoginComponent {
         }
     }
 
-    private UserDetails newValidUserById(UserDTO userDTO) {
+    private UserDetails newValidUserById(UserDto userDTO) {
         Set<GrantedAuthority> authorities = listAuthorities(userDTO);
         authorities.add(new SimpleGrantedAuthority("ROLE_SELF"));
         return new CustomUserDetails(userDTO.get_id(), userDTO.getPassword(), authorities, userDTO.getEmail(), userDTO.get_id());

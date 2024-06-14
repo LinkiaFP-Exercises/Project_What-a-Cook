@@ -1,7 +1,7 @@
 package com.whatacook.cookers.service;
 
 import com.whatacook.cookers.model.auth.ActivationDto;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import com.whatacook.cookers.service.contracts.ActivationDao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class ActivationService {
 
     private final ActivationDao DAO;
 
-    public Mono<ActivationDto> createNew(UserDTO userDTO) { return DAO.save(ActivationDto.to(userDTO)); }
+    public Mono<ActivationDto> createNew(UserDto userDTO) { return DAO.save(ActivationDto.to(userDTO)); }
 
     public Mono<ActivationDto> findById(String id) {
         return DAO.findById(id);

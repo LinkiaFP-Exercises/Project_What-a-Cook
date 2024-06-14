@@ -3,7 +3,7 @@ package com.whatacook.cookers.controller;
 import com.whatacook.cookers.model.auth.ActivationDto;
 import com.whatacook.cookers.model.constants.AccountStatus;
 import com.whatacook.cookers.model.constants.Htmls;
-import com.whatacook.cookers.model.users.UserDTO;
+import com.whatacook.cookers.model.users.UserDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,19 +19,19 @@ public class ActivateTest extends BaseTestClass {
 
     @Value("${app.endpoint.users-activate}")
     private String usersActivateEndpoint;
-    private ArgumentCaptor<UserDTO> userCaptor;
+    private ArgumentCaptor<UserDto> userCaptor;
     private ActivationDto activationDto;
     private String failHtmlToTest;
 
     @BeforeEach
     void setUp() {
         pathVariable = usersEndpoint + usersActivateEndpoint;
-        userCaptor = ArgumentCaptor.forClass(UserDTO.class);
+        userCaptor = ArgumentCaptor.forClass(UserDto.class);
         activationDto = ActivationDto.to(userDtoBasicPending());
         Mockito.when(activationDao.findByCode(Mockito.eq(activationDto.getCode())))
                                                                 .thenReturn(Mono.just(activationDto));
         Mockito.when(userDao.findBy_id(ID)).thenReturn(Mono.just(userDtoBasicPending()));
-        Mockito.when(userDao.save(Mockito.any(UserDTO.class)))
+        Mockito.when(userDao.save(Mockito.any(UserDto.class)))
                                     .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
         Mockito.when(activationDao.deleteById(ID)).thenReturn(Mono.empty());
         failHtmlToTest = Htmls.FailActivation.get()
@@ -58,7 +58,7 @@ public class ActivateTest extends BaseTestClass {
         // 2. Verificar que se llamó al método save del userDao
         Mockito.verify(userDao, Mockito.times(1)).save(userCaptor.capture());
         // 3. Verificar que el UserDTO guardado tenía el AccountStatus.OK
-        UserDTO savedUser = userCaptor.getValue();
+        UserDto savedUser = userCaptor.getValue();
         assertEquals(AccountStatus.OK, savedUser.getAccountStatus());
     }
 
@@ -73,7 +73,7 @@ public class ActivateTest extends BaseTestClass {
                 .value(html -> assertEquals(failHtmlToTest, html));
         // Verificación adicional para asegurarse de que no se intenta borrar ni actualizar nada
         Mockito.verify(activationDao, Mockito.never()).deleteById(Mockito.anyString());
-        Mockito.verify(userDao, Mockito.never()).save(Mockito.any(UserDTO.class));
+        Mockito.verify(userDao, Mockito.never()).save(Mockito.any(UserDto.class));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ActivateTest extends BaseTestClass {
 
         // Verificación adicional para asegurarse de que no se intenta borrar ni actualizar nada
         Mockito.verify(activationDao, Mockito.never()).deleteById(Mockito.anyString());
-        Mockito.verify(userDao, Mockito.never()).save(Mockito.any(UserDTO.class));
+        Mockito.verify(userDao, Mockito.never()).save(Mockito.any(UserDto.class));
     }
 
 }
