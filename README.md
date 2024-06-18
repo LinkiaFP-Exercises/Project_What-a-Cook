@@ -51,7 +51,7 @@ Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar 
       whatacook-users:
         image: faunog/whatacook:cookers-app
         ports:
-          - "8081:8080"
+          - "8083:8080"
         pull_policy: always
     
       whatacook-recipes:
@@ -82,7 +82,7 @@ Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar 
 Una vez construida la imagen, puedes ejecutar la aplicación utilizando Docker con el siguiente comando. Este comando inicia el contenedor y expone el puerto 8080, lo que permite acceder a la aplicación desde tu navegador o cliente HTTP:
     #### Descargar whatacook-users
     ```bash
-    docker run -p 8081:8080 faunog/whatacook:cookers-app
+    docker run -p 8083:8080 faunog/whatacook:cookers-app
     ```
     #### Descargar whatacook-recipes
     ```bash
