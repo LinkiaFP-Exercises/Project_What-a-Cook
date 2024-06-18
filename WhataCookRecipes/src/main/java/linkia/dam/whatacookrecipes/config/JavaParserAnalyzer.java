@@ -1,8 +1,10 @@
 package linkia.dam.whatacookrecipes.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -15,16 +17,12 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * Component that analyzes Java source files in a specific directory and extracts method information.
- * The extracted information is saved to a JSON file.
+ * The extracted information is saved to a JSON file organized by package, sub-package, class, and methods.
  *
  * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
  */
@@ -49,7 +47,7 @@ public class JavaParserAnalyzer {
             return;
         }
 
-        List<MethodInfo> extractedData = new ArrayList<>();
+        Map<String, PackageInfo> packageMap = new HashMap<>();
         try {
             // Crear el directorio de salida si no existe
             Files.createDirectories(Paths.get(OUTPUT_DIR));
@@ -58,21 +56,10 @@ public class JavaParserAnalyzer {
             final Path pathTo_OUTPUT_FILE = Paths.get(OUTPUT_FILE);
             Files.deleteIfExists(pathTo_OUTPUT_FILE);
 
-            extractData(projectDir, extractedData);
+            extractData(projectDir, packageMap);
 
             // Guardar los datos extraídos en un archivo JSON
-            List<Map<String, String>> jsonList = extractedData.stream()
-                    .map(methodInfo -> {
-                        Map<String, String> jsonObject = new HashMap<>();
-                        jsonObject.put("name", escapeJson(methodInfo.getName()));
-                        jsonObject.put("returnType", escapeJson(methodInfo.getReturnType()));
-                        jsonObject.put("parameters", escapeJson(methodInfo.getParameters()));
-                        jsonObject.put("javadoc", escapeJson(methodInfo.getJavadoc()));
-                        jsonObject.put("body", escapeJson(methodInfo.getBody()));
-                        return jsonObject;
-                    }).collect(Collectors.toList());
-
-            String jsonString = toJsonString(jsonList);
+            String jsonString = toJsonString(packageMap);
             Files.write(pathTo_OUTPUT_FILE, jsonString.getBytes());
         } catch (IOException e) {
             log.error("Error while analyzing Java parser: {}", e.getMessage(), e);
@@ -85,7 +72,7 @@ public class JavaParserAnalyzer {
      * @param input the input string
      * @return the escaped string
      */
-    private String escapeJson(String input) {
+    private static String escapeJson(String input) {
         if (input == null) {
             return "";
         }
@@ -97,46 +84,39 @@ public class JavaParserAnalyzer {
     }
 
     /**
-     * Converts a list of maps to a JSON string.
+     * Converts a map of packages to a JSON string.
      *
-     * @param jsonList the list of maps
+     * @param packageMap the map of packages
      * @return the JSON string
      */
-    private String toJsonString(List<Map<String, String>> jsonList) {
-        StringBuilder jsonString = new StringBuilder("[\n");
-        for (Map<String, String> jsonObject : jsonList) {
-            jsonString.append("  {\n");
-            for (Map.Entry<String, String> entry : jsonObject.entrySet()) {
-                jsonString.append("    \"").append(entry.getKey()).append("\": \"").append(entry.getValue()).append("\",\n");
-            }
-            // Remove last comma and newline, then add closing brace
-            jsonString.setLength(jsonString.length() - 2);
-            jsonString.append("\n  },\n");
+    private String toJsonString(Map<String, PackageInfo> packageMap) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(packageMap);
+        } catch (IOException e) {
+            log.error("Error converting to JSON string: {}", e.getMessage(), e);
+            return "{}";
         }
-        // Remove last comma and newline, then add closing bracket
-        if (!jsonList.isEmpty()) {
-            jsonString.setLength(jsonString.length() - 2);
-        }
-        jsonString.append("\n]");
-        return jsonString.toString();
     }
 
     /**
      * Extracts method information from Java source files in the specified directory.
      *
      * @param projectDir the project directory
-     * @param extractedData the list to store extracted method information
+     * @param packageMap the map to store extracted method information organized by package
      * @throws IOException if an I/O error occurs
      */
-    private void extractData(File projectDir, List<MethodInfo> extractedData) throws IOException {
-        JavaParser javaParser = new JavaParser();
+    private void extractData(File projectDir, Map<String, PackageInfo> packageMap) throws IOException {
+        ParserConfiguration parserConfiguration = new ParserConfiguration()
+                .setAttributeComments(false);
+        JavaParser javaParser = new JavaParser(parserConfiguration);
         try (Stream<java.nio.file.Path> paths = Files.walk(projectDir.toPath())) {
             paths.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".java"))
                     .forEach(path -> {
                         try {
                             CompilationUnit cu = javaParser.parse(path).getResult().orElseThrow(IOException::new);
-                            cu.accept(new MethodVisitor(), extractedData);
+                            cu.accept(new PackageVisitor(), packageMap);
                         } catch (IOException e) {
                             log.error("Error while extractData() in JavaParserAnalyzer: {}", e.getMessage(), e);
                         }
@@ -145,20 +125,61 @@ public class JavaParserAnalyzer {
     }
 
     /**
-     * Visitor class to extract method information from a CompilationUnit.
+     * Visitor class to extract package and class information.
      */
-    private static class MethodVisitor extends VoidVisitorAdapter<List<MethodInfo>> {
+    private static class PackageVisitor extends VoidVisitorAdapter<Map<String, PackageInfo>> {
         @Override
-        public void visit(MethodDeclaration md, List<MethodInfo> collector) {
-            super.visit(md, collector);
-            MethodInfo methodInfo = new MethodInfo();
-            methodInfo.setName(md.getNameAsString());
-            methodInfo.setReturnType(md.getTypeAsString());
-            methodInfo.setParameters(md.getParameters().toString());
-            methodInfo.setJavadoc(md.getJavadoc().map(Object::toString).orElse(""));
-            methodInfo.setBody(md.getBody().map(Object::toString).orElse(""));
-            collector.add(methodInfo);
+        public void visit(CompilationUnit cu, Map<String, PackageInfo> collector) {
+            super.visit(cu, collector);
+            String packageName = cu.getPackageDeclaration()
+                    .map(pd -> pd.getName().toString())
+                    .orElse("default");
+
+            PackageInfo packageInfo = collector.computeIfAbsent(packageName, PackageInfo::new);
+
+            cu.findAll(ClassOrInterfaceDeclaration.class).forEach(c -> {
+                ClassInfo classInfo = new ClassInfo();
+                classInfo.setName(c.getNameAsString());
+                c.getMethods().forEach(m -> {
+                    MethodInfo methodInfo = new MethodInfo();
+                    methodInfo.setName(m.getNameAsString());
+                    methodInfo.setReturnType(m.getTypeAsString());
+                    methodInfo.setParameters(m.getParameters().toString());
+                    methodInfo.setJavadoc(m.getJavadoc().map(javadoc -> escapeJson(javadoc.toString())).orElse(""));
+                    methodInfo.setBody(m.getBody().map(body -> escapeJson(body.toString())).orElse(""));
+                    classInfo.getMethods().add(methodInfo);
+                });
+                packageInfo.getClasses().add(classInfo);
+            });
         }
+    }
+
+    /**
+     * Class representing package information.
+     */
+    @Getter
+    @Setter
+    private static class PackageInfo implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 421L;
+        private String name;
+        private List<ClassInfo> classes = new ArrayList<>();
+
+        public PackageInfo(String name) {
+            this.name = name;
+        }
+    }
+
+    /**
+     * Class representing class information.
+     */
+    @Getter
+    @Setter
+    private static class ClassInfo implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 422L;
+        private String name;
+        private List<MethodInfo> methods = new ArrayList<>();
     }
 
     /**
@@ -168,12 +189,11 @@ public class JavaParserAnalyzer {
     @Setter
     private static class MethodInfo implements Serializable {
         @Serial
-        private static final long serialVersionUID = 420L;
+        private static final long serialVersionUID = 423L;
         private String name;
         private String returnType;
         private String parameters;
         private String javadoc;
         private String body;
     }
-
 }
