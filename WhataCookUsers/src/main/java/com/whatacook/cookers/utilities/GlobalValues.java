@@ -55,4 +55,10 @@ public class GlobalValues {
     @Value("${global.values.url.check.email.is.used}")
     private String pathToCheckIfEmailAlreadyExists;
 
+    @Value("${app.endpoint.javadoc}")
+    private String pathToJavaDoc;
+
+    @Value("${global.values.directory.javadoc}")
+    private String pathToDirectoryJavadoc;
+
 }

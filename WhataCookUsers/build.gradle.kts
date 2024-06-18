@@ -80,6 +80,7 @@ tasks.withType<Javadoc> {
             docTitle = "What-a-Cook #USERS API Documentation - v1.0"
         }
     }
+    setDestinationDir(layout.buildDirectory.dir("docs/javadoc").get().asFile)
 }
 
 configurations.all {
@@ -129,3 +130,8 @@ tasks.register<Jar>("customJar") {
     archiveClassifier.set("custom")
     from(sourceSets["main"].output)
 }
+
+tasks.build {
+    dependsOn(tasks.withType<Javadoc>())
+}
+

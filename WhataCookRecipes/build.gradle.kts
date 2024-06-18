@@ -87,7 +87,7 @@ tasks.withType<Javadoc> {
             addStringOption("Xdoclint:none", "-quiet")
         }
     }
-
+    setDestinationDir(layout.buildDirectory.dir("docs/javadoc").get().asFile)
     // Excluir archivos específicos que causan problemas
     exclude("**/org/springframework/lang/Nullable.java")
 }
@@ -129,3 +129,8 @@ tasks.register<Jar>("customJar") {
     archiveClassifier.set("custom")
     from(sourceSets["main"].output)
 }
+
+tasks.build {
+    dependsOn(tasks.withType<Javadoc>())
+}
+
