@@ -16,7 +16,7 @@ services:
       - MONGO_URI_WHATACOOK_USERS=${MONGO_URI_WHATACOOK_USERS}
       - SPRING_MAIL_VALIDATION=${SPRING_MAIL_VALIDATION}
     ports:
-      - "8081:8080"
+      - "8083:8080"
 
   whatacook-recipes:
     build:
