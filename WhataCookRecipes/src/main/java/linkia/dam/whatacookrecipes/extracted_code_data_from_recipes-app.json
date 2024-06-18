@@ -7,28 +7,28 @@
     "returnType": "void"
   },
   {
-    "javadoc": "",
+    "javadoc": "Javadoc{description=JavadocDescription{elements=[JavadocSnippet{text='PostConstruct method that initiates the analysis process.\nIt creates the output directory and file, then extracts method data from the Java source files.'}]}, blockTags=[]}",
     "name": "analyze",
     "body": "{\n    File projectDir = new File(OUTPUT_DIR);\n    if (!projectDir.exists() || !projectDir.isDirectory()) {\n        log.error(\"El directorio especificado no existe: {}\", OUTPUT_DIR);\n        return;\n    }\n    List<MethodInfo> extractedData = new ArrayList<>();\n    try {\n        // Crear el directorio de salida si no existe\n        Files.createDirectories(Paths.get(OUTPUT_DIR));\n        // Borrar el contenido existente del archivo\n        final Path pathTo_OUTPUT_FILE = Paths.get(OUTPUT_FILE);\n        Files.deleteIfExists(pathTo_OUTPUT_FILE);\n        extractData(projectDir, extractedData);\n        // Guardar los datos extraídos en un archivo JSON\n        List<Map<String, String>> jsonList = extractedData.stream().map(methodInfo -> {\n            Map<String, String> jsonObject = new HashMap<>();\n            jsonObject.put(\"name\", escapeJson(methodInfo.getName()));\n            jsonObject.put(\"returnType\", escapeJson(methodInfo.getReturnType()));\n            jsonObject.put(\"parameters\", escapeJson(methodInfo.getParameters()));\n            jsonObject.put(\"javadoc\", escapeJson(methodInfo.getJavadoc()));\n            jsonObject.put(\"body\", escapeJson(methodInfo.getBody()));\n            return jsonObject;\n        }).collect(Collectors.toList());\n        String jsonString = toJsonString(jsonList);\n        Files.write(pathTo_OUTPUT_FILE, jsonString.getBytes());\n    } catch (IOException e) {\n        log.error(\"Error while analyzing Java parser: {}\", e.getMessage(), e);\n    }\n}",
     "parameters": "[]",
     "returnType": "void"
   },
   {
-    "javadoc": "",
+    "javadoc": "Javadoc{description=JavadocDescription{elements=[JavadocSnippet{text='Escapes special characters in a JSON string.'}]}, blockTags=[JavadocBlockTag{type=PARAM, content='JavadocDescription{elements=[JavadocSnippet{text='the input string'}]}', name=Optional[input]}, JavadocBlockTag{type=RETURN, content='JavadocDescription{elements=[JavadocSnippet{text='the escaped string'}]}', name=Optional.empty}]}",
     "name": "escapeJson",
     "body": "{\n    if (input == null) {\n        return \"\";\n    }\n    return input.replace(\"\\\\\", \"\\\\\\\\\").replace(\"\\\"\", \"\\\\\\\"\").replace(\"\\n\", \"\\\\n\").replace(\"\\r\", \"\\\\r\").replace(\"\\t\", \"\\\\t\");\n}",
     "parameters": "[String input]",
     "returnType": "String"
   },
   {
-    "javadoc": "",
+    "javadoc": "Javadoc{description=JavadocDescription{elements=[JavadocSnippet{text='Converts a list of maps to a JSON string.'}]}, blockTags=[JavadocBlockTag{type=PARAM, content='JavadocDescription{elements=[JavadocSnippet{text='the list of maps'}]}', name=Optional[jsonList]}, JavadocBlockTag{type=RETURN, content='JavadocDescription{elements=[JavadocSnippet{text='the JSON string'}]}', name=Optional.empty}]}",
     "name": "toJsonString",
     "body": "{\n    StringBuilder jsonString = new StringBuilder(\"[\\n\");\n    for (Map<String, String> jsonObject : jsonList) {\n        jsonString.append(\"  {\\n\");\n        for (Map.Entry<String, String> entry : jsonObject.entrySet()) {\n            jsonString.append(\"    \\\"\").append(entry.getKey()).append(\"\\\": \\\"\").append(entry.getValue()).append(\"\\\",\\n\");\n        }\n        // Remove last comma and newline, then add closing brace\n        jsonString.setLength(jsonString.length() - 2);\n        jsonString.append(\"\\n  },\\n\");\n    }\n    // Remove last comma and newline, then add closing bracket\n    if (!jsonList.isEmpty()) {\n        jsonString.setLength(jsonString.length() - 2);\n    }\n    jsonString.append(\"\\n]\");\n    return jsonString.toString();\n}",
     "parameters": "[List<Map<String, String>> jsonList]",
     "returnType": "String"
   },
   {
-    "javadoc": "",
+    "javadoc": "Javadoc{description=JavadocDescription{elements=[JavadocSnippet{text='Extracts method information from Java source files in the specified directory.'}]}, blockTags=[JavadocBlockTag{type=PARAM, content='JavadocDescription{elements=[JavadocSnippet{text='the project directory'}]}', name=Optional[projectDir]}, JavadocBlockTag{type=PARAM, content='JavadocDescription{elements=[JavadocSnippet{text='the list to store extracted method information'}]}', name=Optional[extractedData]}, JavadocBlockTag{type=THROWS, content='JavadocDescription{elements=[JavadocSnippet{text='if an I/O error occurs'}]}', name=Optional[IOException]}]}",
     "name": "extractData",
     "body": "{\n    JavaParser javaParser = new JavaParser();\n    try (Stream<java.nio.file.Path> paths = Files.walk(projectDir.toPath())) {\n        paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(\".java\")).forEach(path -> {\n            try {\n                CompilationUnit cu = javaParser.parse(path).getResult().orElseThrow(IOException::new);\n                cu.accept(new MethodVisitor(), extractedData);\n            } catch (IOException e) {\n                log.error(\"Error while extractData() in JavaParserAnalyzer: {}\", e.getMessage(), e);\n            }\n        });\n    }\n}",
     "parameters": "[File projectDir, List<MethodInfo> extractedData]",
@@ -42,7 +42,7 @@
     "returnType": "void"
   },
   {
-    "javadoc": "",
+    "javadoc": "Javadoc{description=JavadocDescription{elements=[JavadocSnippet{text='Condition function to check if the environment is local.'}]}, blockTags=[]}",
     "name": "matches",
     "body": "{\n    String environment = System.getenv(\"WHATA_COOK_ENV\");\n    return \"local\".equals(environment);\n}",
     "parameters": "[ConditionContext context, AnnotatedTypeMetadata metadata]",
