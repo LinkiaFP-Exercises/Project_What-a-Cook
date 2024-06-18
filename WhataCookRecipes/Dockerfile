@@ -23,6 +23,11 @@ ARG MONGO_URI_WHATACOOK_RECIPES
 ARG JAR_FILE=build/libs/WhataCookRecipes-0.0.1-SNAPSHOT.jar
 COPY ${JAR_FILE} app.jar
 
+# Copia el Javadoc al contenedor
+COPY build/docs/javadoc /app/javadoc
+# Verificar que los archivos se han copiado correctamente
+RUN ls -la /app/javadoc
+
 # Definir variables de entorno en Tiempo de Ejecución
 ENV MONGO_URI_WHATACOOK_RECIPES=${MONGO_URI_WHATACOOK_RECIPES}
 
