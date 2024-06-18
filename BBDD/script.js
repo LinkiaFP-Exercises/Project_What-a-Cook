@@ -42,6 +42,7 @@ const links = [
     { "source": "FavoriteDto_ingredientIds", "target": "IngredientDto_id", "type": "relation" }
 ];
 
+
 const nodes = [
     { "id": "UserDto", "label": "UserDto", "group": "user-app", "fx": 600, "fy": 200 },
     { "id": "ActivationDto", "label": "ActivationDto", "group": "user-app", "fx": 200, "fy": 400 },
@@ -86,109 +87,133 @@ const nodes = [
     { "id": "RecipeDto_ingredients", "label": "List<IngredientDto>", "group": "recipes-app-attr", "fx": 1200, "fy": 500 }
 ];
 
-
-
 var svg = d3.select("svg"),
-            width = +svg.attr("width"),
-            height = +svg.attr("height");
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
 
-        var simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-            .force("charge", d3.forceManyBody().strength(-500))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+var simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+    .force("charge", d3.forceManyBody().strength(-500))
+    .force("center", d3.forceCenter(width / 2, height / 2));
 
-        var link = svg.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(links)
-            .enter().append("line")
-            .attr("class", d => d.type === "relation" ? "link id-link" : "link");
+var link = svg.append("g")
+    .attr("class", "links")
+    .selectAll("line")
+    .data(links)
+    .enter().append("line")
+    .attr("class", d => d.type === "relation" ? "link id-link" : "link");
 
-        var node = svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("g")
-            .data(nodes)
-            .enter().append("g")
-            .attr("class", "node")
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
+var node = svg.append("g")
+    .attr("class", "nodes")
+    .selectAll("g")
+    .data(nodes)
+    .enter().append("g")
+    .attr("class", "node")
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
 
-        node.append("circle")
-            .attr("r", 10)
-            .attr("class", d => d.group);
+// Ajustar el tamaño de los nodos y el texto
+node.append("circle")
+    .attr("r", d => d.group === "user-app" || d.group === "recipes-app" ? 40 : 10) // Nodo más grande para clases
+    .attr("class", d => d.group);
 
-        node.append("text")
-            .attr("x", 12)
-            .attr("dy", ".35em")
-            .text(d => d.label);
+node.append("text")
+    .attr("class", "node-text")
+    .attr("dy", d => d.group === "user-app" || d.group === "recipes-app" ? ".35em" : "-1em") // Ajuste para el texto en nodos más grandes
+    .attr("text-anchor", "middle") // Centrar el texto en nodos más grandes
+    .text(d => d.label);
 
-        simulation.on("tick", () => {
-            link
-                .attr("x1", d => clamp(d.source.x, 0, width))
-                .attr("y1", d => clamp(d.source.y, 0, height))
-                .attr("x2", d => clamp(d.target.x, 0, width))
-                .attr("y2", d => clamp(d.target.y, 0, height));
+simulation.on("tick", () => {
+    link
+        .attr("x1", d => clamp(d.source.x, 0, width))
+        .attr("y1", d => clamp(d.source.y, 0, height))
+        .attr("x2", d => clamp(d.target.x, 0, width))
+        .attr("y2", d => clamp(d.target.y, 0, height));
 
-            node
-                .attr("transform", d => `translate(${clamp(d.x, 0, width)},${clamp(d.y, 0, height)})`);
-        });
+    node
+        .attr("transform", d => `translate(${clamp(d.x, 0, width)},${clamp(d.y, 0, height)})`);
 
-        function dragstarted(event, d) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
-
-            // Mantener posiciones proporcionales de los nodos satélite
-            const relatedNodes = nodes.filter(node => {
-                return node.label.includes(`${d.id}_`);
-            });
-
-            relatedNodes.forEach(satelliteNode => {
-                const dx = satelliteNode.fx - d.fx;
-                const dy = satelliteNode.fy - d.fy;
-                satelliteNode.fx = d.fx + dx;
-                satelliteNode.fy = d.fy + dy;
-            });
-        }
-
-
-        function dragended(event, d) {
-            if (!event.active) simulation.alphaTarget(0);
-            savePositions();
-        }
-
-        function clamp(x, lo, hi) {
-            return x < lo ? lo : x > hi ? hi : x;
-        }
-
-        function savePositions() {
-            const positions = nodes.map(node => ({
-                id: node.id,
-                fx: node.fx,
-                fy: node.fy
-            }));
-            localStorage.setItem('nodePositions', JSON.stringify(positions));
-        }
-
-        function loadPositions() {
-            const positions = JSON.parse(localStorage.getItem('nodePositions'));
-            if (positions) {
-                nodes.forEach(node => {
-                    const pos = positions.find(p => p.id === node.id);
-                    if (pos) {
-                        node.fx = pos.fx;
-                        node.fy = pos.fy;
-                    }
-                });
+    node.selectAll("text.node-text")
+        .attr("x", function(d) {
+            if (d.id.includes('_')) {
+                const mainNode = nodes.find(node => d.id.startsWith(node.id));
+                const dx = d.fx - mainNode.fx;
+                return dx > 0 ? 12 : -12;
             }
-        }
+            return 0; // Centrar el texto horizontalmente en nodos grandes
+        })
+        .attr("y", function(d) {
+            if (d.id.includes('_')) {
+                const mainNode = nodes.find(node => d.id.startsWith(node.id));
+                const dy = d.fy - mainNode.fy;
+                return dy > 0 ? 12 : -12;
+            }
+            return ".35em"; // Centrar el texto verticalmente en nodos grandes
+        })
+        .attr("text-anchor", function(d) {
+            if (d.id.includes('_')) {
+                const mainNode = nodes.find(node => d.id.startsWith(node.id));
+                const dx = d.fx - mainNode.fx;
+                return dx > 0 ? "start" : "end";
+            }
+            return "middle"; // Centrar el texto horizontalmente en nodos grandes
+        });
+});
 
-        loadPositions();
+function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(event, d) {
+    const dx = event.x - d.fx;
+    const dy = event.y - d.fy;
+
+    d.fx = event.x;
+    d.fy = event.y;
+
+    nodes.forEach(node => {
+        if (node.id !== d.id && node.id.startsWith(d.id)) {
+            node.fx += dx;
+            node.fy += dy;
+        }
+    });
+}
+
+function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    savePositions();
+}
+
+function clamp(x, lo, hi) {
+    return x < lo ? lo : x > hi ? hi : x;
+}
+
+function savePositions() {
+    const positions = nodes.map(node => ({
+        id: node.id,
+        fx: node.fx,
+        fy: node.fy
+    }));
+    localStorage.setItem('nodePositions', JSON.stringify(positions));
+}
+
+function loadPositions() {
+    const positions = JSON.parse(localStorage.getItem('nodePositions'));
+    if (positions) {
+        nodes.forEach(node => {
+            const pos = positions.find(p => p.id === node.id);
+            if (pos) {
+                node.fx = pos.fx;
+                node.fy = pos.fy;
+            }
+        });
+    }
+}
+
+loadPositions();
+
 
