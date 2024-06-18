@@ -1,0 +1,2594 @@
+package linkia.dam.whatacookrecipes;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+/**
+ * Main application class for the What-a-Cook Recipes application.
+ * This class serves as the entry point for the Spring Boot application.
+ * <p>
+ * Annotations:
+ * - @SpringBootApplication: Indicates that this class is the main entry point for the Spring Boot application and enables auto-configuration, component scanning, and configuration properties.
+ * <p>
+ * Methods:
+ * - main(String[] args): The main method that runs the Spring Boot application.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@SpringBootApplication
+public class WhataCookRecipesApplication {
+
+    /**
+     * The main method that runs the Spring Boot application.
+     *
+     * @param args Command line arguments.
+     */
+    public static void main(String[] args) {
+        SpringApplication.run(WhataCookRecipesApplication.class, args);
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Component;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Stream;
+
+/**
+ * Component that analyzes Java source files in a specific directory and extracts method information.
+ * The extracted information is saved to a JSON file organized by package, sub-package, class, and methods.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@Log4j2
+@Component
+@Conditional(LocalEnvironmentCondition.class)
+public class JavaParserAnalyzer {
+
+    private static final String OUTPUT_DIR = "src/main/java/linkia/dam/whatacookrecipes";
+    private static final String OUTPUT_FILE = OUTPUT_DIR + "/extracted_code_data_from_recipes-app.json";
+
+    /**
+     * PostConstruct method that initiates the analysis process.
+     * It creates the output directory and file, then extracts method data from the Java source files.
+     */
+    @PostConstruct
+    public void analyze() {
+        File projectDir = new File(OUTPUT_DIR);
+
+        if (!projectDir.exists() || !projectDir.isDirectory()) {
+            log.error("El directorio especificado no existe: {}", OUTPUT_DIR);
+            return;
+        }
+
+        Map<String, PackageInfo> packageMap = new HashMap<>();
+        try {
+            // Crear el directorio de salida si no existe
+            Files.createDirectories(Paths.get(OUTPUT_DIR));
+
+            // Borrar el contenido existente del archivo
+            final Path pathTo_OUTPUT_FILE = Paths.get(OUTPUT_FILE);
+            Files.deleteIfExists(pathTo_OUTPUT_FILE);
+
+            extractData(projectDir, packageMap);
+
+            // Guardar los datos extraídos en un archivo JSON
+            String jsonString = toJsonString(packageMap);
+            Files.write(pathTo_OUTPUT_FILE, jsonString.getBytes());
+        } catch (IOException e) {
+            log.error("Error while analyzing Java parser: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Escapes special characters in a JSON string.
+     *
+     * @param input the input string
+     * @return the escaped string
+     */
+    private static String escapeJson(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    /**
+     * Converts a map of packages to a JSON string.
+     *
+     * @param packageMap the map of packages
+     * @return the JSON string
+     */
+    private String toJsonString(Map<String, PackageInfo> packageMap) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(packageMap);
+        } catch (IOException e) {
+            log.error("Error converting to JSON string: {}", e.getMessage(), e);
+            return "{}";
+        }
+    }
+
+    /**
+     * Extracts method information from Java source files in the specified directory.
+     *
+     * @param projectDir the project directory
+     * @param packageMap the map to store extracted method information organized by package
+     * @throws IOException if an I/O error occurs
+     */
+    private void extractData(File projectDir, Map<String, PackageInfo> packageMap) throws IOException {
+        ParserConfiguration parserConfiguration = new ParserConfiguration()
+                .setAttributeComments(false);
+        JavaParser javaParser = new JavaParser(parserConfiguration);
+        try (Stream<java.nio.file.Path> paths = Files.walk(projectDir.toPath())) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .forEach(path -> {
+                        try {
+                            CompilationUnit cu = javaParser.parse(path).getResult().orElseThrow(IOException::new);
+                            cu.accept(new PackageVisitor(), packageMap);
+                        } catch (IOException e) {
+                            log.error("Error while extractData() in JavaParserAnalyzer: {}", e.getMessage(), e);
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Visitor class to extract package and class information.
+     */
+    private static class PackageVisitor extends VoidVisitorAdapter<Map<String, PackageInfo>> {
+        @Override
+        public void visit(CompilationUnit cu, Map<String, PackageInfo> collector) {
+            super.visit(cu, collector);
+            String packageName = cu.getPackageDeclaration()
+                    .map(pd -> pd.getName().toString())
+                    .orElse("default");
+
+            PackageInfo packageInfo = collector.computeIfAbsent(packageName, PackageInfo::new);
+
+            cu.findAll(ClassOrInterfaceDeclaration.class).forEach(c -> {
+                ClassInfo classInfo = new ClassInfo();
+                classInfo.setName(c.getNameAsString());
+                c.getMethods().forEach(m -> {
+                    MethodInfo methodInfo = new MethodInfo();
+                    methodInfo.setName(m.getNameAsString());
+                    methodInfo.setReturnType(m.getTypeAsString());
+                    methodInfo.setParameters(m.getParameters().toString());
+                    methodInfo.setJavadoc(m.getJavadoc().map(javadoc -> escapeJson(javadoc.toString())).orElse(""));
+                    methodInfo.setBody(m.getBody().map(body -> escapeJson(body.toString())).orElse(""));
+                    classInfo.getMethods().add(methodInfo);
+                });
+                packageInfo.getClasses().add(classInfo);
+            });
+        }
+    }
+
+    /**
+     * Class representing package information.
+     */
+    @Getter
+    @Setter
+    private static class PackageInfo implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 421L;
+        private String name;
+        private List<ClassInfo> classes = new ArrayList<>();
+
+        public PackageInfo(String name) {
+            this.name = name;
+        }
+    }
+
+    /**
+     * Class representing class information.
+     */
+    @Getter
+    @Setter
+    private static class ClassInfo implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 422L;
+        private String name;
+        private List<MethodInfo> methods = new ArrayList<>();
+    }
+
+    /**
+     * Class representing method information.
+     */
+    @Getter
+    @Setter
+    private static class MethodInfo implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 423L;
+        private String name;
+        private String returnType;
+        private String parameters;
+        private String javadoc;
+        private String body;
+    }
+}
+
+package linkia.dam.whatacookrecipes.config;
+
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Component;
+
+import jakarta.annotation.PostConstruct;
+import java.io.*;
+import java.nio.file.*;
+import java.util.stream.Stream;
+
+/**
+ * A component that aggregates all Java source files from a specified directory into a single text file.
+ * This component is only active if the environment variable WHATA_COOK_ENV is set to "local".
+ * The aggregated source code is written to "aggregated_source_code.txt".
+ */
+@Log4j2
+@Component
+@Conditional(LocalEnvironmentCondition.class)
+public class JavaSourceAggregator {
+
+    private static final String SOURCE_DIR = "src/main/java/linkia/dam/whatacookrecipes";
+    private static final String OUTPUT_FILE = "aggregated_source_code_recipe-app.txt";
+
+    /**
+     * Aggregates all Java source files in the specified directory into a single text file.
+     * This method is called automatically after the bean has been constructed.
+     */
+    @PostConstruct
+    public void aggregateSourceCode() {
+        File sourceDir = new File(SOURCE_DIR);
+
+        if (!sourceDir.exists() || !sourceDir.isDirectory()) {
+            log.error("El directorio especificado no existe: {}", SOURCE_DIR);
+            return;
+        }
+
+        try {
+            // Borrar el contenido existente del archivo
+            final Path pathToOutputFile = Paths.get(OUTPUT_FILE);
+            Files.deleteIfExists(pathToOutputFile);
+
+            // Crear el archivo de salida
+            try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputFile, StandardOpenOption.CREATE)) {
+                aggregateSourceFiles(sourceDir, writer);
+            }
+        } catch (IOException e) {
+            log.error("Error while aggregating source code: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Recursively aggregates all Java source files in the specified directory.
+     *
+     * @param directory the directory containing Java source files to aggregate
+     * @param writer    the writer to which the aggregated source code is written
+     * @throws IOException if an I/O error occurs
+     */
+    private void aggregateSourceFiles(File directory, BufferedWriter writer) throws IOException {
+        try (Stream<Path> paths = Files.walk(directory.toPath())) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .forEach(path -> {
+                        try (Stream<String> lines = Files.lines(path)) {
+                            lines.forEach(line -> {
+                                try {
+                                    writer.write(line);
+                                    writer.newLine();
+                                } catch (IOException e) {
+                                    log.error("Error writing line to output file: {}", e.getMessage(), e);
+                                }
+                            });
+                            writer.write(System.lineSeparator());
+                        } catch (IOException e) {
+                            log.error("Error reading file {}: {}", path, e.getMessage(), e);
+                        }
+                    });
+        }
+    }
+}
+
+package linkia.dam.whatacookrecipes.config;
+
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+/**
+ * Condition class to check if the environment is local.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+public class LocalEnvironmentCondition implements Condition {
+    /**
+     * Condition function to check if the environment is local.
+     */
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        String environment = System.getenv("WHATA_COOK_ENV");
+        return "local".equals(environment);
+    }
+}
+
+package linkia.dam.whatacookrecipes.config;
+
+import com.mongodb.reactivestreams.client.MongoClient;
+import com.mongodb.reactivestreams.client.MongoClients;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.NoOpDbRefResolver;
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
+import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
+
+/**
+ * Configuration class for setting up MongoDB with reactive support.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@Configuration
+@EnableReactiveMongoRepositories(basePackages = "linkia.dam.whatacookrecipes")
+public class MongoConfig {
+
+    @Value("${MONGO_URI_WHATACOOK_RECIPES}")
+    private String mongoUri;
+
+    public static final String DB_NAME = "cooking";
+
+    /**
+     * Creates a {@link MongoClient} bean to connect to MongoDB.
+     *
+     * @return the {@link MongoClient} instance.
+     */
+    @Bean
+    public MongoClient mongoClient() {
+        return MongoClients.create(mongoUri);
+    }
+
+    /**
+     * Creates a {@link ReactiveMongoDatabaseFactory} bean for reactive database operations.
+     *
+     * @param mongoClient the {@link MongoClient} instance.
+     * @return the {@link ReactiveMongoDatabaseFactory} instance.
+     */
+    @Bean
+    public ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory(MongoClient mongoClient) {
+        return new SimpleReactiveMongoDatabaseFactory(mongoClient, DB_NAME);
+    }
+
+    /**
+     * Creates a {@link ReactiveMongoTemplate} bean for reactive database operations.
+     *
+     * @param reactiveMongoDatabaseFactory the {@link ReactiveMongoDatabaseFactory} instance.
+     * @param mappingMongoConverter        the {@link MappingMongoConverter} instance.
+     * @return the {@link ReactiveMongoTemplate} instance.
+     */
+    @Bean
+    public ReactiveMongoTemplate reactiveMongoTemplate(ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory, MappingMongoConverter mappingMongoConverter) {
+        return new ReactiveMongoTemplate(reactiveMongoDatabaseFactory, mappingMongoConverter);
+    }
+
+    /**
+     * Creates a {@link MappingMongoConverter} bean to handle MongoDB mappings.
+     *
+     * @param mongoMappingContext the {@link MongoMappingContext} instance.
+     * @return the {@link MappingMongoConverter} instance.
+     */
+    @Bean
+    public MappingMongoConverter mappingMongoConverter(MongoMappingContext mongoMappingContext) {
+        MappingMongoConverter converter = new MappingMongoConverter(NoOpDbRefResolver.INSTANCE, mongoMappingContext);
+        converter.setTypeMapper(new DefaultMongoTypeMapper(null));
+        return converter;
+    }
+}
+
+package linkia.dam.whatacookrecipes.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+
+/**
+ * Web configuration class for setting up resource handlers.
+ * This class implements {@code WebFluxConfigurer} to configure the resource handlers
+ * for serving static resources from the file system.
+ * <p>
+ * Annotations:
+ * - {@code @Configuration}: Indicates that this class contains Spring configuration.
+ * <p>
+ * Methods:
+ * - {@code addResourceHandlers(ResourceHandlerRegistry registry)}: Configures the resource handlers for serving static resources.
+ * </p>
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@Configuration
+public class WebConfig implements WebFluxConfigurer {
+
+    /**
+     * Configures the resource handlers for the application.
+     * <p>
+     * This method overrides the {@code addResourceHandlers} method from the
+     * {@code WebFluxConfigurer} interface to add a specific resource handler.
+     * The resource handler configures the path to serve static files
+     * from the file system directory {@code /app/javadoc} via the path
+     * {@code /api/javadoc/**}.
+     * </p>
+     *
+     * @param registry the resource handler registry to be used to add the handlers.
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/api/javadoc/**")
+                .addResourceLocations("file:/app/javadoc/");
+    }
+}
+
+package linkia.dam.whatacookrecipes.controller;
+
+
+import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.nio.file.Files;
+
+@RestController
+@RequestMapping("${app.endpoint.javadoc}")
+@Log4j2
+public class JavaDocController {
+
+    @GetMapping("/")
+    public ResponseEntity<byte[]> getJavadoc() {
+        try {
+            Resource resource = new FileSystemResource("/app/javadoc/index.html");
+            if (!resource.exists()) {
+                log.error("Javadoc file not found at /app/javadoc/index.html");
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            byte[] content = Files.readAllBytes(resource.getFile().toPath());
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", "text/html");
+            return new ResponseEntity<>(content, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error("Error reading Javadoc file: ", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+}
+
+package linkia.dam.whatacookrecipes.controller;
+
+import linkia.dam.whatacookrecipes.model.MeasureDto;
+import linkia.dam.whatacookrecipes.service.MeasureService;
+import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * REST controller for managing measures.
+ * Provides endpoints for CRUD operations on measures.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @RestController: Indicates that this class is a REST controller.
+ * - @RequestMapping: Specifies the base URL for all endpoints in this controller.
+ * - @Validated: Enables validation for the controller.
+ * <p>
+ * Methods:
+ * - getMeasureById(String id): Retrieves a measure by its ID.
+ * - getMeasureByName(String name): Retrieves a measure by its name, case insensitive.
+ * - createMeasure(MeasureDto categoryDto): Creates a new measure.
+ * - createMeasures(Flux<MeasureDto> categories): Creates multiple measures.
+ * - deleteMeasureById(String id): Deletes a measure by its ID.
+ * - deleteAllMeasures(): Deletes all measures.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see MeasureService
+ */
+@AllArgsConstructor
+@RestController
+@RequestMapping("${app.endpoint.measures}")
+@Validated
+public class MeasureController {
+
+    private final MeasureService measureService;
+
+    /**
+     * Retrieves a measure by its ID.
+     *
+     * @param id The ID of the measure to retrieve.
+     * @return A {@link Mono} emitting the {@link MeasureDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
+    public Mono<MeasureDto> getMeasureById(@PathVariable String id) {
+        return measureService.getMeasureById(id);
+    }
+
+    /**
+     * Retrieves a measure by its name, case insensitive.
+     *
+     * @param name The name of the measure to retrieve.
+     * @return A {@link Mono} emitting the {@link MeasureDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
+    public Mono<MeasureDto> getMeasureByName(@PathVariable String name) {
+        return measureService.getMeasureByNameIgnoreCase(name);
+    }
+
+    /**
+     * Creates a new measure.
+     *
+     * @param categoryDto The measure data to create.
+     * @return A {@link Mono} emitting the created {@link MeasureDto} object.
+     */
+    @PostMapping
+    public Mono<MeasureDto> createMeasure(@RequestBody MeasureDto categoryDto) {
+        return measureService.createMeasure(categoryDto);
+    }
+
+    /**
+     * Creates multiple measures.
+     *
+     * @param categories The flux of measures to create.
+     * @return A {@link Flux} emitting the created {@link MeasureDto} objects.
+     */
+    @PostMapping("${app.sub-endpoint.bulk}")
+    public Flux<MeasureDto> createMeasures(@RequestBody Flux<MeasureDto> categories) {
+        return measureService.createMeasures(categories);
+    }
+
+    /**
+     * Deletes a measure by its ID.
+     *
+     * @param id The ID of the measure to delete.
+     * @return A {@link Mono} emitting a message indicating the measure has been deleted, or an error if not found.
+     */
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
+    public Mono<String> deleteMeasureById(@PathVariable String id) {
+        return measureService.deleteMeasure(id);
+    }
+
+    /**
+     * Deletes all measures.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    @DeleteMapping("${app.sub-endpoint.all}")
+    public Mono<Void> deleteAllMeasures() {
+        return measureService.deleteAllMeasures();
+    }
+}
+
+package linkia.dam.whatacookrecipes.controller;
+
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import linkia.dam.whatacookrecipes.service.CategoryService;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * REST controller for managing categories.
+ * Provides endpoints for CRUD operations on categories.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @RestController: Indicates that this class is a REST controller.
+ * - @RequestMapping: Specifies the base URL for all endpoints in this controller.
+ * - @Validated: Enables validation for the controller.
+ * <p>
+ * Methods:
+ * - getAllCategories(String mode, int page, int size): Retrieves all categories with pagination.
+ * - getCategoriesByNameContaining(String name, String mode, int page, int size): Retrieves categories by name containing a string with pagination.
+ * - getCategoryById(String id): Retrieves a category by its ID.
+ * - getCategoryByName(String name): Retrieves a category by its name, case insensitive.
+ * - createCategory(CategoryDto categoryDto): Creates a new category.
+ * - createCategories(Flux<CategoryDto> categories): Creates multiple categories.
+ * - deleteCategoryById(String id): Deletes a category by its ID.
+ * - deleteAllCategories(): Deletes all categories.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see CategoryService
+ */
+@AllArgsConstructor
+@RestController
+@RequestMapping("${app.endpoint.categories}")
+@Validated
+public class CategoryController {
+
+    private final CategoryService categoryService;
+
+    /**
+     * Retrieves all categories with pagination.
+     *
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link CategoryDto} objects.
+     */
+    @GetMapping
+    public Mono<Page<CategoryDto>> getAllCategories(@RequestParam(required = false) String mode,
+                                                    @RequestParam int page, @RequestParam int size) {
+        return categoryService.getAllCategories(page, size, mode);
+    }
+
+    /**
+     * Retrieves categories by name containing a string with pagination.
+     *
+     * @param name The string to search for within category names.
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link CategoryDto} objects.
+     */
+    @GetMapping("${app.sub-endpoint.by-name}")
+    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(@RequestParam String name,
+                                                                 @RequestParam(required = false) String mode,
+                                                                 @RequestParam int page, @RequestParam int size) {
+        return categoryService.getCategoriesByNameContaining(name, page, size, mode);
+    }
+
+    /**
+     * Retrieves a category by its ID.
+     *
+     * @param id The ID of the category to retrieve.
+     * @return A {@link Mono} emitting the {@link CategoryDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
+    public Mono<CategoryDto> getCategoryById(@PathVariable String id) {
+        return categoryService.getCategoryById(id);
+    }
+
+    /**
+     * Retrieves a category by its name, case insensitive.
+     *
+     * @param name The name of the category to retrieve.
+     * @return A {@link Mono} emitting the {@link CategoryDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
+    public Mono<CategoryDto> getCategoryByName(@PathVariable String name) {
+        return categoryService.getCategoryByNameIgnoreCase(name);
+    }
+
+    /**
+     * Creates a new category.
+     *
+     * @param categoryDto The category data to create.
+     * @return A {@link Mono} emitting the created {@link CategoryDto} object.
+     */
+    @PostMapping
+    public Mono<CategoryDto> createCategory(@RequestBody CategoryDto categoryDto) {
+        return categoryService.createCategory(categoryDto);
+    }
+
+    /**
+     * Creates multiple categories.
+     *
+     * @param categories The flux of categories to create.
+     * @return A {@link Flux} emitting the created {@link CategoryDto} objects.
+     */
+    @PostMapping("${app.sub-endpoint.bulk}")
+    public Flux<CategoryDto> createCategories(@RequestBody Flux<CategoryDto> categories) {
+        return categoryService.createCategories(categories);
+    }
+
+    /**
+     * Deletes a category by its ID.
+     *
+     * @param id The ID of the category to delete.
+     * @return A {@link Mono} emitting a message indicating the category has been deleted, or an error if not found.
+     */
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
+    public Mono<String> deleteCategoryById(@PathVariable String id) {
+        return categoryService.deleteCategory(id);
+    }
+
+    /**
+     * Deletes all categories.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    @DeleteMapping("${app.sub-endpoint.all}")
+    public Mono<Void> deleteAllCategories() {
+        return categoryService.deleteAllCategories();
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.controller;
+
+import linkia.dam.whatacookrecipes.model.RecipeDto;
+import linkia.dam.whatacookrecipes.service.RecipeService;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * REST controller for managing recipes.
+ * Provides endpoints for CRUD operations on recipes.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @RestController: Indicates that this class is a REST controller.
+ * - @RequestMapping: Specifies the base URL for all endpoints in this controller.
+ * - @Validated: Enables validation for the controller.
+ * <p>
+ * Methods:
+ * - getAllRecipes(String mode, int page, int size): Retrieves all recipes with pagination.
+ * - getRecipesByNameContaining(String name, String mode, int page, int size): Retrieves recipes by name containing a string with pagination.
+ * - searchRecipesByIngredients(List<String> ingredients, String mode, int page, int size): Retrieves recipes containing any of the specified ingredients with pagination.
+ * - searchRecipesByAllIngredients(List<String> ingredients, String mode, int page, int size): Retrieves recipes containing all of the specified ingredients with pagination.
+ * - getRecipeById(String id): Retrieves a recipe by its ID.
+ * - getRecipesByIds(List<String> ids): Retrieves recipes by a list of IDs.
+ * - getRecipeByName(String name): Retrieves a recipe by its name, case insensitive.
+ * - createRecipe(RecipeDto recipeDto): Creates a new recipe.
+ * - createRecipes(Flux<RecipeDto> recipes): Creates multiple recipes.
+ * - deleteRecipeById(String id): Deletes a recipe by its ID.
+ * - deleteAllRecipes(): Deletes all recipes.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see RecipeService
+ */
+@AllArgsConstructor
+@RestController
+@RequestMapping("${app.endpoint.recipes}")
+@Validated
+public class RecipeController {
+
+    private final RecipeService recipeService;
+
+    /**
+     * Retrieves all recipes with pagination.
+     *
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    @GetMapping
+    public Mono<Page<RecipeDto>> getAllRecipes(@RequestParam(required = false) String mode,
+                                               @RequestParam int page, @RequestParam int size) {
+        return recipeService.getAllRecipes(page, size, mode);
+    }
+
+    /**
+     * Retrieves recipes by name containing a string with pagination.
+     *
+     * @param name The string to search for within recipe names.
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    @GetMapping("${app.sub-endpoint.by-name}")
+    public Mono<Page<RecipeDto>> getRecipesByNameContaining(@RequestParam String name,
+                                                            @RequestParam(required = false) String mode,
+                                                            @RequestParam int page, @RequestParam int size) {
+        return recipeService.getRecipesByNameContaining(name, page, size, mode);
+    }
+
+    /**
+     * Retrieves recipes containing any of the specified ingredients with pagination.
+     *
+     * @param ingredients The list of ingredient names to search for within recipes.
+     * @param mode        The sorting mode.
+     * @param page        The page number to retrieve.
+     * @param size        The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    @GetMapping("${app.sub-endpoint.by-ingredients}")
+    public Mono<Page<RecipeDto>> searchRecipesByIngredients(@RequestParam List<String> ingredients,
+                                                            @RequestParam(required = false) String mode,
+                                                            @RequestParam int page, @RequestParam int size) {
+        return recipeService.findRecipesByIngredients(ingredients, page, size, mode);
+    }
+
+    /**
+     * Retrieves recipes containing all of the specified ingredients with pagination.
+     *
+     * @param ingredients The list of ingredient names to search for within recipes.
+     * @param mode        The sorting mode.
+     * @param page        The page number to retrieve.
+     * @param size        The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    @GetMapping("${app.sub-endpoint.by-all-ingredients}")
+    public Mono<Page<RecipeDto>> searchRecipesByAllIngredients(@RequestParam List<String> ingredients,
+                                                               @RequestParam(required = false) String mode,
+                                                               @RequestParam int page, @RequestParam int size) {
+        return recipeService.findRecipesByAllIngredients(ingredients, page, size, mode);
+    }
+
+    /**
+     * Retrieves a recipe by its ID.
+     *
+     * @param id The ID of the recipe to retrieve.
+     * @return A {@link Mono} emitting the {@link RecipeDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
+    public Mono<RecipeDto> getRecipeById(@PathVariable String id) {
+        return recipeService.getRecipeById(id);
+    }
+
+    /**
+     * Retrieves recipes by a list of IDs.
+     *
+     * @param ids The list of IDs of the recipes to retrieve.
+     * @return A {@link Mono} emitting a map containing found recipes and not found IDs.
+     */
+    @PostMapping("${app.sub-endpoint.by-ids}")
+    public Mono<Map<String, Object>> getRecipesByIds(@RequestBody List<String> ids) {
+        return recipeService.getRecipesByIds(ids);
+    }
+
+    /**
+     * Retrieves a recipe by its name, case insensitive.
+     *
+     * @param name The name of the recipe to retrieve.
+     * @return A {@link Mono} emitting the {@link RecipeDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
+    public Mono<RecipeDto> getRecipeByName(@PathVariable String name) {
+        return recipeService.getRecipeByName(name);
+    }
+
+    /**
+     * Creates a new recipe.
+     *
+     * @param recipeDto The recipe data to create.
+     * @return A {@link Mono} emitting the created {@link RecipeDto} object.
+     */
+    @PostMapping
+    public Mono<RecipeDto> createRecipe(@RequestBody RecipeDto recipeDto) {
+        return recipeService.createRecipe(recipeDto);
+    }
+
+    /**
+     * Creates multiple recipes.
+     *
+     * @param recipes The flux of recipes to create.
+     * @return A {@link Flux} emitting the created {@link RecipeDto} objects.
+     */
+    @PostMapping("${app.sub-endpoint.bulk}")
+    public Flux<RecipeDto> createRecipes(@RequestBody Flux<RecipeDto> recipes) {
+        return recipeService.createRecipes(recipes);
+    }
+
+    /**
+     * Deletes a recipe by its ID.
+     *
+     * @param id The ID of the recipe to delete.
+     * @return A {@link Mono} emitting a message indicating the recipe has been deleted, or an error if not found.
+     */
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
+    public Mono<String> deleteRecipeById(@PathVariable String id) {
+        return recipeService.deleteRecipe(id);
+    }
+
+    /**
+     * Deletes all recipes.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    @DeleteMapping("${app.sub-endpoint.all}")
+    public Mono<Void> deleteAllRecipes() {
+        return recipeService.deleteAllRecipes();
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.controller;
+
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.service.IngredientService;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * REST controller for managing ingredients.
+ * Provides endpoints for CRUD operations on ingredients.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @RestController: Indicates that this class is a REST controller.
+ * - @RequestMapping: Specifies the base URL for all endpoints in this controller.
+ * - @Validated: Enables validation for the controller.
+ * <p>
+ * Methods:
+ * - getAllCategories(String mode, int page, int size): Retrieves all ingredients with pagination.
+ * - getCategoriesByNameContaining(String name, String mode, int page, int size): Retrieves ingredients by name containing a string with pagination.
+ * - getIngredientById(String id): Retrieves an ingredient by its ID.
+ * - getIngredientsByIds(List<String> ids): Retrieves ingredients by a list of IDs.
+ * - getIngredientByName(String name): Retrieves an ingredient by its name, case insensitive.
+ * - createIngredient(IngredientDto ingredientDto): Creates a new ingredient.
+ * - createCategories(Flux<IngredientDto> ingredients): Creates multiple ingredients.
+ * - deleteIngredientById(String id): Deletes an ingredient by its ID.
+ * - deleteAllCategories(): Deletes all ingredients.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see IngredientService
+ */
+@AllArgsConstructor
+@RestController
+@RequestMapping("${app.endpoint.ingredients}")
+@Validated
+public class IngredientController {
+
+    private final IngredientService ingredientService;
+
+    /**
+     * Retrieves all ingredients with pagination.
+     *
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link IngredientDto} objects.
+     */
+    @GetMapping
+    public Mono<Page<IngredientDto>> getAllCategories(@RequestParam(required = false) String mode,
+                                                      @RequestParam int page, @RequestParam int size) {
+        return ingredientService.getAllCategories(page, size, mode);
+    }
+
+    /**
+     * Retrieves ingredients by name containing a string with pagination.
+     *
+     * @param name The string to search for within ingredient names.
+     * @param mode The sorting mode.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @return A {@link Mono} emitting a {@link Page} of {@link IngredientDto} objects.
+     */
+    @GetMapping("${app.sub-endpoint.by-name}")
+    public Mono<Page<IngredientDto>> getCategoriesByNameContaining(@RequestParam String name,
+                                                                   @RequestParam(required = false) String mode,
+                                                                   @RequestParam int page, @RequestParam int size) {
+        return ingredientService.getCategoriesByNameContaining(name, page, size, mode);
+    }
+
+    /**
+     * Retrieves an ingredient by its ID.
+     *
+     * @param id The ID of the ingredient to retrieve.
+     * @return A {@link Mono} emitting the {@link IngredientDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.id.path-variable-id}")
+    public Mono<IngredientDto> getIngredientById(@PathVariable String id) {
+        return ingredientService.getIngredientById(id);
+    }
+
+    /**
+     * Retrieves ingredients by a list of IDs.
+     *
+     * @param ids The list of IDs of the ingredients to retrieve.
+     * @return A {@link Mono} emitting a map containing found ingredients and not found IDs.
+     */
+    @PostMapping("${app.sub-endpoint.by-ids}")
+    public Mono<Map<String, Object>> getIngredientsByIds(@RequestBody List<String> ids) {
+        return ingredientService.getIngredientsByIds(ids);
+    }
+
+    /**
+     * Retrieves an ingredient by its name, case insensitive.
+     *
+     * @param name The name of the ingredient to retrieve.
+     * @return A {@link Mono} emitting the {@link IngredientDto} object, or an error if not found.
+     */
+    @GetMapping("${app.sub-endpoint.name.path-variable-name}")
+    public Mono<IngredientDto> getIngredientByName(@PathVariable String name) {
+        return ingredientService.getIngredientByName(name);
+    }
+
+    /**
+     * Creates a new ingredient.
+     *
+     * @param ingredientDto The ingredient data to create.
+     * @return A {@link Mono} emitting the created {@link IngredientDto} object.
+     */
+    @PostMapping
+    public Mono<IngredientDto> createIngredient(@RequestBody IngredientDto ingredientDto) {
+        return ingredientService.createIngredient(ingredientDto);
+    }
+
+    /**
+     * Creates multiple ingredients.
+     *
+     * @param ingredients The flux of ingredients to create.
+     * @return A {@link Flux} emitting the created {@link IngredientDto} objects.
+     */
+    @PostMapping("${app.sub-endpoint.bulk}")
+    public Flux<IngredientDto> createCategories(@RequestBody Flux<IngredientDto> ingredients) {
+        return ingredientService.createCategories(ingredients);
+    }
+
+    /**
+     * Deletes an ingredient by its ID.
+     *
+     * @param id The ID of the ingredient to delete.
+     * @return A {@link Mono} emitting a message indicating the ingredient has been deleted, or an error if not found.
+     */
+    @DeleteMapping("${app.sub-endpoint.path-variable-id}")
+    public Mono<String> deleteIngredientById(@PathVariable String id) {
+        return ingredientService.deleteIngredient(id);
+    }
+
+    /**
+     * Deletes all ingredients.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    @DeleteMapping("${app.sub-endpoint.all}")
+    public Mono<Void> deleteAllCategories() {
+        return ingredientService.deleteAllCategories();
+    }
+}
+
+package linkia.dam.whatacookrecipes.utilities;
+
+import lombok.experimental.UtilityClass;
+import org.springframework.data.domain.Sort;
+
+/**
+ * Utility class for common service-related functionalities.
+ * Provides methods to get sorting direction and check mode strings.
+ * <p>
+ * Annotations:
+ * - @UtilityClass: Indicates that this class is a utility class and provides a private constructor.
+ * <p>
+ * Methods:
+ * - getSortByName(String mode): Returns a {@link Sort} object for sorting by name based on the mode.
+ * - isNotNullAndStartWithD(String mode): Checks if the mode string is not null and starts with "d".
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@UtilityClass
+public class ServiceUtil {
+
+    /**
+     * Returns a {@link Sort} object for sorting by name based on the mode.
+     *
+     * @param mode The sorting mode.
+     * @return A {@link Sort} object for sorting by name.
+     */
+    public static Sort getSortByName(String mode) {
+        Sort.Direction direction = isNotNullAndStartWithD(mode) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return Sort.by(direction, "name");
+    }
+
+    /**
+     * Checks if the mode string is not null and starts with "d".
+     *
+     * @param mode The mode string to check.
+     * @return true if the mode is not null and starts with "d", false otherwise.
+     */
+    public static boolean isNotNullAndStartWithD(String mode) {
+        return mode != null && mode.toLowerCase().startsWith("d");
+    }
+}
+
+package linkia.dam.whatacookrecipes.utilities;
+
+import linkia.dam.whatacookrecipes.model.*;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.*;
+import reactor.core.publisher.Mono;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static linkia.dam.whatacookrecipes.utilities.ServiceUtil.isNotNullAndStartWithD;
+import static linkia.dam.whatacookrecipes.utilities.ServiceUtil.getSortByName;
+
+/**
+ * Utility class for handling pagination.
+ * Provides methods to create paged results and get comparators for sorting.
+ * <p>
+ * Annotations:
+ * - @Log4j2: Generates a logger for the class.
+ * <p>
+ * Methods:
+ * - createPagedResult(List<T> items, int page, int size, String mode): Creates a paged result from a list of items.
+ * - getComparator(String mode): Returns a comparator for sorting items based on the mode.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@Log4j2
+public class PaginationUtil {
+
+    /**
+     * Creates a paged result from a list of items.
+     *
+     * @param items The list of items to paginate.
+     * @param page  The page number to retrieve.
+     * @param size  The number of items per page.
+     * @param mode  The sorting mode.
+     * @param <T>   The type of items, extending {@link NamedEntity}.
+     * @return A {@link Mono} emitting a {@link Page} of items.
+     */
+    public static <T extends NamedEntity> Mono<Page<T>> createPagedResult(List<T> items, int page, int size, String mode) {
+        return Mono.just(items.stream()
+                .sorted(getComparator(mode))
+                .skip((long) page * size)
+                .limit(size)
+                .collect(Collectors.collectingAndThen(Collectors.toList(),
+                        list -> new PageImpl<>(list, PageRequest.of(page, size, getSortByName(mode)), items.size())))
+        );
+    }
+
+    /**
+     * Returns a comparator for sorting items based on the mode.
+     *
+     * @param mode The sorting mode.
+     * @param <T>  The type of items, extending {@link NamedEntity}.
+     * @return A comparator for sorting items.
+     */
+    private static <T extends NamedEntity> Comparator<T> getComparator(String mode) {
+        Comparator<T> comparator = Comparator.comparing(NamedEntity::getName);
+        return isNotNullAndStartWithD(mode) ? comparator.reversed() : comparator;
+    }
+}
+
+package linkia.dam.whatacookrecipes.model;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+/**
+ * Data Transfer Object (DTO) representing a category.
+ * Extends the {@link NamedEntity} class to include a name and id.
+ * <p>
+ * Annotations:
+ * - @NoArgsConstructor: Generates a no-argument constructor.
+ * - @Getter: Generates getter methods for all fields.
+ * - @Setter: Generates setter methods for all fields.
+ * - @ToString(callSuper = true): Generates a toString method including fields from the superclass.
+ * - @EqualsAndHashCode(callSuper = true): Generates equals and hashCode methods including fields from the superclass.
+ * - @Document: Specifies the MongoDB collection name for this entity.
+ * <p>
+ * Constructor:
+ * - CategoryDto(String id, @NotBlank(message = "name is mandatory") String name): Constructs a CategoryDto with specified id and name.
+ * <p>
+ * Fields inherited from {@link NamedEntity}:
+ * - id: The unique identifier of the category.
+ * - name: The name of the category, which is mandatory.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see NamedEntity
+ */
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Document(collection = "category")
+public class CategoryDto extends NamedEntity {
+    /**
+     * Constructs a CategoryDto with specified id and name.
+     *
+     * @param id   The unique identifier of the category.
+     * @param name The name of the category, which is mandatory.
+     */
+    public CategoryDto(String id, @NotBlank(message = "name is mandatory") String name) {
+        super(id, name);
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.model;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+/**
+ * Data Transfer Object (DTO) representing an ingredient.
+ * Extends the {@link NamedEntity} class to include a name and id.
+ * <p>
+ * Annotations:
+ * - @NoArgsConstructor: Generates a no-argument constructor.
+ * - @Getter: Generates getter methods for all fields.
+ * - @Setter: Generates setter methods for all fields.
+ * - @ToString(callSuper = true): Generates a toString method including fields from the superclass.
+ * - @EqualsAndHashCode(callSuper = true): Generates equals and hashCode methods including fields from the superclass.
+ * - @Document: Specifies the MongoDB collection name for this entity.
+ * <p>
+ * Fields:
+ * - quantity: The quantity of the ingredient.
+ * - measure: The measure associated with the ingredient.
+ * <p>
+ * Constructor:
+ * - IngredientDto(String id, @NotBlank(message = "name is mandatory") String name, double quantity, MeasureDto measure):
+ * Constructs an IngredientDto with specified id, name, quantity, and measure.
+ *
+ * @param id       The unique identifier of the ingredient.
+ * @param name     The name of the ingredient, which is mandatory.
+ * @param quantity The quantity of the ingredient.
+ * @param measure  The measure associated with the ingredient.
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see NamedEntity
+ */
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Document(collection = "ingredient")
+public class IngredientDto extends NamedEntity {
+
+    private double quantity;
+
+    private MeasureDto measure;
+
+    /**
+     * Constructs an IngredientDto with specified id, name, quantity, and measure.
+     *
+     * @param id       The unique identifier of the ingredient.
+     * @param name     The name of the ingredient, which is mandatory.
+     * @param quantity The quantity of the ingredient.
+     * @param measure  The measure associated with the ingredient.
+     */
+    public IngredientDto(String id, @NotBlank(message = "name is mandatory") String name, double quantity, MeasureDto measure) {
+        super(id, name);
+        this.quantity = quantity;
+        this.measure = measure;
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.model;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.List;
+
+/**
+ * Data Transfer Object (DTO) representing a recipe.
+ * Extends the {@link NamedEntity} class to include a name and id.
+ * <p>
+ * Annotations:
+ * - @NoArgsConstructor: Generates a no-argument constructor.
+ * - @AllArgsConstructor: Generates an all-arguments constructor.
+ * - @Getter: Generates getter methods for all fields.
+ * - @Setter: Generates setter methods for all fields.
+ * - @ToString(callSuper = true): Generates a toString method including fields from the superclass.
+ * - @EqualsAndHashCode(callSuper = true): Generates equals and hashCode methods including fields from the superclass.
+ * - @Document: Specifies the MongoDB collection name for this entity.
+ * <p>
+ * Fields:
+ * - ingredients: The list of ingredients used in the recipe.
+ * - categories: The list of categories to which the recipe belongs.
+ * - preparation: The preparation instructions for the recipe.
+ * - portion: The number of portions the recipe yields.
+ * <p>
+ * Constructors:
+ * - RecipeDto(String id, @NotBlank(message = "name is mandatory") String name, List<IngredientDto> ingredients,
+ * List<CategoryDto> categories, String preparation, int portion): Constructs a RecipeDto with specified id, name,
+ * ingredients, categories, preparation, and portion.
+ * - RecipeDto(): Default no-argument constructor.
+ * - RecipeDto(List<IngredientDto> ingredients, List<CategoryDto> categories, String preparation, int portion): Constructs
+ * a RecipeDto with specified ingredients, categories, preparation, and portion.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see NamedEntity
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Document(collection = "recipe")
+public class RecipeDto extends NamedEntity {
+
+    private List<IngredientDto> ingredients;
+
+    private List<CategoryDto> categories;
+
+    private String preparation;
+    private int portion;
+
+    /**
+     * Constructs a RecipeDto with specified id, name, ingredients, categories, preparation, and portion.
+     *
+     * @param id          The unique identifier of the recipe.
+     * @param name        The name of the recipe, which is mandatory.
+     * @param ingredients The list of ingredients used in the recipe.
+     * @param categories  The list of categories to which the recipe belongs.
+     * @param preparation The preparation instructions for the recipe.
+     * @param portion     The number of portions the recipe yields.
+     */
+    public RecipeDto(String id, @NotBlank(message = "name is mandatory") String name, List<IngredientDto> ingredients,
+                     List<CategoryDto> categories, String preparation, int portion) {
+        super(id, name);
+        this.ingredients = ingredients;
+        this.categories = categories;
+        this.preparation = preparation;
+        this.portion = portion;
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.model;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+/**
+ * Data Transfer Object (DTO) representing a measure.
+ * Extends the {@link NamedEntity} class to include a name and id.
+ * <p>
+ * Annotations:
+ * - @NoArgsConstructor: Generates a no-argument constructor.
+ * - @Getter: Generates getter methods for all fields.
+ * - @Setter: Generates setter methods for all fields.
+ * - @ToString(callSuper = true): Generates a toString method including fields from the superclass.
+ * - @EqualsAndHashCode(callSuper = true): Generates equals and hashCode methods including fields from the superclass.
+ * - @Document: Specifies the MongoDB collection name for this entity.
+ * <p>
+ * Constructor:
+ * - MeasureDto(String id, @NotBlank(message = "name is mandatory") String name): Constructs a MeasureDto with specified id and name.
+ * <p>
+ * Fields inherited from {@link NamedEntity}:
+ * - id: The unique identifier of the measure.
+ * - name: The name of the measure, which is mandatory.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see NamedEntity
+ */
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@Document(collection = "measure")
+public class MeasureDto extends NamedEntity {
+    /**
+     * Constructs a MeasureDto with specified id and name.
+     *
+     * @param id   The unique identifier of the measure.
+     * @param name The name of the measure, which is mandatory.
+     */
+    public MeasureDto(String id, @NotBlank(message = "name is mandatory") String name) {
+        super(id, name);
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.model.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
+ * Exception thrown when a requested resource is not found.
+ * This exception results in a response with a 404 Not Found HTTP status.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+    /**
+     * Constructs a new ResourceNotFoundException with the specified detail message.
+     *
+     * @param message the detail message.
+     */
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+
+package linkia.dam.whatacookrecipes.model;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+/**
+ * Base entity class with an ID and a name attribute.
+ * <p>
+ * Annotations:
+ * - @NoArgsConstructor: Generates a no-argument constructor.
+ * - @AllArgsConstructor: Generates an all-arguments constructor.
+ * - @Getter: Generates getter methods for all fields.
+ * - @Setter: Generates setter methods for all fields.
+ * - @ToString: Generates a toString method.
+ * - @EqualsAndHashCode: Generates equals and hashCode methods.
+ * <p>
+ * Fields:
+ * - id: The unique identifier of the entity.
+ * - name: The name of the entity, which is mandatory and indexed uniquely.
+ * <p>
+ * Additional Annotations:
+ * - @Id: Marks the field as the primary key in the MongoDB document.
+ * - @Field: Specifies the field name in the MongoDB document.
+ * - @NotBlank: Validates that the field is not null and not blank.
+ * - @Indexed: Marks the field as indexed, ensuring it is unique in the database.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class NamedEntity {
+    /**
+     * The unique identifier of the entity.
+     */
+    @Id
+    protected String id;
+
+    /**
+     * The name of the entity, which is mandatory and indexed uniquely.
+     */
+    @Field("name")
+    @NotBlank(message = "name is mandatory")
+    @Indexed(unique = true)
+    protected String name;
+}
+
+package linkia.dam.whatacookrecipes.service.repository;
+
+import linkia.dam.whatacookrecipes.model.MeasureDto;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
+
+/**
+ * Repository interface for managing {@link MeasureDto} entities.
+ * Extends the {@link ReactiveMongoRepository} to provide reactive CRUD operations.
+ * <p>
+ * Method:
+ * - findByNameIgnoreCase(String name): Finds a measure by name, case insensitive.
+ * <p>
+ * Annotations:
+ * - @Repository: Indicates that this interface is a Spring Data Repository.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see ReactiveMongoRepository
+ */
+@Repository
+public interface MeasureDao extends ReactiveMongoRepository<MeasureDto, String> {
+
+    /**
+     * Finds a measure by name, case insensitive.
+     *
+     * @param name The name of the measure to search for.
+     * @return A {@link Mono} emitting the matching {@link MeasureDto} entity, or empty if not found.
+     */
+    Mono<MeasureDto> findByNameIgnoreCase(String name);
+}
+
+package linkia.dam.whatacookrecipes.service.repository;
+
+import linkia.dam.whatacookrecipes.model.RecipeDto;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+/**
+ * Repository interface for managing {@link RecipeDto} entities.
+ * Extends the {@link ReactiveMongoRepository} to provide reactive CRUD operations.
+ * <p>
+ * Methods:
+ * - findByNameContainingIgnoreCase(String name): Finds recipes with names containing the specified string, case insensitive.
+ * - findByNameIgnoreCase(String name): Finds a recipe by name, case insensitive.
+ * - findByIngredientsNameIn(List<String> ingredientNames): Finds recipes containing any of the specified ingredient names.
+ * - findByAllIngredientsNameIn(List<String> ingredientNames): Finds recipes containing all of the specified ingredient names.
+ * <p>
+ * Annotations:
+ * - @Repository: Indicates that this interface is a Spring Data Repository.
+ * - @Query: Custom query for finding recipes by ingredient names.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see ReactiveMongoRepository
+ */
+@Repository
+public interface RecipeDao extends ReactiveMongoRepository<RecipeDto, String> {
+
+    /**
+     * Finds recipes with names containing the specified string, case insensitive.
+     *
+     * @param name The string to search for within recipe names.
+     * @return A {@link Flux} emitting the matching {@link RecipeDto} entities.
+     */
+    Flux<RecipeDto> findByNameContainingIgnoreCase(String name);
+
+    /**
+     * Finds a recipe by name, case insensitive.
+     *
+     * @param name The name of the recipe to search for.
+     * @return A {@link Mono} emitting the matching {@link RecipeDto} entity, or empty if not found.
+     */
+    Mono<RecipeDto> findByNameIgnoreCase(String name);
+
+    /**
+     * Finds recipes containing any of the specified ingredient names.
+     *
+     * @param ingredientNames A list of ingredient names to search for within recipes.
+     * @return A {@link Flux} emitting the matching {@link RecipeDto} entities.
+     */
+    @Query("{'ingredients.name': { $in: ?0 }}")
+    Flux<RecipeDto> findByIngredientsNameIn(List<String> ingredientNames);
+
+    /**
+     * Finds recipes containing all of the specified ingredient names.
+     *
+     * @param ingredientNames A list of ingredient names to search for within recipes.
+     * @return A {@link Flux} emitting the matching {@link RecipeDto} entities.
+     */
+    @Query("{'ingredients.name': { $all: ?0 }}")
+    Flux<RecipeDto> findByAllIngredientsNameIn(List<String> ingredientNames);
+}
+
+package linkia.dam.whatacookrecipes.service.repository;
+
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * Repository interface for managing {@link IngredientDto} entities.
+ * Extends the {@link ReactiveMongoRepository} to provide reactive CRUD operations.
+ * <p>
+ * Methods:
+ * - findByNameContainingIgnoreCase(String name): Finds ingredients with names containing the specified string, case insensitive.
+ * - findByNameIgnoreCase(String name): Finds an ingredient by name, case insensitive.
+ * <p>
+ * Annotations:
+ * - @Repository: Indicates that this interface is a Spring Data Repository.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see ReactiveMongoRepository
+ */
+@Repository
+public interface IngredientDao extends ReactiveMongoRepository<IngredientDto, String> {
+
+    /**
+     * Finds ingredients with names containing the specified string, case insensitive.
+     *
+     * @param name The string to search for within ingredient names.
+     * @return A {@link Flux} emitting the matching {@link IngredientDto} entities.
+     */
+    Flux<IngredientDto> findByNameContainingIgnoreCase(String name);
+
+    /**
+     * Finds an ingredient by name, case insensitive.
+     *
+     * @param name The name of the ingredient to search for.
+     * @return A {@link Mono} emitting the matching {@link IngredientDto} entity, or empty if not found.
+     */
+    Mono<IngredientDto> findByNameIgnoreCase(String name);
+}
+
+package linkia.dam.whatacookrecipes.service.repository;
+
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * Repository interface for managing {@link CategoryDto} entities.
+ * Extends the {@link ReactiveMongoRepository} to provide reactive CRUD operations.
+ * <p>
+ * Methods:
+ * - findByNameContainingIgnoreCase(String name): Finds categories with names containing the specified string, case insensitive.
+ * - findByNameIgnoreCase(String name): Finds a category by name, case insensitive.
+ * <p>
+ * Annotations:
+ * - @Repository: Indicates that this interface is a Spring Data Repository.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see ReactiveMongoRepository
+ */
+@Repository
+public interface CategoryDao extends ReactiveMongoRepository<CategoryDto, String> {
+
+    /**
+     * Finds categories with names containing the specified string, case insensitive.
+     *
+     * @param name The string to search for within category names.
+     * @return A {@link Flux} emitting the matching {@link CategoryDto} entities.
+     */
+    Flux<CategoryDto> findByNameContainingIgnoreCase(String name);
+
+    /**
+     * Finds a category by name, case insensitive.
+     *
+     * @param name The name of the category to search for.
+     * @return A {@link Mono} emitting the matching {@link CategoryDto} entity, or empty if not found.
+     */
+    Mono<CategoryDto> findByNameIgnoreCase(String name);
+}
+
+package linkia.dam.whatacookrecipes.service;
+
+import linkia.dam.whatacookrecipes.model.RecipeDto;
+import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
+import linkia.dam.whatacookrecipes.service.components.CreateRecipesComponent;
+import linkia.dam.whatacookrecipes.service.repository.RecipeDao;
+import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Service class for managing recipes.
+ * Provides methods for CRUD operations and additional business logic.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Service: Indicates that this class is a Spring service component.
+ * - @Slf4j: Generates a logger for the class.
+ * <p>
+ * Methods:
+ * - getAllRecipes(int page, int size, String mode): Retrieves all recipes with pagination.
+ * - getRecipesByNameContaining(String name, int page, int size, String mode): Retrieves recipes by name containing a string with pagination.
+ * - findRecipesByIngredients(List<String> ingredientNames, int page, int size, String mode): Retrieves recipes containing any of the specified ingredients with pagination.
+ * - findRecipesByAllIngredients(List<String> ingredientNames, int page, int size, String mode): Retrieves recipes containing all of the specified ingredients with pagination.
+ * - getRecipeById(String id): Retrieves a recipe by its ID.
+ * - getRecipesByIds(List<String> ids): Retrieves recipes by a list of IDs.
+ * - getRecipeByName(String name): Retrieves a recipe by its name, case insensitive.
+ * - createRecipes(Flux<RecipeDto> recipes): Creates multiple recipes.
+ * - createRecipe(RecipeDto recipeDto): Creates a new recipe.
+ * - deleteRecipe(String id): Deletes a recipe by its ID.
+ * - deleteAllRecipes(): Deletes all recipes.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see RecipeDao
+ * @see CreateRecipesComponent
+ * @see PaginationUtil
+ */
+@AllArgsConstructor
+@Service
+@Slf4j
+public class RecipeService {
+
+    private final RecipeDao recipeDao;
+    private final CreateRecipesComponent createRecipesComponent;
+
+    /**
+     * Retrieves all recipes with pagination.
+     *
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    public Mono<Page<RecipeDto>> getAllRecipes(int page, int size, String mode) {
+        return recipeDao.findAll().collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves recipes by name containing a string with pagination.
+     *
+     * @param name The string to search for within recipe names.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    public Mono<Page<RecipeDto>> getRecipesByNameContaining(String name, int page, int size, String mode) {
+        return recipeDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves recipes containing any of the specified ingredients with pagination.
+     *
+     * @param ingredientNames The list of ingredient names to search for within recipes.
+     * @param page            The page number to retrieve.
+     * @param size            The number of items per page.
+     * @param mode            The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    public Mono<Page<RecipeDto>> findRecipesByIngredients(List<String> ingredientNames, int page, int size, String mode) {
+        return recipeDao.findByIngredientsNameIn(ingredientNames).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves recipes containing all of the specified ingredients with pagination.
+     *
+     * @param ingredientNames The list of ingredient names to search for within recipes.
+     * @param page            The page number to retrieve.
+     * @param size            The number of items per page.
+     * @param mode            The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link RecipeDto} objects.
+     */
+    public Mono<Page<RecipeDto>> findRecipesByAllIngredients(List<String> ingredientNames, int page, int size, String mode) {
+        return recipeDao.findByAllIngredientsNameIn(ingredientNames).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves a recipe by its ID.
+     *
+     * @param id The ID of the recipe to retrieve.
+     * @return A {@link Mono} emitting the {@link RecipeDto} object, or an error if not found.
+     */
+    public Mono<RecipeDto> getRecipeById(String id) {
+        return recipeDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with id=" + id)));
+    }
+
+    /**
+     * Retrieves recipes by a list of IDs.
+     *
+     * @param ids The list of IDs of the recipes to retrieve.
+     * @return A {@link Mono} emitting a map containing found recipes and not found IDs.
+     */
+    public Mono<Map<String, Object>> getRecipesByIds(List<String> ids) {
+        return recipeDao.findAllById(ids)
+                .collectList()
+                .flatMap(recipes -> {
+                    List<String> foundIds = recipes.stream()
+                            .map(RecipeDto::getId)
+                            .toList();
+                    List<String> notFoundIds = ids.stream()
+                            .filter(id -> !foundIds.contains(id))
+                            .toList();
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("found", recipes);
+                    result.put("notFound", notFoundIds);
+
+                    return Mono.just(result);
+                });
+    }
+
+    /**
+     * Retrieves a recipe by its name, case insensitive.
+     *
+     * @param name The name of the recipe to retrieve.
+     * @return A {@link Mono} emitting the {@link RecipeDto} object, or an error if not found.
+     */
+    public Mono<RecipeDto> getRecipeByName(String name) {
+        return recipeDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with name=" + name)));
+    }
+
+    /**
+     * Creates multiple recipes.
+     *
+     * @param recipes The recipes to create.
+     * @return A {@link Flux} emitting the created {@link RecipeDto} objects.
+     */
+    public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
+        return createRecipesComponent.createRecipes(recipes);
+    }
+
+    /**
+     * Creates a new recipe.
+     *
+     * @param recipeDto The recipe data to create.
+     * @return A {@link Mono} emitting the created {@link RecipeDto} object.
+     */
+    public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
+        return createRecipesComponent.createRecipe(recipeDto);
+    }
+
+    /**
+     * Deletes a recipe by its ID.
+     *
+     * @param id The ID of the recipe to delete.
+     * @return A {@link Mono} emitting a message indicating the recipe has been deleted, or an error if not found.
+     */
+    public Mono<String> deleteRecipe(String id) {
+        return recipeDao.findById(id)
+                .flatMap(existingRecipe -> recipeDao.delete(existingRecipe)
+                        .then(Mono.just("Recipe " + existingRecipe.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Recipe not found with id=" + id)));
+    }
+
+    /**
+     * Deletes all recipes.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    public Mono<Void> deleteAllRecipes() {
+        return recipeDao.deleteAll();
+    }
+}
+
+package linkia.dam.whatacookrecipes.service;
+
+import linkia.dam.whatacookrecipes.model.MeasureDto;
+import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * Service class for managing measures.
+ * Provides methods for CRUD operations and additional business logic.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Service: Indicates that this class is a Spring service component.
+ * <p>
+ * Methods:
+ * - getMeasureById(String id): Retrieves a measure by its ID.
+ * - getMeasureByNameIgnoreCase(String name): Retrieves a measure by its name, case insensitive.
+ * - createMeasure(MeasureDto measureDto): Creates a new measure if it does not already exist.
+ * - createMeasures(Flux<MeasureDto> measures): Creates multiple measures.
+ * - deleteMeasure(String id): Deletes a measure by its ID.
+ * - deleteAllMeasures(): Deletes all measures.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see MeasureDao
+ */
+@AllArgsConstructor
+@Service
+public class MeasureService {
+
+    private final MeasureDao measureDao;
+
+    /**
+     * Retrieves a measure by its ID.
+     *
+     * @param id The ID of the measure to retrieve.
+     * @return A {@link Mono} emitting the {@link MeasureDto} object, or an error if not found.
+     */
+    public Mono<MeasureDto> getMeasureById(String id) {
+        return measureDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with id=" + id)));
+    }
+
+    /**
+     * Retrieves a measure by its name, case insensitive.
+     *
+     * @param name The name of the measure to retrieve.
+     * @return A {@link Mono} emitting the {@link MeasureDto} object, or an error if not found.
+     */
+    public Mono<MeasureDto> getMeasureByNameIgnoreCase(String name) {
+        return measureDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with name=" + name)));
+    }
+
+    /**
+     * Creates a new measure if it does not already exist.
+     *
+     * @param measureDto The measure data to create.
+     * @return A {@link Mono} emitting the created {@link MeasureDto} object.
+     */
+    public Mono<MeasureDto> createMeasure(MeasureDto measureDto) {
+        return measureDao.findByNameIgnoreCase(measureDto.getName())
+                .switchIfEmpty(Mono.defer(() -> measureDao.save(measureDto)));
+    }
+
+    /**
+     * Creates multiple measures.
+     *
+     * @param measures The measures to create.
+     * @return A {@link Flux} emitting the created {@link MeasureDto} objects.
+     */
+    public Flux<MeasureDto> createMeasures(Flux<MeasureDto> measures) {
+        return measures.flatMap(this::createMeasure);
+    }
+
+    /**
+     * Deletes a measure by its ID.
+     *
+     * @param id The ID of the measure to delete.
+     * @return A {@link Mono} emitting a message indicating the measure has been deleted, or an error if not found.
+     */
+    public Mono<String> deleteMeasure(String id) {
+        return measureDao.findById(id)
+                .flatMap(existingMeasure -> measureDao.delete(existingMeasure)
+                        .then(Mono.just("Measure " + existingMeasure.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Measure not found with id=" + id)));
+    }
+
+    /**
+     * Deletes all measures.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    public Mono<Void> deleteAllMeasures() {
+        return measureDao.deleteAll();
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.service.components;
+
+import com.mongodb.MongoWriteException;
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.model.MeasureDto;
+import linkia.dam.whatacookrecipes.model.RecipeDto;
+import linkia.dam.whatacookrecipes.service.repository.CategoryDao;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
+import linkia.dam.whatacookrecipes.service.repository.RecipeDao;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
+
+/**
+ * Component class for creating recipes.
+ * Provides methods to create single or multiple recipes with proper handling of duplicate key errors.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Component: Indicates that this class is a Spring component.
+ * - @Slf4j: Generates a logger for the class.
+ * <p>
+ * Methods:
+ * - createRecipes(Flux<RecipeDto> recipes): Creates multiple recipes.
+ * - createRecipe(RecipeDto recipeDto): Creates a single recipe with retry logic for duplicate key errors.
+ * - createIngredientsAndCategories(RecipeDto recipeDto): Creates or finds ingredients and categories for a recipe.
+ * - createOrFindIngredient(IngredientDto ingredientDto): Creates or finds a single ingredient.
+ * - createOrFindMeasure(MeasureDto measureDto): Creates or finds a single measure.
+ * - createOrFindCategory(CategoryDto categoryDto): Creates or finds a single category.
+ * - isDuplicateKeyException(Throwable throwable): Checks if the given throwable is a duplicate key error.
+ * - getWarned(String recipeDto, Retry.RetrySignal retrySignal): Logs a warning message before retrying due to duplicate key error.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see RecipeDao
+ * @see IngredientDao
+ * @see CategoryDao
+ * @see MeasureDao
+ */
+@AllArgsConstructor
+@Component
+@Slf4j
+public class CreateRecipesComponent {
+
+    public static final String RETRYING_DUE_TO_DUPLICATE_KEY_ERROR = "Retrying due to duplicate key error for '{}': {}";
+    private final RecipeDao recipeDao;
+    private final IngredientDao ingredientDao;
+    private final CategoryDao categoryDao;
+    private final MeasureDao measureDao;
+
+    /**
+     * Creates multiple recipes.
+     *
+     * @param recipes The flux of recipes to create.
+     * @return A {@link Flux} emitting the created {@link RecipeDto} objects.
+     */
+    public Flux<RecipeDto> createRecipes(Flux<RecipeDto> recipes) {
+        return recipes
+                .concatMap(recipe -> Mono.just(recipe)
+                        // .delayElement(Duration.ofMillis(50)) // Introduce a delay of 50 ms between each recipe if necessary to avoid race conditions
+                        .flatMap(this::createRecipe)
+                        .onErrorResume(e -> {
+                            log.error("Error occurred while processing recipe '{}': {}", recipe.getName(), e.getMessage(), e);
+                            return Mono.empty();
+                        }))
+                .onErrorResume(e -> {
+                    log.error("Error occurred: {}", e.getMessage(), e);
+                    return Flux.empty();
+                });
+    }
+
+    /**
+     * Creates a single recipe with retry logic for duplicate key errors.
+     *
+     * @param recipeDto The recipe data to create.
+     * @return A {@link Mono} emitting the created {@link RecipeDto} object.
+     */
+    public Mono<RecipeDto> createRecipe(RecipeDto recipeDto) {
+        return recipeDao.findByNameIgnoreCase(recipeDto.getName())
+                .switchIfEmpty(
+                        createIngredientsAndCategories(recipeDto)
+                                .flatMap(saved -> recipeDao.save(recipeDto))
+                                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                        .filter(this::isDuplicateKeyException)
+                                        .doBeforeRetry(retrySignal -> getWarned(recipeDto.getName(), retrySignal)))
+                )
+                .flatMap(Mono::just)
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for recipe '{}': {}", recipeDto.getName(), e.getMessage(), e);
+                    return recipeDao.findByNameIgnoreCase(recipeDto.getName());
+                });
+    }
+
+    /**
+     * Creates or finds ingredients and categories for a recipe.
+     *
+     * @param recipeDto The recipe data to process.
+     * @return A {@link Mono} emitting the {@link RecipeDto} object with saved ingredients and categories.
+     */
+    private Mono<RecipeDto> createIngredientsAndCategories(RecipeDto recipeDto) {
+        return Flux.fromIterable(recipeDto.getIngredients())
+                .concatMap(this::createOrFindIngredient)
+                .collectList()
+                .flatMap(savedIngredients -> {
+                    recipeDto.setIngredients(savedIngredients);
+                    return Flux.fromIterable(recipeDto.getCategories())
+                            .concatMap(this::createOrFindCategory)
+                            .collectList();
+                })
+                .flatMap(savedCategories -> {
+                    recipeDto.setCategories(savedCategories);
+                    return Mono.just(recipeDto);
+                });
+    }
+
+    /**
+     * Creates or finds a single ingredient.
+     *
+     * @param ingredientDto The ingredient data to process.
+     * @return A {@link Mono} emitting the {@link IngredientDto} object.
+     */
+    private Mono<IngredientDto> createOrFindIngredient(IngredientDto ingredientDto) {
+        return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
+                .switchIfEmpty(
+                        createOrFindMeasure(ingredientDto.getMeasure())
+                                .flatMap(measureSaved -> {
+                                    ingredientDto.setMeasure(measureSaved);
+                                    return ingredientDao.save(ingredientDto)
+                                            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                                    .filter(this::isDuplicateKeyException)
+                                                    .doBeforeRetry(retrySignal -> getWarned(ingredientDto.getName(), retrySignal)));
+                                })
+                )
+                .flatMap(Mono::just)
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for ingredient '{}': {}", ingredientDto.getName(), e.getMessage(), e);
+                    return ingredientDao.findByNameIgnoreCase(ingredientDto.getName());
+                });
+    }
+
+    /**
+     * Creates or finds a single measure.
+     *
+     * @param measureDto The measure data to process.
+     * @return A {@link Mono} emitting the {@link MeasureDto} object.
+     */
+    private Mono<MeasureDto> createOrFindMeasure(MeasureDto measureDto) {
+        return measureDao.findByNameIgnoreCase(measureDto.getName())
+                .switchIfEmpty(
+                        measureDao.save(measureDto)
+                                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                        .filter(this::isDuplicateKeyException)
+                                        .doBeforeRetry(retrySignal -> getWarned(measureDto.getName(), retrySignal)))
+                )
+                .flatMap(Mono::just)
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for measure '{}': {}", measureDto.getName(), e.getMessage(), e);
+                    return measureDao.findByNameIgnoreCase(measureDto.getName());
+                });
+    }
+
+    /**
+     * Creates or finds a single category.
+     *
+     * @param categoryDto The category data to process.
+     * @return A {@link Mono} emitting the {@link CategoryDto} object.
+     */
+    private Mono<CategoryDto> createOrFindCategory(CategoryDto categoryDto) {
+        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+                .switchIfEmpty(
+                        categoryDao.save(categoryDto)
+                                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                        .filter(this::isDuplicateKeyException)
+                                        .doBeforeRetry(retrySignal -> getWarned(categoryDto.getName(), retrySignal)))
+                )
+                .flatMap(Mono::just)
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for category '{}': {}", categoryDto.getName(), e.getMessage(), e);
+                    return categoryDao.findByNameIgnoreCase(categoryDto.getName());
+                });
+    }
+
+    /**
+     * Checks if the given throwable is a duplicate key error.
+     *
+     * @param throwable The throwable to check.
+     * @return true if the throwable is a duplicate key error, false otherwise.
+     */
+    private boolean isDuplicateKeyException(Throwable throwable) {
+        return throwable instanceof MongoWriteException &&
+                ((MongoWriteException) throwable).getCode() == 11000;
+    }
+
+    /**
+     * Logs a warning message before retrying due to duplicate key error.
+     *
+     * @param recipeDto   The name of the recipe being retried.
+     * @param retrySignal The retry signal containing failure information.
+     */
+    private static void getWarned(String recipeDto, Retry.RetrySignal retrySignal) {
+        log.warn(RETRYING_DUE_TO_DUPLICATE_KEY_ERROR, recipeDto, retrySignal.failure().getMessage());
+    }
+
+}
+
+package linkia.dam.whatacookrecipes.service.components;
+
+import com.mongodb.MongoWriteException;
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
+import linkia.dam.whatacookrecipes.service.repository.MeasureDao;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
+
+/**
+ * Component class for creating ingredients.
+ * Provides methods to create single or multiple ingredients with proper handling of duplicate key errors.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Component: Indicates that this class is a Spring component.
+ * - @Slf4j: Generates a logger for the class.
+ * <p>
+ * Methods:
+ * - createIngredients(Flux<IngredientDto> ingredients): Creates multiple ingredients.
+ * - createIngredient(IngredientDto ingredientDto): Creates a single ingredient with retry logic for duplicate key errors.
+ * - isDuplicateKeyException(Throwable throwable): Checks if the given throwable is a duplicate key error.
+ * - getWarned(String ingredientName, Retry.RetrySignal retrySignal): Logs a warning message before retrying due to duplicate key error.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see IngredientDao
+ * @see MeasureDao
+ */
+@AllArgsConstructor
+@Component
+@Slf4j
+public class CreateIngredientsComponent {
+
+    public static final String RETRYING_DUE_TO_DUPLICATE_KEY_ERROR = "Retrying due to duplicate key error for '{}': {}";
+    private final IngredientDao ingredientDao;
+    private final MeasureDao measureDao;
+
+    /**
+     * Creates multiple ingredients.
+     *
+     * @param ingredients The flux of ingredients to create.
+     * @return A {@link Flux} emitting the created {@link IngredientDto} objects.
+     */
+    public Flux<IngredientDto> createIngredients(Flux<IngredientDto> ingredients) {
+        return ingredients
+                .concatMap(ingredient -> Mono.just(ingredient)
+//                        .delayElement(Duration.ofMillis(50)) // Introduce un retraso de 50 ms entre cada ingrediente si es necesario
+                        .flatMap(this::createIngredient)
+                        .onErrorResume(e -> {
+                            log.error("Error occurred while processing ingredient '{}': {}", ingredient.getName(), e.getMessage(), e);
+                            return Mono.empty();
+                        }))
+                .onErrorResume(e -> {
+                    log.error("Error occurred: {}", e.getMessage(), e);
+                    return Flux.empty();
+                });
+    }
+
+    /**
+     * Creates a single ingredient with retry logic for duplicate key errors.
+     *
+     * @param ingredientDto The ingredient data to create.
+     * @return A {@link Mono} emitting the created {@link IngredientDto} object.
+     */
+    public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
+        return measureDao.findByNameIgnoreCase(ingredientDto.getMeasure().getName())
+                .switchIfEmpty(Mono.defer(() -> measureDao.save(ingredientDto.getMeasure())))
+                .flatMap(measureSaved -> {
+                    ingredientDto.setMeasure(measureSaved);
+                    return ingredientDao.findByNameIgnoreCase(ingredientDto.getName())
+                            .switchIfEmpty(Mono.defer(() -> ingredientDao.save(ingredientDto))
+                                    .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                            .filter(this::isDuplicateKeyException)
+                                            .doBeforeRetry(retrySignal -> getWarned(ingredientDto.getName(), retrySignal))));
+                })
+                .flatMap(Mono::just)
+                .onErrorResume(MongoWriteException.class, e -> {
+                    log.error("Duplicate key error for ingredient '{}': {}", ingredientDto.getName(), e.getMessage(), e);
+                    return ingredientDao.findByNameIgnoreCase(ingredientDto.getName());
+                });
+    }
+
+    /**
+     * Checks if the given throwable is a duplicate key error.
+     *
+     * @param throwable The throwable to check.
+     * @return true if the throwable is a duplicate key error, false otherwise.
+     */
+    private boolean isDuplicateKeyException(Throwable throwable) {
+        return throwable instanceof MongoWriteException &&
+                ((MongoWriteException) throwable).getCode() == 11000;
+    }
+
+    /**
+     * Logs a warning message before retrying due to duplicate key error.
+     *
+     * @param ingredientName The name of the ingredient being retried.
+     * @param retrySignal    The retry signal containing failure information.
+     */
+    private static void getWarned(String ingredientName, Retry.RetrySignal retrySignal) {
+        log.warn(RETRYING_DUE_TO_DUPLICATE_KEY_ERROR, ingredientName, retrySignal.failure().getMessage());
+    }
+}
+
+package linkia.dam.whatacookrecipes.service;
+
+import linkia.dam.whatacookrecipes.model.IngredientDto;
+import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
+import linkia.dam.whatacookrecipes.service.components.CreateIngredientsComponent;
+import linkia.dam.whatacookrecipes.service.repository.IngredientDao;
+import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Service class for managing ingredients.
+ * Provides methods for CRUD operations and additional business logic.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Service: Indicates that this class is a Spring service component.
+ * <p>
+ * Methods:
+ * - getAllCategories(int page, int size, String mode): Retrieves all ingredients with pagination.
+ * - getCategoriesByNameContaining(String name, int page, int size, String mode): Retrieves ingredients by name containing a string with pagination.
+ * - getIngredientById(String id): Retrieves an ingredient by its ID.
+ * - getIngredientsByIds(List<String> ids): Retrieves ingredients by a list of IDs.
+ * - getIngredientByName(String name): Retrieves an ingredient by its name, case insensitive.
+ * - createIngredient(IngredientDto ingredientDto): Creates a new ingredient.
+ * - createCategories(Flux<IngredientDto> ingredients): Creates multiple ingredients.
+ * - deleteIngredient(String id): Deletes an ingredient by its ID.
+ * - deleteAllCategories(): Deletes all ingredients.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see IngredientDao
+ * @see CreateIngredientsComponent
+ * @see PaginationUtil
+ */
+@AllArgsConstructor
+@Service
+public class IngredientService {
+
+    private final IngredientDao ingredientDao;
+    private final CreateIngredientsComponent createIngredientsComponent;
+
+    /**
+     * Retrieves all ingredients with pagination.
+     *
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link IngredientDto} objects.
+     */
+    public Mono<Page<IngredientDto>> getAllCategories(int page, int size, String mode) {
+        return ingredientDao.findAll().collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves ingredients by name containing a string with pagination.
+     *
+     * @param name The string to search for within ingredient names.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link IngredientDto} objects.
+     */
+    public Mono<Page<IngredientDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
+        return ingredientDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves an ingredient by its ID.
+     *
+     * @param id The ID of the ingredient to retrieve.
+     * @return A {@link Mono} emitting the {@link IngredientDto} object, or an error if not found.
+     */
+    public Mono<IngredientDto> getIngredientById(String id) {
+        return ingredientDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
+    }
+
+    /**
+     * Retrieves ingredients by a list of IDs.
+     *
+     * @param ids The list of IDs of the ingredients to retrieve.
+     * @return A {@link Mono} emitting a map containing found ingredients and not found IDs.
+     */
+    public Mono<Map<String, Object>> getIngredientsByIds(List<String> ids) {
+        return ingredientDao.findAllById(ids)
+                .collectList()
+                .flatMap(ingredients -> {
+                    List<String> foundIds = ingredients.stream()
+                            .map(IngredientDto::getId)
+                            .toList();
+                    List<String> notFoundIds = ids.stream()
+                            .filter(id -> !foundIds.contains(id))
+                            .toList();
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("found", ingredients);
+                    result.put("notFound", notFoundIds);
+
+                    return Mono.just(result);
+                });
+    }
+
+    /**
+     * Retrieves an ingredient by its name, case insensitive.
+     *
+     * @param name The name of the ingredient to retrieve.
+     * @return A {@link Mono} emitting the {@link IngredientDto} object, or an error if not found.
+     */
+    public Mono<IngredientDto> getIngredientByName(String name) {
+        return ingredientDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with name=" + name)));
+    }
+
+    /**
+     * Creates a new ingredient.
+     *
+     * @param ingredientDto The ingredient data to create.
+     * @return A {@link Mono} emitting the created {@link IngredientDto} object.
+     */
+    public Mono<IngredientDto> createIngredient(IngredientDto ingredientDto) {
+        return createIngredientsComponent.createIngredient(ingredientDto);
+    }
+
+    /**
+     * Creates multiple ingredients.
+     *
+     * @param ingredients The ingredients to create.
+     * @return A {@link Flux} emitting the created {@link IngredientDto} objects.
+     */
+    public Flux<IngredientDto> createCategories(Flux<IngredientDto> ingredients) {
+        return createIngredientsComponent.createIngredients(ingredients);
+    }
+
+    /**
+     * Deletes an ingredient by its ID.
+     *
+     * @param id The ID of the ingredient to delete.
+     * @return A {@link Mono} emitting a message indicating the ingredient has been deleted, or an error if not found.
+     */
+    public Mono<String> deleteIngredient(String id) {
+        return ingredientDao.findById(id)
+                .flatMap(existingIngredient -> ingredientDao.delete(existingIngredient)
+                        .then(Mono.just("Ingredient " + existingIngredient.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Ingredient not found with id=" + id)));
+    }
+
+    /**
+     * Deletes all ingredients.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    public Mono<Void> deleteAllCategories() {
+        return ingredientDao.deleteAll();
+    }
+}
+
+package linkia.dam.whatacookrecipes.service;
+
+import linkia.dam.whatacookrecipes.model.CategoryDto;
+import linkia.dam.whatacookrecipes.model.exception.ResourceNotFoundException;
+import linkia.dam.whatacookrecipes.service.repository.CategoryDao;
+import linkia.dam.whatacookrecipes.utilities.PaginationUtil;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * Service class for managing categories.
+ * Provides methods for CRUD operations and additional business logic.
+ * <p>
+ * Annotations:
+ * - @AllArgsConstructor: Generates a constructor with 1 parameter for each field in the class.
+ * - @Service: Indicates that this class is a Spring service component.
+ * <p>
+ * Methods:
+ * - getAllCategories(int page, int size, String mode): Retrieves all categories with pagination.
+ * - getCategoriesByNameContaining(String name, int page, int size, String mode): Retrieves categories by name containing a string with pagination.
+ * - getCategoryById(String id): Retrieves a category by its ID.
+ * - getCategoryByNameIgnoreCase(String name): Retrieves a category by its name, case insensitive.
+ * - createCategory(CategoryDto categoryDto): Creates a new category if it does not already exist.
+ * - createCategories(Flux<CategoryDto> categories): Creates multiple categories.
+ * - deleteCategory(String id): Deletes a category by its ID.
+ * - deleteAllCategories(): Deletes all categories.
+ *
+ * @author <a href="https://about.me/prof.guazina">Fauno Guazina</a>
+ * @see CategoryDao
+ * @see PaginationUtil
+ */
+@AllArgsConstructor
+@Service
+public class CategoryService {
+
+    private final CategoryDao categoryDao;
+
+    /**
+     * Retrieves all categories with pagination.
+     *
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link CategoryDto} objects.
+     */
+    public Mono<Page<CategoryDto>> getAllCategories(int page, int size, String mode) {
+        return categoryDao.findAll().collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves categories by name containing a string with pagination.
+     *
+     * @param name The string to search for within category names.
+     * @param page The page number to retrieve.
+     * @param size The number of items per page.
+     * @param mode The pagination mode.
+     * @return A {@link Mono} emitting a {@link Page} of {@link CategoryDto} objects.
+     */
+    public Mono<Page<CategoryDto>> getCategoriesByNameContaining(String name, int page, int size, String mode) {
+        return categoryDao.findByNameContainingIgnoreCase(name).collectList()
+                .flatMap(list -> PaginationUtil.createPagedResult(list, page, size, mode));
+    }
+
+    /**
+     * Retrieves a category by its ID.
+     *
+     * @param id The ID of the category to retrieve.
+     * @return A {@link Mono} emitting the {@link CategoryDto} object, or an error if not found.
+     */
+    public Mono<CategoryDto> getCategoryById(String id) {
+        return categoryDao.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
+    }
+
+    /**
+     * Retrieves a category by its name, case insensitive.
+     *
+     * @param name The name of the category to retrieve.
+     * @return A {@link Mono} emitting the {@link CategoryDto} object, or an error if not found.
+     */
+    public Mono<CategoryDto> getCategoryByNameIgnoreCase(String name) {
+        return categoryDao.findByNameIgnoreCase(name)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with name=" + name)));
+    }
+
+    /**
+     * Creates a new category if it does not already exist.
+     *
+     * @param categoryDto The category data to create.
+     * @return A {@link Mono} emitting the created {@link CategoryDto} object.
+     */
+    public Mono<CategoryDto> createCategory(CategoryDto categoryDto) {
+        return categoryDao.findByNameIgnoreCase(categoryDto.getName())
+                .switchIfEmpty(Mono.defer(() -> categoryDao.save(categoryDto)));
+    }
+
+    /**
+     * Creates multiple categories.
+     *
+     * @param categories The categories to create.
+     * @return A {@link Flux} emitting the created {@link CategoryDto} objects.
+     */
+    public Flux<CategoryDto> createCategories(Flux<CategoryDto> categories) {
+        return categories.flatMap(this::createCategory);
+    }
+
+    /**
+     * Deletes a category by its ID.
+     *
+     * @param id The ID of the category to delete.
+     * @return A {@link Mono} emitting a message indicating the category has been deleted, or an error if not found.
+     */
+    public Mono<String> deleteCategory(String id) {
+        return categoryDao.findById(id)
+                .flatMap(existingCategory -> categoryDao.delete(existingCategory)
+                        .then(Mono.just("Category " + existingCategory.getName() + " has been deleted.")))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Category not found with id=" + id)));
+    }
+
+    /**
+     * Deletes all categories.
+     *
+     * @return A {@link Mono} indicating completion of the deletion process.
+     */
+    public Mono<Void> deleteAllCategories() {
+        return categoryDao.deleteAll();
+    }
+
+}
+

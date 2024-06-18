@@ -1,0 +1,77 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    text-align: center;
+}
+
+h1 {
+    color: #1f77b4; /* User-app Collections color */
+}
+
+h4 {
+    color: #ff7f0e; /* Recipes-app Collections color */
+}
+
+svg {
+    display: block;
+    margin: 0 auto;
+}
+
+.legend {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.legend h2 {
+    margin-top: 0;
+}
+
+.legend.types {
+    top: 220px; /* Adjust this value as needed to position the second legend below the first */
+}
+
+.node circle {
+    stroke: #000;
+    stroke-width: 1.5px;
+}
+
+.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 1.5px;
+}
+
+.id-link {
+    stroke: red;
+    stroke-width: 2.5px;
+}
+
+text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+.user-app {
+    fill: #1f77b4;
+}
+
+.user-app-attr {
+    fill: #aec7e8;
+}
+
+.recipes-app {
+    fill: #ff7f0e;
+}
+
+.recipes-app-attr {
+    fill: #ffbb78;
+}

@@ -17,6 +17,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security:3.3.0")
     implementation("io.jsonwebtoken:jjwt:0.12.5")
 
+    // Añadimos la dependencia de JavaParser
+    implementation("com.github.javaparser:javaparser-core:3.23.0")
+
     // Declarar las dependencias transitivas directamente
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.1")
     implementation("com.fasterxml.jackson.core:jackson-core:2.15.4")

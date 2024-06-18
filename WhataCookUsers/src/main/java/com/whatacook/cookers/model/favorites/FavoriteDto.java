@@ -21,7 +21,7 @@ import java.util.List;
  * - @Document: Marks this class as a MongoDB document.
  * <p>
  * Fields:
- * - id: The unique identifier for the favorite entity.
+ * - id: The unique identifier for the favorite entity, same of {@code UserDto}.
  * - recipes: A list of recipe IDs that are marked as favorites.
  * - ingredients: A list of ingredient IDs that are marked as favorites.
  * <p>

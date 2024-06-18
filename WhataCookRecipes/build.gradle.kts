@@ -41,6 +41,9 @@ dependencies {
     implementation("org.springframework:spring-context:6.1.8")
     implementation("org.springframework:spring-web:6.1.8")
 
+    // Añadimos la dependencia de JavaParser
+    implementation("com.github.javaparser:javaparser-core:3.23.0")
+
     // Asegurarse de incluir la dependencia de jakarta.annotation
     implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
 

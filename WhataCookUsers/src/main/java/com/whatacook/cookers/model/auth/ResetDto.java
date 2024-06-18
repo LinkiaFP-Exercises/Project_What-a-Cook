@@ -23,7 +23,7 @@ import java.util.Base64;
  * - @Document: Marks this class as a MongoDB document.
  * <p>
  * Fields:
- * - id: The unique identifier for the reset entity.
+ * - id: The unique identifier for the reset entity, same of {@code UserDto}.
  * - code: The reset code.
  * - expiration: The expiration time of the reset code.
  * <p>
