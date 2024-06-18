@@ -23,7 +23,7 @@ import java.util.Base64;
  * - @Document: Marks this class as a MongoDB document.
  * <p>
  * Fields:
- * - id: The unique identifier for the activation entity.
+ * - id: The unique identifier for the activation entity, same of {@code UserDto}.
  * - code: The activation code.
  * - expiration: The expiration time of the activation code.
  * <p>

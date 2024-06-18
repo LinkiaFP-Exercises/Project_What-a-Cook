@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UML Diagram with d3.js</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Whata-A-Cook APP</h1>
+        <h4>UML Diagram of NoSQL Database</h4>
+    </div>
+    <svg width="1800" height="1200"></svg>
+    <div class="legend">
+        <h2>Legend</h2>
+        <p><span style="color: #1f77b4;">&#9679;</span> User-app Collections</p>
+        <p><span style="color: #aec7e8;">&#9679;</span> User-app Attributes</p>
+        <p><span style="color: #ff7f0e;">&#9679;</span> Recipes-app Collections</p>
+        <p><span style="color: #ffbb78;">&#9679;</span> Recipes-app Attributes</p>
+        <p><span style="color: red;">&#8212;</span> ID Relations</p>
+    </div>
+    <div class="legend types">
+        <h2>Attribute Types</h2>
+        <p>id: String</p>
+        <p>registration: Date</p>
+        <p>email: String</p>
+        <p>password: String</p>
+        <p>firstName: String</p>
+        <p>surNames: String</p>
+        <p>birthdate: Date</p>
+        <p>roleType: String</p>
+        <p>accountStatus: String</p>
+        <p>requestDeleteDate: Date</p>
+        <p>activationCode: String</p>
+        <p>expiration: Date</p>
+        <p>recipeIds: List<String></p>
+        <p>ingredientIds: List<String></p>
+        <p>code: String</p>
+        <p>name: String</p>
+        <p>quantity: Number</p>
+        <p>measure: MeasureDto</p>
+    </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="script2.js"></script>
+</body>
+</html>
