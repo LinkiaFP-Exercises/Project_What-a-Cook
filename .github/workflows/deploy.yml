@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        using: 'node20'
 
       - name: Log in to Heroku Container Registry
         env:
