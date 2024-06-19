@@ -13,11 +13,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
       - name: Log in to Heroku Container Registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+        uses: docker/login-action@v2
+        with:
+          registry: registry.heroku.com
+          username: ${{ secrets.HEROKU_USERNAME }}
+          password: ${{ secrets.HEROKU_API_KEY }}
 
       - name: Build and push whatacook-users
         run: |
