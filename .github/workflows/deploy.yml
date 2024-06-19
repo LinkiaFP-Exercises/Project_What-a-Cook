@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: what-a-cook-app  # Asegúrate de que el flujo de trabajo usa el entorno correcto
 
     steps:
       - name: Checkout code
@@ -38,13 +39,9 @@ jobs:
           docker push registry.heroku.com/whatacook-recipes/web
 
       - name: Release whatacook-users
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:release web --app whatacook-users
 
       - name: Release whatacook-recipes
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:release web --app whatacook-recipes
