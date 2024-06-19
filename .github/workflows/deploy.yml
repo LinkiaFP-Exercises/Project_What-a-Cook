@@ -24,7 +24,7 @@ jobs:
         with:
           registry: registry.heroku.com
           username: ${{ secrets.HEROKU_USERNAME }}
-          password: ${{ secrets.HEROKU_PASSWORD }}
+          password: ${{ secrets.HEROKU_API_KEY }}
 
       - name: Build and push whatacook-users
         run: |
