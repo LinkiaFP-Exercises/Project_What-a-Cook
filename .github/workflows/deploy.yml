@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and push whatacook-users
         env:
-          HEROKU_API_KEY: ${{ secrets.WHAT_A_COOK_HEROKU_AUTH }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           docker pull faunog/whatacook:cookers-app
           docker tag faunog/whatacook:cookers-app registry.heroku.com/whatacook-users/web
@@ -36,7 +36,7 @@ jobs:
 
       - name: Build and push whatacook-recipes
         env:
-          HEROKU_API_KEY: ${{ secrets.WHAT_A_COOK_HEROKU_AUTH }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           docker pull faunog/whatacook:recipes-app
           docker tag faunog/whatacook:recipes-app registry.heroku.com/whatacook-recipes/web
@@ -44,12 +44,12 @@ jobs:
 
       - name: Release whatacook-users
         env:
-          HEROKU_API_KEY: ${{ secrets.WHAT_A_COOK_HEROKU_AUTH }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:release web --app whatacook-users
 
       - name: Release whatacook-recipes
         env:
-          HEROKU_API_KEY: ${{ secrets.WHAT_A_COOK_HEROKU_AUTH }}
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           heroku container:release web --app whatacook-recipes
