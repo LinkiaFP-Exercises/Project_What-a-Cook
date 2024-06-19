@@ -75,6 +75,7 @@ public class SecurityConfig implements WebFluxConfigurer {
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(authorizeExchangeSpec ->
                         authorizeExchangeSpec
+                                .pathMatchers("/").permitAll() //For Render
                                 .pathMatchers(globalValues.getPathToCheckIfEmailAlreadyExists()).permitAll()
                                 .pathMatchers(globalValues.getPathToJavaDoc()).permitAll()
                                 .pathMatchers(globalValues.getPathToDirectoryJavadoc()).permitAll()
