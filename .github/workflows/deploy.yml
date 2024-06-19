@@ -1,0 +1,44 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches:
+      - main  # O la rama principal de tu repositorio
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          echo $HEROKU_API_KEY | docker login --username=_ --password-stdin registry.heroku.com
+
+      - name: Build and push whatacook-users
+        run: |
+          docker pull faunog/whatacook:cookers-app
+          docker tag faunog/whatacook:cookers-app registry.heroku.com/whatacook-users/web
+          docker push registry.heroku.com/whatacook-users/web
+
+      - name: Build and push whatacook-recipes
+        run: |
+          docker pull faunog/whatacook:recipes-app
+          docker tag faunog/whatacook:recipes-app registry.heroku.com/whatacook-recipes/web
+          docker push registry.heroku.com/whatacook-recipes/web
+
+      - name: Release whatacook-users
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:release web --app whatacook-users
+
+      - name: Release whatacook-recipes
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:release web --app whatacook-recipes
