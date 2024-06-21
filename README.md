@@ -45,8 +45,6 @@ Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar 
 ### Construir la imagen con Docker Compose
 1. Primero, crea un archivo 'docker-compose.yml' en el directorio raíz con el siguiente contenido:
     ```yaml
-    version: '3.8'
-    
     services:
       whatacook-users:
         image: faunog/whatacook:cookers-app
@@ -59,7 +57,6 @@ Para probar la aplicación WhataCook usando Docker, puedes construir y ejecutar 
         ports:
           - "8082:8080"
         pull_policy: always
-    
     ```
 2. Desde la terminal, navega al directorio raíz de tu proyecto donde se encuentra el archivo docker-compose.yml y ejecuta:
    ```bash
