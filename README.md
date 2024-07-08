@@ -15,12 +15,13 @@
 
 ## Tecnologías Utilizadas
 
-- **Java 21**
-- **Spring Boot**
-- **Spring WebFlux**
-- **MongoDB**
-- **JWT**
-- **Docker**
+![Java](https://img.shields.io/badge/Java-21-blue.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.5.0-brightgreen.svg)
+![Spring WebFlux](https://img.shields.io/badge/Spring%20WebFlux-2.5.0-brightgreen.svg)
+![MongoDB](https://img.shields.io/badge/MongoDB-4.4-green.svg)
+![JWT](https://img.shields.io/badge/JWT-JSON%20Web%20Tokens-yellow.svg)
+![Docker](https://img.shields.io/badge/Docker-19.03.12-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ## Estructura del Proyecto
 
@@ -65,7 +66,7 @@ Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno local:
 
 ### Prerrequisitos
 
-- Docker
+![Docker](https://img.shields.io/badge/Docker-19.03.12-blue.svg)
 
 ### Instrucciones
 
@@ -115,9 +116,27 @@ Una vez construida la imagen, puedes ejecutar la aplicación utilizando Docker c
     docker run -p 8082:8080 faunog/whatacook:recipes-app
     ```
 
->Para más detalles recomendamos consultar la documentación oficial de Docker.
+>Para más detalles recomendamos consultar la documentación oficial de [Docker](https://docs.docker.com/).
 
 ## Documentación de la API - Postman requests
 
 Puedes encontrar la colección de requests con detalles de como utilizar cada uno de los endpoints en el seguiente enlace:
 [WhataCook - @Cookers-NewTests](https://documenter.getpostman.com/view/12946439/2sA35A8QuD)
+
+## Contribución
+
+Si deseas contribuir a este proyecto, por favor sigue estos pasos:
+
+1. **Fork el repositorio.**
+2. **Crea una nueva rama:**
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. **Realiza tus cambios y haz commit:**
+   ```bash
+   git commit -m "Agregar nueva funcionalidad"
+   ```
+4. **Envía tus cambios:**
+   ```bash
+   git push origin feature/nueva-funcionalidad
+   ```
